@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施設情報 | 介護施設検索ツール</title>
+  <style>
+    :root {
+      --brand:#0d9488; --brand-d:#0f766e;
+      --brand-l:#f0fdfa; --brand-ll:#ccfbf1;
+      --ok:#16a34a; --ok-bg:#dcfce7;
+      --few:#ea580c; --few-bg:#ffedd5;
+      --full-c:#64748b; --full-bg:#f1f5f9;
+      --purple:#7c3aed; --purple-bg:#f5f3ff;
+      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0; --g300:#cbd5e1;
+      --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
+      --g800:#1e293b; --g900:#0f172a;
+      --r:12px; --r-lg:16px;
+      --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+      --sh-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:-apple-system,'Helvetica Neue','Hiragino Sans',Arial,sans-serif;
+      background:var(--g50); color:var(--g800); line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+    }
+    .hdr {
+      background:var(--g900); height:62px; padding:0 24px;
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:100;
+    }
+    .hdr-brand { display:flex; align-items:center; gap:10px; }
+    .hdr-logo { width:32px; height:32px; background:var(--brand); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+    .hdr-title { font-size:15px; font-weight:800; color:white; }
+    .hdr-sub   { font-size:10px; color:var(--g400); margin-top:1px; }
+    .hdr-back  { font-size:12px; color:var(--g400); text-decoration:none; padding:6px 12px; border:1px solid rgba(255,255,255,.15); border-radius:7px; transition:all .15s; }
+    .hdr-back:hover { color:white; border-color:rgba(255,255,255,.35); }
+
+    .page { max-width:640px; margin:0 auto; padding:28px 20px 60px; }
+
+    /* hero photo */
+    .hero { position:relative; height:220px; border-radius:var(--r-lg); overflow:hidden; background:var(--g200); margin-bottom:20px; box-shadow:var(--sh-md); }
+    .hero img { width:100%; height:100%; object-fit:cover; display:block; }
+    .hero-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,20,40,.82) 0%,rgba(10,20,40,.1) 55%,transparent 100%); }
+    .hero-name { position:absolute; bottom:16px; left:18px; right:18px; color:white; font-size:22px; font-weight:900; line-height:1.25; }
+    .hero-type { position:absolute; top:14px; left:14px; background:rgba(10,20,40,.55); backdrop-filter:blur(8px); color:white; font-size:11px; padding:4px 11px; border-radius:20px; font-weight:600; }
+    .hero-area { position:absolute; top:14px; right:14px; background:var(--brand); color:white; font-size:11px; padding:4px 11px; border-radius:20px; font-weight:600; }
+
+    /* vacancy block */
+    .vac-block { border-radius:var(--r-lg); overflow:hidden; margin-bottom:16px; display:flex; box-shadow:var(--sh); }
+    .vac-num   { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:22px 26px; min-width:100px; }
+    .vac-ok   .vac-num { background:var(--ok-bg); }
+    .vac-few  .vac-num { background:var(--few-bg); }
+    .vac-full .vac-num { background:var(--full-bg); }
+    .vac-big  { font-size:52px; font-weight:900; line-height:1; letter-spacing:-3px; }
+    .vac-ok  .vac-big  { color:var(--ok); }
+    .vac-few .vac-big  { color:var(--few); }
+    .vac-full .vac-big { color:var(--full-c); }
+    .vac-unit { font-size:13px; font-weight:700; margin-top:-2px; }
+    .vac-ok  .vac-unit  { color:var(--ok); }
+    .vac-few .vac-unit  { color:var(--few); }
+    .vac-full .vac-unit { color:var(--full-c); }
+    .vac-info { flex:1; padding:16px 18px; display:flex; flex-direction:column; justify-content:center; }
+    .vac-ok  .vac-info { background:color-mix(in srgb,var(--ok-bg) 35%,white); }
+    .vac-few .vac-info { background:color-mix(in srgb,var(--few-bg) 35%,white); }
+    .vac-full .vac-info { background:var(--g50); }
+    .vac-status { font-size:16px; font-weight:800; margin-bottom:4px; }
+    .vac-ok  .vac-status  { color:var(--ok); }
+    .vac-few .vac-status  { color:var(--few); }
+    .vac-full .vac-status { color:var(--full-c); }
+    .vac-upd { font-size:11px; color:var(--g400); margin-top:6px; }
+
+    /* cards */
+    .card { background:white; border-radius:var(--r-lg); padding:20px 22px; box-shadow:var(--sh); margin-bottom:14px; border:1px solid var(--g200); }
+    .card-ttl { font-size:10px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--g100); display:flex; align-items:center; gap:7px; }
+    .d-rows { display:flex; flex-direction:column; gap:8px; }
+    .d-row  { display:flex; gap:10px; font-size:13px; }
+    .d-lbl  { color:var(--g400); width:76px; flex-shrink:0; font-size:12px; padding-top:1px; }
+    .d-val  { color:var(--g700); font-weight:500; line-height:1.5; }
+    .feat-tags { display:flex; flex-wrap:wrap; gap:4px; }
+    .feat-tag  { font-size:11px; padding:3px 9px; background:var(--g100); border-radius:5px; color:var(--g600); font-weight:500; }
+
+    /* campaign */
+    .campaign-card { background:var(--purple-bg); border:1px solid #ddd6fe; border-radius:var(--r-lg); padding:16px 18px; margin-bottom:14px; }
+    .camp-label { font-size:10px; color:var(--purple); font-weight:800; letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px; }
+    .camp-text  { font-size:14px; color:var(--g700); font-weight:500; line-height:1.6; }
+
+    /* contact */
+    .contact-card { background:white; border-radius:var(--r-lg); border:1.5px solid var(--brand-ll); box-shadow:0 4px 14px rgba(13,148,136,.1); overflow:hidden; margin-bottom:14px; }
+    .cont-hd    { background:var(--brand-l); padding:12px 18px; font-size:11px; font-weight:700; color:var(--brand-d); letter-spacing:.04em; border-bottom:1px solid var(--brand-ll); }
+    .cont-inner { padding:18px 20px; }
+    .cont-name  { font-size:13px; font-weight:600; color:var(--g600); margin-bottom:4px; }
+    .cont-tel   { font-size:30px; font-weight:900; color:var(--brand-d); letter-spacing:-1px; margin-bottom:14px; }
+    .call-btn   { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .1s; text-decoration:none; }
+    .call-btn:hover { background:var(--brand-d); transform:translateY(-1px); }
+
+    /* footer note */
+    .foot-note { text-align:center; font-size:12px; color:var(--g400); margin-top:28px; line-height:1.7; }
+    .foot-note a { color:var(--brand); text-decoration:none; }
+
+    /* error / loading */
+    .state-msg { text-align:center; padding:80px 20px; color:var(--g400); }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">🏠</div>
+    <div>
+      <div class="hdr-title">介護施設検索ツール</div>
+      <div class="hdr-sub">介護施設空き状況プラットフォーム</div>
+    </div>
+  </div>
+</header>
+
+<div class="page" id="page">
+  <div class="state-msg">読み込み中...</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+
+const id   = new URLSearchParams(location.search).get('id');
+const page = document.getElementById('page');
+
+if (!id) {
+  page.innerHTML = '<div class="state-msg">⚠️ 施設IDが指定されていません。</div>';
+} else {
+  load(id);
+}
+
+function load(docId) {
+  db.collection('facilities').doc(docId).onSnapshot(doc => {
+    if (!doc.exists) {
+      page.innerHTML = '<div class="state-msg">施設が見つかりませんでした。</div>';
+      return;
+    }
+    render(doc);
+  }, e => {
+    page.innerHTML = `<div class="state-msg">⚠️ 読み込みエラー: ${e.message}</div>`;
+  });
+}
+
+function render(doc) {
+  const d      = doc.data();
+  const total  = typeof d.vacancy === 'number' ? d.vacancy : 0;
+  const upd    = d.updatedAt ? d.updatedAt.toDate() : new Date();
+  const now    = new Date();
+  const days   = Math.floor((now - upd) / 86400000);
+  const updStr = upd.toISOString().slice(0, 10);
+  const vacCls = total === 0 ? 'vac-full' : total <= 2 ? 'vac-few' : 'vac-ok';
+  const status = total === 0 ? '現在満室です' : total <= 2 ? `残り${total}室 — お早めにご相談ください` : `${total}室 空きあり`;
+  const photo  = `https://picsum.photos/seed/${doc.id.slice(0,10)}/700/400`;
+  const station = [d.station, d.stationDistance].filter(Boolean).join(' ');
+
+  document.title = `${d.name || '施設情報'} | 介護施設検索ツール`;
+
+  page.innerHTML = `
+    <div class="hero">
+      <img src="${photo}" alt="${d.name}" loading="lazy">
+      <div class="hero-grad"></div>
+      <div class="hero-name">${d.name || ''}</div>
+      <div class="hero-type">${d.type || ''}</div>
+      ${d.area ? `<div class="hero-area">📍 ${d.area}</div>` : ''}
+    </div>
+
+    <div class="vac-block ${vacCls}">
+      <div class="vac-num">
+        <div class="vac-big">${total}</div>
+        <div class="vac-unit">室空き</div>
+      </div>
+      <div class="vac-info">
+        <div class="vac-status">${status}</div>
+        <div class="vac-upd">更新日: ${updStr}${days > 14 ? ' ⚠️ 古い情報の可能性があります' : ''}</div>
+      </div>
+    </div>
+
+    ${d.campaign ? `
+    <div class="campaign-card">
+      <div class="camp-label">🎁 キャンペーン・お知らせ</div>
+      <div class="camp-text">${d.campaign}</div>
+    </div>` : ''}
+
+    ${(d.contactName || d.contactTel) ? `
+    <div class="contact-card">
+      <div class="cont-hd">📞 入居相談・見学申し込み</div>
+      <div class="cont-inner">
+        ${d.contactName ? `<div class="cont-name">${d.contactName}</div>` : ''}
+        ${d.contactTel  ? `<div class="cont-tel">${d.contactTel}</div><a class="call-btn" href="tel:${d.contactTel}">📞 電話で問い合わせる</a>` : ''}
+      </div>
+    </div>` : ''}
+
+    <div class="card">
+      <div class="card-ttl">🏥 施設基本情報</div>
+      <div class="d-rows">
+        <div class="d-row"><span class="d-lbl">施設種別</span><span class="d-val">${d.type || '─'}</span></div>
+        ${d.address  ? `<div class="d-row"><span class="d-lbl">住所</span><span class="d-val">${d.address}</span></div>` : ''}
+        ${station    ? `<div class="d-row"><span class="d-lbl">最寄り駅</span><span class="d-val">🚉 ${station}</span></div>` : ''}
+        ${d.features && d.features.length ? `<div class="d-row"><span class="d-lbl">特徴</span><div class="feat-tags">${d.features.map(t=>`<span class="feat-tag">${t}</span>`).join('')}</div></div>` : ''}
+      </div>
+    </div>
+
+    <div class="foot-note">
+      このページは施設担当者が随時更新しています。<br>
+      空室状況は変動しますので、直接お問い合わせください。
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

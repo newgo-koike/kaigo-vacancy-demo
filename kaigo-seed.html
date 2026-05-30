@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>デモデータ投入 | 介護施設検索ツール</title>
+  <style>
+    body { font-family:-apple-system,sans-serif; background:#0f172a; color:white; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+    .box { max-width:480px; width:100%; text-align:center; }
+    h1 { font-size:18px; margin-bottom:8px; }
+    p  { font-size:13px; color:#94a3b8; margin-bottom:6px; line-height:1.7; }
+    .warn { font-size:12px; color:#fbbf24; background:rgba(251,191,36,.1); border:1px solid rgba(251,191,36,.3); border-radius:8px; padding:10px 14px; margin-bottom:20px; }
+    .btn { width:100%; padding:14px; background:#0d9488; color:white; border:none; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit; margin-bottom:10px; }
+    .btn:hover { background:#0f766e; }
+    .btn:disabled { background:#334155; cursor:not-allowed; }
+    .btn-clear { width:100%; padding:11px; background:transparent; color:#ef4444; border:1.5px solid #ef4444; border-radius:12px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .btn-clear:hover { background:rgba(239,68,68,.1); }
+    .log { margin-top:20px; text-align:left; font-size:12px; color:#94a3b8; line-height:2; }
+    .ok  { color:#34d399; }
+    .err { color:#f87171; }
+  </style>
+</head>
+<body>
+<div class="box">
+  <h1>🏥 デモ施設データを投入</h1>
+  <p>体験営業デモ用のサンプル施設を<strong>30件</strong>追加します。</p>
+  <div class="warn">⚠️ 1回だけ実行してください。重複して実行すると施設が増えます。</div>
+  <button class="btn" id="btn" onclick="seed()">デモデータを追加する（30件）</button>
+  <button class="btn-clear" onclick="clearAll()">Firestoreのデータを全削除する</button>
+  <div class="log" id="log"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+
+const DEMO = [
+  /* ── 曽根エリア ── */
+  { name:'サービス付住宅 そね花水木', type:'サ高住', address:'大阪府豊中市曽根南町2-12-25', station:'阪急曽根駅', stationDistance:'徒歩12分', area:'曽根', vacancy:2, campaign:'6月末まで入居金0円キャンペーン実施中', plan:'paid', contactName:'泉谷 施設長', contactTel:'06-0000-1001', features:['24時間介護スタッフ常駐','機能訓練あり','看取りケア対応'] },
+  { name:'グループホーム曽根オアシス', type:'グループホーム', address:'大阪府豊中市曽根西町3-5-10', station:'阪急曽根駅', stationDistance:'徒歩5分', area:'曽根', vacancy:3, campaign:'見学随時受付中。お気軽にお問い合わせください', plan:'paid', contactName:'田中 担当', contactTel:'06-0000-1007', features:['認知症専門ケア','小規模家庭的環境','外出支援あり'] },
+  { name:'ピグマリオン 豊中桜ノ庄', type:'グループホーム', address:'大阪府豊中市桜の町2-3-15', station:'阪急曽根駅', stationDistance:'徒歩15分', area:'曽根', vacancy:1, campaign:'体験入居1週間無料実施中', plan:'paid', contactName:'中村 施設長', contactTel:'06-0000-1008', features:['認知症ケア特化','少人数制（9名）','ターミナルケア対応'] },
+  { name:'いきいきホーム曽根', type:'サ高住', address:'大阪府豊中市曽根東町4-1-8', station:'阪急曽根駅', stationDistance:'徒歩8分', area:'曽根', vacancy:4, campaign:'今なら初月管理費0円！見学送迎あり', plan:'paid', contactName:'山本 担当', contactTel:'06-0000-1009', features:['自立・要支援向け','食事3食提供','バリアフリー設計'] },
+  { name:'老健 豊中さんさん', type:'老健', address:'大阪府豊中市曽根南町5-8-2', station:'阪急曽根駅', stationDistance:'徒歩10分', area:'曽根', vacancy:6, campaign:'短期入所（ショートステイ）も受付中', plan:'paid', contactName:'佐藤 相談員', contactTel:'06-0000-1010', features:['リハビリ専門職常駐','在宅復帰支援','医師常駐'] },
+  { name:'介護付ホーム 桜台曽根', type:'介護付有料', address:'大阪府豊中市曽根西町1-7-20', station:'阪急曽根駅', stationDistance:'徒歩7分', area:'曽根', vacancy:0, campaign:'6月中旬に1室空室予定。お早めにお問い合わせください', plan:'free', contactName:'', contactTel:'', features:['24時間介護スタッフ常駐','訪問診療連携','認知症対応'] },
+
+  /* ── 岡町・豊中エリア ── */
+  { name:'リハビリホーム 岡町わかば', type:'介護付有料', address:'大阪府豊中市末広町1-9-13', station:'阪急岡町駅', stationDistance:'徒歩8分', area:'岡町', vacancy:0, campaign:'空室待ちリスト受付中', plan:'free', contactName:'', contactTel:'', features:['リハビリ専門職常駐','在宅復帰支援','医療連携充実'] },
+  { name:'介護付ホーム 岡町ラベンダー', type:'介護付有料', address:'大阪府豊中市岡町北3-5-22', station:'阪急岡町駅', stationDistance:'徒歩6分', area:'岡町', vacancy:0, campaign:'空室待ちリスト受付中。優先的にご連絡いたします', plan:'free', contactName:'', contactTel:'', features:['認知症ケア充実','個室全室完備','駅近6分'] },
+  { name:'ケアホーム 豊中さつき', type:'介護付有料', address:'大阪府豊中市本町3-2-15', station:'阪急豊中駅', stationDistance:'徒歩5分', area:'岡町', vacancy:3, campaign:'6月見学会開催！送迎あり', plan:'paid', contactName:'伊藤 担当', contactTel:'06-0000-1002', features:['24時間看護師常勤','感染対策強化施設','個室完備'] },
+  { name:'ハーモニー岡町', type:'介護付有料', address:'大阪府豊中市岡上の町2-4-11', station:'阪急岡町駅', stationDistance:'徒歩4分', area:'岡町', vacancy:0, campaign:'入居待機中。空室が出次第ご連絡します', plan:'free', contactName:'', contactTel:'', features:['駅近4分','個室全室南向き','機能回復訓練あり'] },
+  { name:'グループホーム清風岡町', type:'グループホーム', address:'大阪府豊中市岡町南1-8-5', station:'阪急岡町駅', stationDistance:'徒歩12分', area:'岡町', vacancy:1, campaign:'緊急入居対応可能', plan:'paid', contactName:'清水 施設長', contactTel:'06-0000-0012', features:['認知症専門ケア','少人数制（18名）','家族交流スペース完備'] },
+  { name:'グループホーム岡町ひだまり', type:'グループホーム', address:'大阪府豊中市岡上の町4-6-3', station:'阪急岡町駅', stationDistance:'徒歩9分', area:'岡町', vacancy:3, campaign:'7月まで入居金半額キャンペーン', plan:'paid', contactName:'高橋 担当', contactTel:'06-0000-0013', features:['認知症ケア特化','デイサービス併設','外出レクリエーション充実'] },
+  { name:'介護老人保健施設 すずらん', type:'老健', address:'大阪府豊中市末広町4-2-8', station:'阪急豊中駅', stationDistance:'徒歩3分', area:'岡町', vacancy:4, campaign:'ショートステイも受付中', plan:'paid', contactName:'松田 相談員', contactTel:'06-0000-0014', features:['リハビリ専門職常駐','在宅復帰支援','医師常駐'] },
+
+  /* ── 庄内エリア ── */
+  { name:'特養 庄内やまぶき苑', type:'特養', address:'大阪府豊中市庄内幸町3-1-5', station:'阪急庄内駅', stationDistance:'徒歩10分', area:'庄内', vacancy:0, campaign:'入所待機リスト受付中（現在約120名待ち）', plan:'free', contactName:'', contactTel:'', features:['要介護3以上対象','看取りケア対応','公的施設（低価格）'] },
+  { name:'サービス付住宅 庄内ひかり苑', type:'サ高住', address:'大阪府豊中市三和町1-2-23', station:'阪急庄内駅', stationDistance:'徒歩10分', area:'庄内', vacancy:2, campaign:'オープン記念！6月末まで初期費用0円', plan:'paid', contactName:'小林 施設長', contactTel:'06-0000-1003', features:['自立・軽介護向け','生活支援サービス付き','24時間緊急対応'] },
+  { name:'グループホーム庄内さくら', type:'グループホーム', address:'大阪府豊中市庄内東町2-7-14', station:'阪急庄内駅', stationDistance:'徒歩8分', area:'庄内', vacancy:1, campaign:'見学随時受付中', plan:'paid', contactName:'渡辺 担当', contactTel:'06-0000-0015', features:['認知症専門ケア','少人数9名制','季節のレクリエーション充実'] },
+  { name:'豊中ケアホーム庄内', type:'介護付有料', address:'大阪府豊中市庄内西町4-3-9', station:'阪急庄内駅', stationDistance:'徒歩5分', area:'庄内', vacancy:0, campaign:'2名待機中。キャンセル待ち受付可', plan:'free', contactName:'', contactTel:'', features:['24時間介護スタッフ','看護師日中常駐','訪問診療連携'] },
+  { name:'特養 ぬくもりの里庄内', type:'特養', address:'大阪府豊中市庄内栄町1-4-20', station:'阪急庄内駅', stationDistance:'徒歩12分', area:'庄内', vacancy:0, campaign:'待機リスト受付中', plan:'free', contactName:'', contactTel:'', features:['要介護3以上対象','多床室あり（低費用）','ターミナルケア対応'] },
+  { name:'さわやかホーム庄内', type:'サ高住', address:'大阪府豊中市庄内南町3-2-10', station:'阪急庄内駅', stationDistance:'徒歩6分', area:'庄内', vacancy:5, campaign:'今なら礼金0円！見学送迎あり', plan:'paid', contactName:'川口 担当', contactTel:'06-0000-0016', features:['食事提供あり（3食）','介護スタッフ24h常駐','入居一時金不要プランあり'] },
+  { name:'老健 庄内かがやき', type:'老健', address:'大阪府豊中市庄内西町1-10-3', station:'阪急庄内駅', stationDistance:'徒歩15分', area:'庄内', vacancy:2, campaign:'在宅復帰支援強化プログラム実施中', plan:'paid', contactName:'森田 相談員', contactTel:'06-0000-0017', features:['理学・作業療法士常勤','通所リハビリ併設','週7日リハビリ実施'] },
+
+  /* ── 服部エリア ── */
+  { name:'グループホーム服部温泉', type:'グループホーム', address:'大阪府豊中市服部元町2-5-11', station:'阪急服部天神駅', stationDistance:'徒歩7分', area:'服部', vacancy:2, campaign:'温泉風大浴場あり！見学随時受付', plan:'paid', contactName:'井上 施設長', contactTel:'06-0000-0018', features:['認知症ケア専門','入浴設備充実','家族面会24時間OK'] },
+  { name:'グループホーム服部つばき', type:'グループホーム', address:'大阪府豊中市服部西町1-3-8', station:'阪急服部天神駅', stationDistance:'徒歩13分', area:'服部', vacancy:0, campaign:'空室待ちリスト受付中', plan:'free', contactName:'', contactTel:'', features:['認知症対応型','少人数6名制','園芸療法実施中'] },
+  { name:'老健 緑風園豊中', type:'老健', address:'大阪府豊中市服部豊町3-1-15', station:'阪急服部天神駅', stationDistance:'徒歩6分', area:'服部', vacancy:1, campaign:'', plan:'paid', contactName:'加藤 相談員', contactTel:'06-0000-0019', features:['言語聴覚士常勤','嚥下リハビリ特化','医療連携強化'] },
+  { name:'アゼリア服部', type:'サ高住', address:'大阪府豊中市服部元町1-9-4', station:'阪急服部天神駅', stationDistance:'徒歩10分', area:'服部', vacancy:3, campaign:'初月家賃半額キャンペーン実施中', plan:'paid', contactName:'中島 担当', contactTel:'06-0000-0020', features:['全室独立型居室','朝食提供あり','見守りセンサー完備'] },
+
+  /* ── 千里エリア ── */
+  { name:'サービス付住宅 千里みどりの丘', type:'サ高住', address:'大阪府豊中市緑丘2-4-7', station:'北大阪急行緑地公園駅', stationDistance:'徒歩6分', area:'千里', vacancy:5, campaign:'7月末まで入居一時金0円', plan:'paid', contactName:'吉田 担当', contactTel:'06-0000-1004', features:['駅近6分','介護・看護24h体制','レストランサービス'] },
+  { name:'老健みのり豊中', type:'老健', address:'大阪府豊中市緑丘4-1-20', station:'北大阪急行緑地公園駅', stationDistance:'徒歩12分', area:'千里', vacancy:2, campaign:'', plan:'paid', contactName:'岡田 相談員', contactTel:'06-0000-0021', features:['リハビリ設備充実','認知症専門病棟あり','栄養管理強化'] },
+  { name:'特養 豊中千里の里', type:'特養', address:'大阪府豊中市箕輪町1-5-3', station:'北大阪急行千里中央駅', stationDistance:'徒歩15分', area:'千里', vacancy:0, campaign:'長期待機あり。見学・相談随時受付', plan:'free', contactName:'', contactTel:'', features:['要介護3以上対象','低価格帯','多職種連携体制'] },
+  { name:'介護付ホーム 千里はるかぜ', type:'介護付有料', address:'大阪府豊中市緑丘3-6-11', station:'北大阪急行緑地公園駅', stationDistance:'徒歩8分', area:'千里', vacancy:2, campaign:'体験入居2泊3日無料', plan:'paid', contactName:'西田 担当', contactTel:'06-0000-1005', features:['全個室','医療機関隣接','看取りケア対応'] },
+
+  /* ── 少路エリア ── */
+  { name:'介護付ホーム 少路みなみの丘', type:'介護付有料', address:'大阪府豊中市御殿山2-1-8', station:'大阪モノレール少路駅', stationDistance:'徒歩8分', area:'少路', vacancy:1, campaign:'見学会毎週土曜開催', plan:'paid', contactName:'村上 担当', contactTel:'06-0000-1006', features:['全個室完備','訪問診療・看護連携','24時間緊急対応'] },
+  { name:'コスモス豊中少路', type:'サ高住', address:'大阪府豊中市少路1-3-22', station:'大阪モノレール少路駅', stationDistance:'徒歩5分', area:'少路', vacancy:3, campaign:'6・7月入居で家電プレゼント', plan:'paid', contactName:'田村 施設長', contactTel:'06-0000-0022', features:['自立向け全居室独立型','食事サービス選択制','外出支援サービス充実'] },
+];
+
+async function seed() {
+  const btn = document.getElementById('btn');
+  const log = document.getElementById('log');
+  btn.disabled = true;
+  btn.textContent = '追加中...';
+  log.innerHTML = '';
+
+  for (const f of DEMO) {
+    try {
+      await db.collection('facilities').add({
+        ...f,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      log.innerHTML += `<div class="ok">✅ ${f.name}</div>`;
+    } catch(e) {
+      log.innerHTML += `<div class="err">❌ ${f.name}: ${e.message}</div>`;
+    }
+  }
+
+  btn.textContent = `完了！（${DEMO.length}件追加）`;
+  log.innerHTML += `<div style="margin-top:12px;color:white;font-weight:700;">
+    → <a href="kaigo-search.html" style="color:#34d399;">検索ページで確認する</a>
+  </div>`;
+}
+
+async function clearAll() {
+  if (!confirm('Firestoreのfacilitiesを全件削除します。よいですか？')) return;
+  const log = document.getElementById('log');
+  log.innerHTML = '<div style="color:#fbbf24">削除中...</div>';
+  try {
+    const snap = await db.collection('facilities').get();
+    const batch = db.batch();
+    snap.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    log.innerHTML = `<div class="ok">✅ ${snap.size}件削除しました</div>`;
+  } catch(e) {
+    log.innerHTML = `<div class="err">❌ エラー: ${e.message}</div>`;
+  }
+}
+</script>
+</body>
+</html>

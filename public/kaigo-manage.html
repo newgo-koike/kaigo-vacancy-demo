@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施設情報更新 | 介護施設検索ツール</title>
+  <style>
+    :root {
+      --brand:#0d9488; --brand-d:#0f766e; --brand-dd:#134e4a;
+      --brand-l:#f0fdfa; --brand-ll:#ccfbf1;
+      --ok:#16a34a; --ok-bg:#dcfce7;
+      --few:#ea580c; --few-bg:#ffedd5;
+      --full-c:#64748b; --full-bg:#f1f5f9;
+      --purple:#7c3aed; --purple-bg:#f5f3ff;
+      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0; --g300:#cbd5e1;
+      --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
+      --g800:#1e293b; --g900:#0f172a;
+      --r:12px; --r-lg:16px;
+      --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+      --sh-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+      --hdr-h:62px;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html,body { min-height:100%; }
+    body {
+      font-family:-apple-system,'Helvetica Neue','Hiragino Sans',Arial,sans-serif;
+      background:var(--g50); color:var(--g800); line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* ── HEADER ── */
+    .hdr {
+      background:var(--g900); height:var(--hdr-h); padding:0 24px;
+      display:flex; align-items:center; justify-content:space-between;
+      box-shadow:0 1px 0 rgba(255,255,255,.06); position:sticky; top:0; z-index:100;
+    }
+    .hdr-brand { display:flex; align-items:center; gap:10px; }
+    .hdr-logo { width:32px; height:32px; background:var(--brand); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+    .hdr-title { font-size:15px; font-weight:800; color:white; letter-spacing:-.02em; }
+    .hdr-sub   { font-size:10px; color:var(--g400); margin-top:1px; }
+    .tab-sw { display:flex; background:rgba(255,255,255,.08); border-radius:8px; padding:3px; gap:2px; }
+    .tab-btn { padding:6px 14px; border:none; border-radius:6px; cursor:pointer; font-size:12px; font-weight:500; background:transparent; color:var(--g400); transition:all .15s; font-family:inherit; white-space:nowrap; text-decoration:none; display:flex; align-items:center; }
+    .tab-btn.on { background:var(--brand); color:white; font-weight:700; }
+    .tab-btn:hover:not(.on) { color:white; background:rgba(255,255,255,.1); }
+
+    /* ── MAIN ── */
+    .mgmt-page { max-width:680px; margin:0 auto; padding:28px 24px 60px; }
+
+    /* cards */
+    .s-card { background:white; border-radius:var(--r-lg); padding:22px 24px; box-shadow:var(--sh); margin-bottom:16px; border:1px solid var(--g200); }
+    .sc-ttl { font-size:14px; font-weight:700; color:var(--g700); margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--g100); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .sc-badge { font-size:10px; padding:2px 8px; border-radius:4px; font-weight:700; }
+    .sc-fixed { background:var(--g100); color:var(--g500); }
+    .sc-var   { background:var(--ok-bg); color:var(--ok); }
+
+    /* fixed info grid */
+    .fixed-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .fixed-item { background:var(--g50); border-radius:9px; padding:10px 14px; border:1px solid var(--g100); }
+    .fi-label { font-size:11px; color:var(--g400); font-weight:600; margin-bottom:3px; }
+    .fi-value { font-size:14px; font-weight:600; color:var(--g700); }
+
+    /* vacancy input */
+    .v-grid { display:grid; grid-template-columns:1fr; max-width:220px; gap:14px; margin-bottom:18px; }
+    .v-grp  { text-align:center; }
+    .v-lbl  { font-size:11px; color:var(--g500); display:block; margin-bottom:6px; font-weight:600; }
+    .v-inp  { width:100%; padding:12px 8px; border:2px solid var(--g200); border-radius:10px; font-size:30px; font-weight:900; text-align:center; outline:none; color:var(--brand-d); font-family:inherit; transition:border-color .15s,background .15s; }
+    .v-inp:focus { border-color:var(--brand); background:var(--brand-l); }
+    .v-cap  { font-size:10px; color:var(--g400); margin-top:4px; }
+
+    /* form fields */
+    .f-grp  { margin-bottom:14px; }
+    .f-grp:last-child { margin-bottom:0; }
+    .f-lbl  { display:block; font-size:12px; font-weight:600; color:var(--g600); margin-bottom:6px; }
+    .f-req  { color:#ef4444; }
+    .f-inp,.f-ta,.f-sel { width:100%; padding:10px 14px; border:1.5px solid var(--g200); border-radius:9px; font-size:14px; outline:none; font-family:inherit; color:var(--g800); transition:border-color .15s,box-shadow .15s; background:white; }
+    .f-inp:focus,.f-ta:focus,.f-sel:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+    .f-ta { resize:vertical; min-height:78px; }
+    .f-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+    /* buttons */
+    .upd-btn { width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .12s; box-shadow:0 4px 14px rgba(13,148,136,.3); }
+    .upd-btn:hover { background:var(--brand-d); transform:translateY(-1px); }
+    .upd-btn:disabled { background:var(--g300); cursor:not-allowed; transform:none; box-shadow:none; }
+    .reg-btn { width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .12s; box-shadow:0 4px 14px rgba(13,148,136,.3); margin-top:4px; }
+    .reg-btn:hover { background:var(--brand-d); transform:translateY(-1px); }
+    .reg-btn:disabled { background:var(--g300); cursor:not-allowed; transform:none; box-shadow:none; }
+
+    /* URL copy rows */
+    .url-row { display:flex; gap:8px; }
+    .url-inp { flex:1; font-size:11px; padding:9px 12px; border:1.5px solid var(--g200); border-radius:8px; color:var(--g600); background:var(--g50); font-family:inherit; outline:none; }
+    .url-copy { padding:9px 14px; background:var(--g800); color:white; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; transition:background .15s; }
+    .url-copy:hover { background:var(--g900); }
+
+    /* success banner */
+    .success-bar { background:var(--ok-bg); border:1.5px solid #86efac; border-radius:12px; padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; gap:12px; }
+    .success-bar-icon { font-size:22px; flex-shrink:0; }
+    .success-bar-title { font-size:14px; font-weight:700; color:var(--ok); }
+    .success-bar-body  { font-size:12px; color:var(--g500); margin-top:2px; }
+
+    /* mgmt bar */
+    .mgmt-bar { background:white; border-radius:var(--r-lg); padding:16px 20px; margin-bottom:20px; box-shadow:var(--sh); border:1px solid var(--g200); display:flex; align-items:center; }
+    .mgmt-user { display:flex; align-items:center; gap:12px; }
+    .mgmt-av { width:44px; height:44px; border-radius:12px; background:var(--brand); color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; flex-shrink:0; }
+    .mgmt-nm { font-size:15px; font-weight:700; }
+    .mgmt-rl { font-size:12px; color:var(--g400); margin-top:1px; }
+
+    /* TOAST */
+    .toast { position:fixed; bottom:24px; right:24px; background:var(--g900); color:white; padding:12px 20px; border-radius:11px; font-size:14px; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,.25); opacity:0; transform:translateY(14px); transition:all .22s cubic-bezier(.34,1.56,.64,1); z-index:999; pointer-events:none; }
+    .toast.on { opacity:1; transform:translateY(0); }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">🏠</div>
+    <div>
+      <div class="hdr-title">介護施設検索ツール</div>
+      <div class="hdr-sub">介護施設空き状況プラットフォーム</div>
+    </div>
+  </div>
+  <div class="tab-sw">
+    <a class="tab-btn" href="kaigo-search.html">🔍 介護施設情報検索</a>
+    <button class="tab-btn on">📝 施設情報更新</button>
+  </div>
+</header>
+
+<div id="main" class="mgmt-page">
+  <div style="text-align:center;padding:80px 20px;color:var(--g400);">読み込み中...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+
+const params     = new URLSearchParams(location.search);
+const facilityId = params.get('id');
+const isNew      = params.get('new') === '1';
+const main       = document.getElementById('main');
+
+if (facilityId) {
+  loadUpdateMode(facilityId);
+} else {
+  renderRegisterForm();
+}
+
+/* ─── UPDATE MODE ─── */
+async function loadUpdateMode(id) {
+  try {
+    const doc = await db.collection('facilities').doc(id).get();
+    if (!doc.exists) {
+      main.innerHTML = '<div style="text-align:center;padding:60px 20px"><p style="color:var(--g500)">施設が見つかりませんでした。URLをご確認ください。</p></div>';
+      return;
+    }
+    renderUpdateView(doc);
+  } catch(e) {
+    main.innerHTML = `<div style="text-align:center;padding:60px 20px"><p style="color:#ef4444">⚠️ エラー: ${e.message}</p></div>`;
+  }
+}
+
+function renderUpdateView(doc) {
+  const d   = doc.data();
+  const v   = typeof d.vacancy === 'number' ? d.vacancy : 0;
+  const ini = (d.name || '?').charAt(0);
+  const publicUrl  = location.origin + location.pathname.replace('kaigo-manage.html','kaigo-facility-view.html') + '?id=' + doc.id;
+  const updUrl     = location.origin + location.pathname + '?id=' + doc.id;
+
+  main.innerHTML = `
+    ${isNew ? `<div class="success-bar">
+      <div class="success-bar-icon">✅</div>
+      <div>
+        <div class="success-bar-title">施設を登録しました</div>
+        <div class="success-bar-body">以下の「更新用URL」を施設担当者に共有してください。担当者がこのURLから空室を更新するたびに検索画面に反映されます。</div>
+      </div>
+    </div>` : ''}
+
+    <div class="mgmt-bar">
+      <div class="mgmt-user">
+        <div class="mgmt-av">${ini}</div>
+        <div>
+          <div class="mgmt-nm">${d.name}</div>
+          <div class="mgmt-rl">${d.type} ─ 施設担当者</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s-card">
+      <div class="sc-ttl">📌 施設基本情報 <span class="sc-badge sc-fixed">固定情報</span></div>
+      <div class="fixed-grid">
+        <div class="fixed-item"><div class="fi-label">施設種別</div><div class="fi-value">${d.type}</div></div>
+        <div class="fixed-item"><div class="fi-label">エリア</div><div class="fi-value">${d.area || '─'}</div></div>
+        <div class="fixed-item"><div class="fi-label">住所</div><div class="fi-value">${d.address || '─'}</div></div>
+        <div class="fixed-item"><div class="fi-label">最寄り駅</div><div class="fi-value">${[d.station, d.stationDistance].filter(Boolean).join(' ') || '─'}</div></div>
+        <div class="fixed-item"><div class="fi-label">担当者</div><div class="fi-value">${d.contactName || '─'}</div></div>
+        <div class="fixed-item"><div class="fi-label">電話番号</div><div class="fi-value">${d.contactTel || '─'}</div></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--g400);">※ 基本情報の変更はYUMEMATCHまでご連絡ください</div>
+    </div>
+
+    <div class="s-card">
+      <div class="sc-ttl">📊 空室情報を更新 <span class="sc-badge sc-var">変動情報・随時更新</span></div>
+      <div class="v-grid">
+        <div class="v-grp">
+          <span class="v-lbl">現在の空室数</span>
+          <input class="v-inp" id="v-vacancy" type="number" value="${v}" min="0" max="99">
+          <div class="v-cap">空き室数を入力</div>
+        </div>
+      </div>
+      <div class="f-grp" style="margin-bottom:18px">
+        <label class="f-lbl">キャンペーン・お知らせ（任意）</label>
+        <textarea class="f-ta" id="v-campaign" placeholder="例）6月末まで入居金0円キャンペーン実施中">${d.campaign || ''}</textarea>
+      </div>
+      <button class="upd-btn" id="upd-btn" onclick="doUpdate('${doc.id}')">✅ 空室情報を今すぐ更新する</button>
+    </div>
+
+    <div class="s-card">
+      <div class="sc-ttl">🔗 公開URL・更新URL</div>
+      <div class="f-grp">
+        <label class="f-lbl">施設公開URL（病院・その他事業者などに共有用）</label>
+        <div class="url-row">
+          <input class="url-inp" type="text" id="pub-url" value="${publicUrl}" readonly>
+          <button class="url-copy" onclick="copyUrl('pub-url')">コピー</button>
+        </div>
+        <div style="font-size:11px;color:var(--g400);margin-top:4px;">このURLを開くと「${d.name}」の空室・基本情報だけが表示されます</div>
+      </div>
+      <div class="f-grp">
+        <label class="f-lbl">この施設の更新URL（施設担当者に共有）</label>
+        <div class="url-row">
+          <input class="url-inp" type="text" id="upd-url" value="${updUrl}" readonly>
+          <button class="url-copy" onclick="copyUrl('upd-url')">コピー</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function doUpdate(id) {
+  const vacancy  = Math.max(0, parseInt(document.getElementById('v-vacancy').value) || 0);
+  const campaign = document.getElementById('v-campaign').value.trim();
+  const btn = document.getElementById('upd-btn');
+  btn.disabled = true; btn.textContent = '更新中...';
+  try {
+    await db.collection('facilities').doc(id).update({
+      vacancy, campaign,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    showToast('✅ 更新しました');
+  } catch(e) {
+    showToast('⚠️ エラー: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '✅ 空室情報を今すぐ更新する';
+  }
+}
+
+/* ─── REGISTRATION MODE ─── */
+function renderRegisterForm() {
+  main.innerHTML = `
+    <div style="margin-bottom:20px">
+      <div style="font-size:22px;font-weight:900;color:var(--g900);margin-bottom:4px">新規施設を登録する</div>
+      <div style="font-size:13px;color:var(--g500)">登録後に発行される「更新URL」を施設担当者に共有してください。</div>
+    </div>
+
+    <div class="s-card">
+      <div class="sc-ttl">🏥 施設基本情報</div>
+      <div class="f-grp">
+        <label class="f-lbl">施設名 <span class="f-req">*</span></label>
+        <input class="f-inp" id="r-name" type="text" placeholder="例）〇〇グループホーム">
+      </div>
+      <div class="f-grp">
+        <label class="f-lbl">施設種別 <span class="f-req">*</span></label>
+        <select class="f-sel" id="r-type">
+          <option value="">─ 選択してください ─</option>
+          <option value="介護付有料">介護付有料老人ホーム</option>
+          <option value="グループホーム">グループホーム（認知症対応型）</option>
+          <option value="サ高住">サービス付高齢者向け住宅（サ高住）</option>
+          <option value="特養">特別養護老人ホーム（特養）</option>
+          <option value="老健">介護老人保健施設（老健）</option>
+        </select>
+      </div>
+      <div class="f-grp">
+        <label class="f-lbl">住所</label>
+        <input class="f-inp" id="r-address" type="text" placeholder="例）大阪府〇〇市〇〇町1-2-3" oninput="autoDetectArea()">
+      </div>
+      <div class="f-grp">
+        <label class="f-lbl">エリア</label>
+        <input class="f-inp" id="r-area" type="text" placeholder="住所入力後に自動判定されます（手動入力も可）">
+        <div style="font-size:11px;color:var(--g400);margin-top:4px;">住所を入力すると自動でエリアを判定します。修正したい場合は直接入力してください。</div>
+      </div>
+      <div class="f-grid2">
+        <div class="f-grp">
+          <label class="f-lbl">最寄り駅</label>
+          <input class="f-inp" id="r-station" type="text" placeholder="例）〇〇駅">
+        </div>
+        <div class="f-grp">
+          <label class="f-lbl">駅からの距離</label>
+          <input class="f-inp" id="r-distance" type="text" placeholder="例）徒歩10分">
+        </div>
+      </div>
+      <div class="f-grid2">
+        <div class="f-grp">
+          <label class="f-lbl">担当者名</label>
+          <input class="f-inp" id="r-contact-name" type="text" placeholder="例）〇〇 担当">
+        </div>
+        <div class="f-grp">
+          <label class="f-lbl">問い合わせ電話番号</label>
+          <input class="f-inp" id="r-contact-tel" type="tel" placeholder="例）06-0000-0000">
+        </div>
+      </div>
+    </div>
+
+    <div class="s-card">
+      <div class="sc-ttl">📊 空室情報 <span class="sc-badge sc-var">変動情報</span></div>
+      <div class="v-grid">
+        <div class="v-grp">
+          <span class="v-lbl">現在の空室数</span>
+          <input class="v-inp" id="r-vacancy" type="number" value="0" min="0" max="99">
+          <div class="v-cap">空き室数を入力</div>
+        </div>
+      </div>
+      <div class="f-grp" style="margin-bottom:0">
+        <label class="f-lbl">キャンペーン・お知らせ（任意）</label>
+        <textarea class="f-ta" id="r-campaign" placeholder="例）6月末まで入居金0円キャンペーン実施中"></textarea>
+      </div>
+    </div>
+
+    <button class="reg-btn" id="reg-btn" onclick="doRegister()">✅ この施設を登録する</button>
+  `;
+}
+
+async function doRegister() {
+  const name = document.getElementById('r-name').value.trim();
+  const type = document.getElementById('r-type').value;
+  if (!name || !type) { showToast('⚠️ 施設名と施設種別は必須です'); return; }
+
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true; btn.textContent = '登録中...';
+  try {
+    const ref = await db.collection('facilities').add({
+      name, type,
+      area:            document.getElementById('r-area').value,
+      address:         document.getElementById('r-address').value.trim(),
+      station:         document.getElementById('r-station').value.trim(),
+      stationDistance: document.getElementById('r-distance').value.trim(),
+      vacancy:  Math.max(0, parseInt(document.getElementById('r-vacancy').value) || 0),
+      campaign: document.getElementById('r-campaign').value.trim(),
+      contactName: document.getElementById('r-contact-name').value.trim(),
+      contactTel:  document.getElementById('r-contact-tel').value.trim(),
+      plan: 'free', features: [],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    location.href = `${location.pathname}?id=${ref.id}&new=1`;
+  } catch(e) {
+    btn.disabled = false; btn.textContent = '✅ この施設を登録する';
+    showToast('⚠️ エラー: ' + e.message);
+  }
+}
+
+function copyUrl(inputId) {
+  navigator.clipboard.writeText(document.getElementById(inputId).value)
+    .then(() => showToast('📋 URLをコピーしました'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3200);
+}
+
+/* ─── エリア自動判定 ───
+   住所文字列からエリアを推定する。
+   AREA_MAP: 既知エリア名 → 含まれるキーワード群（豊中市内など）
+   未知の場合は住所から市区町村名を抽出、それも取れなければ「その他」にフォールバック。
+   横展開時は AREA_MAP にエントリを追加するだけで対応できる。
+*/
+const AREA_MAP = [
+  ['曽根',   ['曽根']],
+  ['岡町',   ['岡町', '岡上の町', '末広町', '上野坂', '本町']],
+  ['庄内',   ['庄内', '三和町']],
+  ['千里',   ['千里', '緑丘', '箕輪']],
+  ['服部',   ['服部']],
+  ['少路',   ['少路', '御殿山']],
+];
+
+function autoDetectArea() {
+  const addr = (document.getElementById('r-address').value || '').trim();
+  const el   = document.getElementById('r-area');
+  if (!addr) return;
+
+  for (const [area, keywords] of AREA_MAP) {
+    if (keywords.some(k => addr.includes(k))) {
+      el.value = area;
+      return;
+    }
+  }
+
+  // 既知エリアにマッチしない場合は市区町村名を抽出
+  const m = addr.match(/[^\s都道府県]+[市区町村]/);
+  el.value = m ? m[0] : 'その他';
+}
+</script>
+</body>
+</html>
