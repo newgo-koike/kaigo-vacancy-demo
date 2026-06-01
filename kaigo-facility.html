@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施設情報</title>
+  <style>
+    :root {
+      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa; --brand-ll:#ccfbf1;
+      --ok:#16a34a; --ok-bg:#dcfce7;
+      --warn:#d97706; --warn-bg:#fef3c7;
+      --empty:#94a3b8; --empty-bg:#f1f5f9;
+      --g900:#0f172a; --g800:#1e293b; --g700:#334155; --g600:#475569;
+      --g500:#64748b; --g400:#94a3b8; --g300:#cbd5e1; --g200:#e2e8f0;
+      --g100:#f1f5f9; --g50:#f8fafc;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:-apple-system,'Hiragino Sans',sans-serif; background:var(--g50); color:var(--g800); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+    .hdr { background:var(--g900); padding:14px 20px; display:flex; align-items:center; gap:10px; }
+    .hdr-icon { width:28px; height:28px; background:var(--brand); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+    .hdr-back { color:var(--g400); font-size:12px; text-decoration:none; display:flex; align-items:center; gap:4px; }
+    .hdr-back:hover { color:white; }
+    .hdr-badge { margin-left:auto; font-size:10px; color:var(--g400); }
+
+    .main { max-width:560px; margin:0 auto; padding:24px 16px 60px; }
+
+    .card { background:white; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,.08); margin-bottom:14px; overflow:hidden; }
+    .card-body { padding:20px; }
+
+    .fc-type { font-size:11px; font-weight:700; color:var(--brand); background:var(--brand-ll); padding:3px 9px; border-radius:8px; display:inline-block; margin-bottom:8px; }
+    .fc-name { font-size:22px; font-weight:900; color:var(--g900); line-height:1.3; margin-bottom:10px; }
+    .fc-row { display:flex; gap:8px; font-size:13px; color:var(--g500); margin-bottom:6px; align-items:flex-start; }
+    .fc-row:last-child { margin-bottom:0; }
+
+    .vc { background:white; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,.08); margin-bottom:14px; padding:20px; }
+    .vc-title { font-size:11px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px; }
+    .vc-block { border-radius:12px; padding:20px; text-align:center; margin-bottom:14px; }
+    .vc-block.has { background:var(--ok-bg); border:2px solid #86efac; }
+    .vc-block.none { background:var(--empty-bg); border:2px solid var(--g200); }
+    .vc-label { font-size:12px; font-weight:700; margin-bottom:6px; }
+    .vc-block.has .vc-label { color:var(--ok); }
+    .vc-block.none .vc-label { color:var(--g400); }
+    .vc-count { font-size:52px; font-weight:900; line-height:1; }
+    .vc-block.has .vc-count { color:var(--ok); }
+    .vc-block.none .vc-count { color:var(--g300); }
+    .vc-unit { font-size:15px; font-weight:700; margin-top:4px; }
+    .vc-block.has .vc-unit { color:#15803d; }
+    .vc-block.none .vc-unit { color:var(--g400); }
+    .vc-updated { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--g400); }
+    .vc-dot { width:7px; height:7px; border-radius:50%; background:var(--ok); flex-shrink:0; }
+    .vc-dot.old { background:var(--warn); }
+
+    .camp { background:var(--warn-bg); border:1px solid #fcd34d; border-radius:12px; padding:12px 14px; margin-bottom:14px; font-size:13px; color:#92400e; line-height:1.7; display:flex; gap:8px; align-items:flex-start; }
+    .camp-icon { font-size:16px; flex-shrink:0; }
+
+    .share { background:white; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,.08); padding:18px 20px; margin-bottom:14px; }
+    .share-title { font-size:11px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; margin-bottom:10px; }
+    .share-row { display:flex; gap:8px; }
+    .share-input { flex:1; font-size:11px; padding:9px 11px; border:1.5px solid var(--g200); border-radius:8px; color:var(--g600); background:var(--g50); font-family:inherit; outline:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .share-copy { padding:9px 14px; background:var(--g800); color:white; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .share-copy:hover { background:var(--g900); }
+    .share-copy.copied { background:var(--ok); }
+
+    .footer { text-align:center; padding:20px; font-size:11px; color:var(--g400); }
+    .footer a { color:var(--brand); text-decoration:none; }
+
+    .loading { text-align:center; padding:60px 20px; color:var(--g400); }
+    .notfound { text-align:center; padding:60px 20px; }
+    .notfound-icon { font-size:48px; margin-bottom:16px; }
+    .notfound-title { font-size:18px; font-weight:800; color:var(--g700); }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-icon">🏥</div>
+  <a class="hdr-back" href="kaigo-search.html">← 施設一覧</a>
+  <span class="hdr-badge">施設情報</span>
+</header>
+
+<main class="main" id="main">
+  <div class="loading">読み込み中...</div>
+</main>
+
+<footer class="footer">
+  <a href="kaigo-search.html">施設一覧に戻る</a>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain: "kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId: "kaigo-link-dev-59bc5",
+  storageBucket: "kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId: "646624290677",
+  appId: "1:646624290677:web:0cee80cbdd07dc8753553c"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const main = document.getElementById('main');
+
+const id = new URLSearchParams(location.search).get('id');
+
+if (!id) {
+  main.innerHTML = `<div class="notfound"><div class="notfound-icon">🔍</div><div class="notfound-title">URLが正しくありません</div></div>`;
+} else {
+  db.collection('facilities').doc(id).onSnapshot(doc => {
+    if (!doc.exists) {
+      main.innerHTML = `<div class="notfound"><div class="notfound-icon">🏥</div><div class="notfound-title">施設が見つかりません</div></div>`;
+      return;
+    }
+    render(doc.data(), id);
+  }, err => {
+    main.innerHTML = `<div class="loading">読み込みエラー: ${err.message}</div>`;
+  });
+}
+
+function render(f, id) {
+  document.title = `${f.name} 空室情報`;
+  const thisUrl = location.href;
+  const hasVac  = (f.vacancy || 0) > 0;
+  const upd     = f.updatedAt ? f.updatedAt.toDate() : null;
+  const days    = upd ? Math.floor((Date.now() - upd) / 86400000) : 999;
+  const isOld   = days >= 7;
+  const updStr  = upd ? fmtDate(upd) : '未更新';
+
+  main.innerHTML = `
+    <div class="card">
+      <div class="card-body">
+        <div class="fc-type">${f.type}</div>
+        <div class="fc-name">${f.name}</div>
+        <div class="fc-row">📍 ${f.address}</div>
+        <div class="fc-row">🚉 ${f.station}${f.stationDistance ? '　' + f.stationDistance : ''}</div>
+      </div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-title">現在の空室状況</div>
+      <div class="vc-block ${hasVac ? 'has' : 'none'}">
+        <div class="vc-label">空室数</div>
+        <div class="vc-count">${f.vacancy || 0}</div>
+        <div class="vc-unit">室 空き</div>
+      </div>
+      <div class="vc-updated">
+        <span class="vc-dot${isOld ? ' old' : ''}"></span>
+        <span>${updStr}${isOld ? '（情報が古い可能性があります）' : ''}</span>
+      </div>
+    </div>
+
+    ${f.campaign ? `
+    <div class="camp">
+      <span class="camp-icon">📢</span>
+      <span>${f.campaign}</span>
+    </div>` : ''}
+
+    <div class="share">
+      <div class="share-title">このページを共有</div>
+      <div class="share-row">
+        <input class="share-input" id="share-input" type="text" value="${thisUrl}" readonly>
+        <button class="share-copy" id="share-copy" onclick="copyShare()">コピー</button>
+      </div>
+    </div>
+  `;
+}
+
+function copyShare() {
+  navigator.clipboard.writeText(document.getElementById('share-input').value).then(() => {
+    const btn = document.getElementById('share-copy');
+    btn.textContent = 'コピー済み'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function fmtDate(d) {
+  return `最終更新: ${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+</script>
+</body>
+</html>

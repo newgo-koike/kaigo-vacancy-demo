@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>検索者向け 使い方ガイド</title>
+<style>
+  :root {
+    --brand: #0d9488;
+    --brand-light: #ccfbf1;
+    --g900: #0f172a;
+    --g700: #334155;
+    --g500: #64748b;
+    --g200: #e2e8f0;
+    --g100: #f1f5f9;
+    --g50: #f8fafc;
+    --white: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    color: var(--g900);
+    background: var(--g50);
+    line-height: 1.7;
+  }
+  header {
+    background: var(--g900);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-icon { font-size: 20px; }
+  .header-title { color: var(--white); font-size: 14px; font-weight: 700; }
+  .header-badge {
+    margin-left: auto;
+    background: var(--brand);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .main { max-width: 600px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--g900);
+    margin-bottom: 8px;
+  }
+  .page-desc {
+    font-size: 14px;
+    color: var(--g500);
+    margin-bottom: 32px;
+    line-height: 1.8;
+  }
+
+  .section { margin-bottom: 32px; }
+  .section-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--g500);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--g200);
+  }
+
+  .step-list { display: flex; flex-direction: column; gap: 10px; }
+  .step {
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid var(--g200);
+    padding: 16px 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    background: var(--g900);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-body h3 { font-size: 14px; font-weight: 700; color: var(--g900); margin-bottom: 4px; }
+  .step-body p { font-size: 13px; color: var(--g700); }
+
+  .faq-list { display: flex; flex-direction: column; gap: 8px; }
+  .faq-item {
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid var(--g200);
+    overflow: hidden;
+  }
+  .faq-q {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--g900);
+    font-family: inherit;
+    justify-content: space-between;
+  }
+  .faq-q:hover { background: var(--g50); }
+  .faq-arrow { font-size: 11px; color: var(--g500); transition: transform .2s; flex-shrink: 0; }
+  .faq-a {
+    display: none;
+    padding: 0 18px 14px;
+    font-size: 13px;
+    color: var(--g700);
+    line-height: 1.8;
+  }
+  .faq-item.open .faq-a { display: block; }
+  .faq-item.open .faq-arrow { transform: rotate(180deg); }
+
+  .demo-box {
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid var(--g200);
+    padding: 20px;
+  }
+  .demo-box p { font-size: 13px; color: var(--g500); margin-bottom: 14px; }
+  .btn {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--brand);
+    color: var(--white);
+  }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    color: var(--g500);
+    border-top: 1px solid var(--g200);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="header-icon">🏥</span>
+  <span class="header-title">介護施設空室情報サービス</span>
+  <span class="header-badge">病院・ケアマネ向け</span>
+</header>
+
+<div class="main">
+
+  <div class="page-title">検索者向け 使い方ガイド</div>
+  <div class="page-desc">
+    このサービスでは、介護施設の最新の空室状況を一覧で確認できます。<br>
+    施設ごとの空室数・キャンペーン情報をリアルタイムで閲覧できます。
+  </div>
+
+  <div class="section">
+    <div class="section-title">使い方（4ステップ）</div>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>検索ページを開く</h3>
+          <p>アカウント登録・ログイン不要です。URLを開くだけで使えます。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>エリア・施設種別でフィルタリングする</h3>
+          <p>エリア（庄内・曽根・岡町など）や施設種別（特養・老健・グループホームなど）で絞り込めます。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>「空室あり」ボタンで空室のある施設だけを表示</h3>
+          <p>空室のある施設だけに絞り込めます。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>施設カードをクリックして詳細を確認</h3>
+          <p>空室数・キャンペーン情報・連絡先（有料プランのみ）を確認できます。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">よくある質問</div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">無料で使えますか？<span class="faq-arrow">▼</span></button>
+        <div class="faq-a">検索・閲覧は無料です。アカウント登録も不要です。</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">情報はリアルタイムで更新されますか？<span class="faq-arrow">▼</span></button>
+        <div class="faq-a">施設担当者が更新するたびに即時反映されます。施設カードの最終更新日をご確認ください。</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">施設に掲載してほしい場合はどうすればいいですか？<span class="faq-arrow">▼</span></button>
+        <div class="faq-a">YUMEMATCHまでお問い合わせください。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">デモ</div>
+    <div class="demo-box">
+      <p>実際の検索ページをお試しいただけます（デモ用データを使用）</p>
+      <a class="btn" href="https://kaigo-link-mock-v2.surge.sh" target="_blank" rel="noopener">検索ページを開く</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  ご不明な点はYUMEMATCHまでお問い合わせください
+</footer>
+
+<script>
+  document.querySelectorAll('.faq-q').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item = this.closest('.faq-item');
+      var isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(function(el) { el.classList.remove('open'); });
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+</script>
+
+</body>
+</html>

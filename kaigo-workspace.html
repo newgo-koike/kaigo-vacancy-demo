@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaigoLink 開発ワークスペース | YUMEMATCH × 兵頭さん</title>
+  <style>
+    :root {
+      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa; --brand-ll:#ccfbf1;
+      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0; --g300:#cbd5e1;
+      --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
+      --g800:#1e293b; --g900:#0f172a;
+      --ok:#16a34a; --ok-bg:#dcfce7;
+      --amber:#d97706; --amber-bg:#fef3c7;
+      --edit-border:#f59e0b; --edit-bg:#fffbeb;
+      --hdr:52px;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html,body { height:100%; overflow:hidden; }
+    body { font-family:-apple-system,'Helvetica Neue','Hiragino Sans',Arial,sans-serif; color:var(--g800); display:flex; flex-direction:column; background:var(--g100); -webkit-font-smoothing:antialiased; }
+
+    /* ── NAV ── */
+    .nav { flex-shrink:0; height:var(--hdr); background:var(--g900); display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:200; }
+    .nav-brand { display:flex; align-items:center; gap:9px; }
+    .nav-logo { width:26px; height:26px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px; }
+    .nav-title { font-size:14px; font-weight:800; color:white; }
+    .nav-roles { display:flex; gap:6px; margin-left:12px; }
+    .nav-role { font-size:10px; padding:3px 9px; border-radius:20px; font-weight:700; }
+    .nav-role.maker { background:rgba(13,148,136,.25); color:var(--brand-ll); }
+    .nav-role.client { background:rgba(255,255,255,.1); color:var(--g300); }
+    .nav-right { display:flex; align-items:center; gap:10px; }
+    .nav-save { padding:6px 14px; background:var(--brand); color:white; border:none; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .nav-save:hover { background:var(--brand-d); }
+    .save-badge { font-size:11px; color:var(--g500); }
+    .save-badge.ok { color:#4ade80; }
+
+    /* ── WORKSPACE ── */
+    .workspace { flex:1; display:flex; overflow:hidden; }
+
+    /* ── PANE SHARED ── */
+    .pane { display:flex; flex-direction:column; overflow:hidden; }
+    .pane-hd { flex-shrink:0; padding:11px 14px; background:white; border-bottom:1px solid var(--g200); display:flex; align-items:center; justify-content:space-between; }
+    .pane-hd-title { font-size:11px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; }
+    .pane-scroll { flex:1; overflow-y:auto; }
+
+    /* ── LEFT: 議事録 ── */
+    .pane-minutes { width:272px; min-width:220px; background:white; border-right:1px solid var(--g200); }
+    .min-add-btn { padding:4px 11px; background:var(--brand); color:white; border:none; border-radius:7px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .min-add-btn:hover { background:var(--brand-d); }
+    .min-list { padding:8px; display:flex; flex-direction:column; gap:6px; }
+    .min-card { background:var(--g50); border:1px solid var(--g200); border-radius:10px; overflow:hidden; }
+    .min-card-hd { display:flex; align-items:center; gap:8px; padding:9px 11px 8px; cursor:pointer; user-select:none; }
+    .min-card-hd:hover { background:var(--g100); }
+    .min-date { font-size:10px; font-weight:700; color:var(--brand); background:var(--brand-ll); padding:2px 7px; border-radius:8px; flex-shrink:0; }
+    .min-card-title { font-size:12px; font-weight:700; color:var(--g800); flex:1; line-height:1.35; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .min-toggle { font-size:10px; color:var(--g400); flex-shrink:0; }
+    .min-card-body { padding:8px 11px 10px; font-size:12px; color:var(--g600); line-height:1.8; white-space:pre-wrap; border-top:1px solid var(--g100); display:none; }
+    .min-card-body.open { display:block; }
+    .min-del { float:right; font-size:10px; color:var(--g300); cursor:pointer; margin-left:8px; }
+    .min-del:hover { color:#ef4444; }
+    .min-empty { text-align:center; padding:40px 16px; color:var(--g400); font-size:12px; line-height:1.8; }
+
+    /* ── MIDDLE: 設計書 ── */
+    .pane-reqs { flex:1; min-width:0; background:var(--g50); border-right:1px solid var(--g200); }
+    .req-tabs { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); padding:0 10px; display:flex; gap:0; overflow-x:auto; }
+    .req-tab { padding:10px 11px; font-size:11px; font-weight:600; color:var(--g400); border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; font-family:inherit; transition:all .15s; }
+    .req-tab.on { color:var(--brand); border-bottom-color:var(--brand); font-weight:800; }
+    .req-tab.ref { color:var(--g300); font-size:10px; }
+    .req-tab.ref.on { color:var(--g500); border-bottom-color:var(--g300); }
+    .req-tab:hover:not(.on) { color:var(--g600); }
+    .req-content { display:none; }
+    .req-content.on { display:block; }
+    .req-scroll { flex:1; overflow-y:auto; }
+
+    /* ── 設計書セクション共通 ── */
+    .rs { padding:18px; }
+    .rs-title { font-size:15px; font-weight:900; color:var(--g900); margin-bottom:5px; }
+    .rs-body { font-size:12px; color:var(--g500); line-height:1.7; margin-bottom:14px; }
+    .rs-card { background:white; border:1px solid var(--g200); border-radius:12px; overflow:hidden; margin-bottom:10px; }
+    .rs-card-hd { padding:11px 14px; border-bottom:1px solid var(--g100); }
+    .rs-card-title { font-size:13px; font-weight:800; color:var(--g800); margin-bottom:3px; }
+    .rs-card-desc { font-size:12px; color:var(--g500); line-height:1.65; }
+
+    /* role badges */
+    .role-maker { display:inline-block; font-size:9px; font-weight:800; padding:1px 7px; border-radius:8px; background:rgba(13,148,136,.12); color:var(--brand-d); margin-right:4px; }
+    .role-client { display:inline-block; font-size:9px; font-weight:800; padding:1px 7px; border-radius:8px; background:var(--g100); color:var(--g500); margin-right:4px; }
+
+    /* editable */
+    .edit-block { border-top:1px solid var(--g100); }
+    .edit-hd { padding:7px 14px 3px; font-size:10px; font-weight:800; color:var(--amber); letter-spacing:.06em; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+    [contenteditable] { padding:6px 14px 11px; font-size:12px; color:var(--g700); line-height:1.7; outline:none; min-height:44px; font-family:inherit; }
+    [contenteditable]:focus { background:var(--edit-bg); }
+    [contenteditable]:empty::before { content:attr(data-placeholder); color:var(--g300); pointer-events:none; }
+
+    /* spec table */
+    .spec-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .spec-table th { background:var(--g800); color:white; padding:7px 10px; text-align:left; font-size:10px; font-weight:700; }
+    .spec-table td { padding:7px 10px; border-bottom:1px solid var(--g100); color:var(--g700); }
+    .spec-table tr:last-child td { border-bottom:none; }
+    .spec-badge { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:5px; }
+    .spec-badge.fixed { background:var(--g100); color:var(--g500); }
+    .spec-badge.variable { background:var(--brand-ll); color:var(--brand-d); }
+    .spec-badge.system { background:#ede9fe; color:#6d28d9; }
+
+    /* roadmap */
+    .rm-card { background:white; border:1px solid var(--g200); border-radius:12px; overflow:hidden; margin-bottom:10px; }
+    .rm-phase-bar { display:flex; align-items:center; gap:8px; padding:11px 14px; border-bottom:1px solid var(--g100); }
+    .rm-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .rm-ph1 { background:var(--brand); }
+    .rm-ph2 { background:#8b5cf6; }
+    .rm-ph3 { background:#f59e0b; }
+    .rm-ph4 { background:#3b82f6; }
+    .rm-phase-title { font-size:13px; font-weight:800; color:var(--g800); }
+    .rm-phase-period { font-size:10px; color:var(--g400); margin-left:auto; }
+    .rm-tasks { padding:8px 14px 10px; display:flex; flex-direction:column; gap:3px; }
+    .rm-task { font-size:12px; color:var(--g600); display:flex; align-items:flex-start; gap:6px; line-height:1.5; }
+    .rm-task::before { content:'▸'; color:var(--g300); flex-shrink:0; }
+    .rm-task-who { font-size:10px; font-weight:700; padding:0 5px; border-radius:5px; flex-shrink:0; }
+    .rm-task-who.m { background:rgba(13,148,136,.1); color:var(--brand-d); }
+    .rm-task-who.c { background:var(--g100); color:var(--g500); }
+
+    /* concern */
+    .concern-title { font-size:13px; font-weight:800; color:var(--g700); }
+    .concern-body { font-size:12px; color:var(--g500); line-height:1.65; margin-top:4px; }
+
+    /* decisions */
+    .dec-q { font-size:13px; font-weight:700; color:var(--g800); }
+    .dec-who { font-size:10px; color:var(--g400); margin-top:3px; display:flex; align-items:center; gap:4px; }
+
+    /* op flow */
+    .op-step { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--g100); }
+    .op-step:last-child { border-bottom:none; }
+    .op-num { width:20px; height:20px; background:var(--g700); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; margin-top:1px; }
+    .op-text { font-size:12px; color:var(--g600); line-height:1.6; }
+
+    /* biz ref */
+    .biz-note { background:var(--g100); border:1px solid var(--g200); border-radius:10px; padding:12px 14px; font-size:12px; color:var(--g500); line-height:1.7; margin-bottom:12px; }
+    .price-mini-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:10px; }
+    .price-mini { background:white; border:1px solid var(--g200); border-radius:9px; padding:10px 12px; }
+    .price-mini.featured { background:var(--brand); border-color:var(--brand); }
+    .price-mini-plan { font-size:11px; font-weight:800; color:var(--g700); margin-bottom:3px; }
+    .price-mini.featured .price-mini-plan { color:white; }
+    .price-mini-price { font-size:17px; font-weight:900; color:var(--g900); letter-spacing:-1px; }
+    .price-mini.featured .price-mini-price { color:white; }
+    .price-mini-price sub { font-size:10px; font-weight:400; color:var(--g400); }
+    .price-mini.featured .price-mini-price sub { color:rgba(255,255,255,.6); }
+    .price-mini-ex { font-size:9px; color:var(--g400); }
+    .price-mini.featured .price-mini-ex { color:rgba(255,255,255,.5); }
+
+    /* ── RIGHT: コメント ── */
+    .pane-comments { width:260px; min-width:220px; background:white; }
+    .cmt-form { padding:10px 12px; border-bottom:1px solid var(--g200); }
+    .cmt-meta { display:flex; gap:5px; margin-bottom:7px; }
+    .cmt-select { flex:1; font-size:11px; padding:5px 7px; border:1.5px solid var(--g200); border-radius:7px; color:var(--g700); background:var(--g50); font-family:inherit; outline:none; }
+    .cmt-select:focus { border-color:var(--brand); }
+    .cmt-textarea { width:100%; font-size:12px; padding:8px 10px; border:1.5px solid var(--g200); border-radius:8px; resize:none; font-family:inherit; color:var(--g800); outline:none; line-height:1.65; min-height:76px; }
+    .cmt-textarea:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+    .cmt-submit { margin-top:7px; width:100%; padding:8px; background:var(--brand); color:white; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .cmt-submit:hover { background:var(--brand-d); }
+    .cmt-list { padding:8px; display:flex; flex-direction:column; gap:6px; }
+    .cmt-card { background:var(--g50); border:1px solid var(--g200); border-radius:10px; padding:9px 11px; }
+    .cmt-card-meta { display:flex; align-items:center; gap:5px; margin-bottom:5px; flex-wrap:wrap; }
+    .cmt-author { font-size:10px; font-weight:800; color:var(--g600); }
+    .cmt-tag { font-size:9px; font-weight:700; padding:1px 6px; border-radius:6px; }
+    .cmt-tag.要望 { background:#dbeafe; color:#1d4ed8; }
+    .cmt-tag.質問 { background:#fef3c7; color:#92400e; }
+    .cmt-tag.確認 { background:#dcfce7; color:#166534; }
+    .cmt-tag.アイデア { background:#f5f3ff; color:#5b21b6; }
+    .cmt-tag.その他 { background:var(--g100); color:var(--g500); }
+    .cmt-date { font-size:9px; color:var(--g400); margin-left:auto; }
+    .cmt-text { font-size:12px; color:var(--g700); line-height:1.7; white-space:pre-wrap; }
+    .cmt-del { float:right; font-size:10px; color:var(--g300); cursor:pointer; }
+    .cmt-del:hover { color:#ef4444; }
+    .cmt-empty { text-align:center; padding:32px 12px; color:var(--g400); font-size:12px; }
+
+    /* ── MODAL ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:500; display:none; align-items:center; justify-content:center; padding:24px; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:white; border-radius:16px; padding:26px; width:100%; max-width:500px; box-shadow:0 24px 48px rgba(0,0,0,.2); }
+    .modal-title { font-size:15px; font-weight:900; color:var(--g900); margin-bottom:18px; }
+    .modal-field { margin-bottom:12px; }
+    .modal-label { font-size:11px; font-weight:700; color:var(--g500); margin-bottom:4px; display:block; }
+    .modal-input { width:100%; padding:8px 11px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; font-family:inherit; color:var(--g800); outline:none; }
+    .modal-input:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+    .modal-textarea { width:100%; padding:8px 11px; border:1.5px solid var(--g200); border-radius:8px; font-size:12px; font-family:inherit; color:var(--g800); outline:none; resize:none; min-height:130px; line-height:1.75; }
+    .modal-textarea:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+    .modal-actions { display:flex; gap:8px; margin-top:18px; justify-content:flex-end; }
+    .modal-cancel { padding:7px 14px; border:1.5px solid var(--g200); border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; background:white; color:var(--g600); font-family:inherit; }
+    .modal-ok { padding:7px 16px; background:var(--brand); color:white; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .modal-ok:hover { background:var(--brand-d); }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-logo">🏥</div>
+    <span class="nav-title">KaigoLink</span>
+    <div class="nav-roles">
+      <span class="nav-role maker">製作: YUMEMATCH</span>
+      <span class="nav-role client">依頼: 兵頭さん</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="save-badge" id="save-badge"></span>
+    <button class="nav-save" onclick="saveRequirements()">💾 メモ保存</button>
+  </div>
+</nav>
+
+<!-- ── WORKSPACE ── -->
+<div class="workspace">
+
+  <!-- ── LEFT: 議事録 ── -->
+  <div class="pane pane-minutes">
+    <div class="pane-hd">
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span class="pane-hd-title">議事録</span>
+        <span style="font-size:9px;color:#4ade80;font-weight:700;">● Notion同期</span>
+      </div>
+      <button class="min-add-btn" onclick="openMinuteModal()">＋ 追加</button>
+    </div>
+    <div class="pane-scroll">
+      <div class="min-list" id="min-list">
+        <div class="min-empty" id="min-empty">議事録がありません<br>「＋ 追加」から記録してください</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MIDDLE: 設計書 ── -->
+  <div class="pane pane-reqs">
+    <div class="pane-hd" style="padding:0 0 0 0;">
+      <div class="req-tabs" id="req-tabs">
+        <button class="req-tab on"  data-tab="status"   onclick="switchTab('status',this)">開発状況</button>
+        <button class="req-tab"     data-tab="dataspec" onclick="switchTab('dataspec',this)">機能仕様</button>
+        <button class="req-tab"     data-tab="roadmap"  onclick="switchTab('roadmap',this)">ロードマップ</button>
+        <button class="req-tab"     data-tab="opflow"   onclick="switchTab('opflow',this)">運用フロー</button>
+        <button class="req-tab"     data-tab="concerns" onclick="switchTab('concerns',this)">懸念点</button>
+        <button class="req-tab"     data-tab="decisions" onclick="switchTab('decisions',this)">決定事項</button>
+        <button class="req-tab ref" data-tab="biz"      onclick="switchTab('biz',this)">ビジネス設計（参考）</button>
+      </div>
+    </div>
+    <div class="req-scroll" id="req-scroll">
+
+      <!-- 開発状況 -->
+      <div class="req-content on" id="tab-status">
+        <div class="rs">
+          <div class="rs-title">プロジェクト概要</div>
+          <div class="rs-body">介護施設の空き状況をリアルタイムで可視化し、病院・ケアマネが施設に直接問い合わせできるプラットフォームの開発プロジェクト。</div>
+
+          <div class="rs-card">
+            <div class="rs-card-hd" style="display:flex;gap:10px;align-items:center;">
+              <div>
+                <div class="rs-card-title">役割分担</div>
+              </div>
+            </div>
+            <div style="padding:10px 14px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:flex-start;gap:10px;">
+                <span class="role-maker">YUMEMATCH（製作）</span>
+                <span style="font-size:12px;color:var(--g600);line-height:1.6;">システム設計・開発・デプロイ・技術的な維持管理</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;">
+                <span class="role-client">兵頭さん（依頼）</span>
+                <span style="font-size:12px;color:var(--g600);line-height:1.6;">施設・病院・ケアマネへの営業・交渉・関係構築。要件・方針の最終決定</span>
+              </div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 役割分担の補足・修正</div>
+              <div contenteditable="true" data-key="roles-notes" data-placeholder="役割の調整・追加事項など..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-hd">
+              <div class="rs-card-title">現在の開発状況</div>
+            </div>
+            <div style="padding:10px 14px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:var(--ok-bg);color:var(--ok);font-size:11px;font-weight:800;padding:3px 10px;border-radius:8px;">Phase 1 稼働中</span>
+                <span style="font-size:12px;color:var(--g500);">モック公開済み</span>
+              </div>
+              <div style="font-size:12px;color:var(--g600);line-height:1.7;">
+                🔗 <a href="https://kaigo-link-mock-v2.surge.sh" target="_blank" style="color:var(--brand);">kaigo-link-mock-v2.surge.sh</a> — 施設検索モック（静的HTML）<br>
+                📄 <a href="https://kaigo-link-proposal.surge.sh" target="_blank" style="color:var(--brand);">kaigo-link-proposal.surge.sh</a> — 提案書（兵頭さん共有用）
+              </div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 現状メモ・次のアクション</div>
+              <div contenteditable="true" data-key="status-notes" data-placeholder="今どこまで進んでいるか、次に何をするか..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-hd">
+              <div class="rs-card-title">サービス概要</div>
+            </div>
+            <div style="padding:10px 14px;font-size:12px;color:var(--g600);line-height:1.8;">
+              <strong>検索側（病院・ケアマネ）：</strong>退院調整・入居先探しの電話確認が不要になる。空室をリアルタイムで把握し直接問い合わせ。<br>
+              <strong>掲載側（介護施設）：</strong>高額な紹介会社への手数料（20〜30万円/件）から解放。低コストで入居者を直接獲得。<br>
+              <strong>競合（紹介会社）：</strong>「空室確認ツール」として位置付け、複雑なケースでは共存できる可能性もある。
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 補足・修正</div>
+              <div contenteditable="true" data-key="overview-notes" data-placeholder="サービス概要の補足・修正点など..."></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 機能仕様 -->
+      <div class="req-content" id="tab-dataspec">
+        <div class="rs">
+          <div class="rs-title">機能仕様</div>
+          <div class="rs-body">施設情報の項目定義と、各フェーズで実装する機能の一覧。</div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd"><div class="rs-card-title">施設データ定義</div></div>
+            <table class="spec-table">
+              <tr><th>項目</th><th>種別</th><th>備考</th></tr>
+              <tr><td>施設名</td><td><span class="spec-badge fixed">固定</span></td><td>正式名称</td></tr>
+              <tr><td>施設種別</td><td><span class="spec-badge fixed">固定</span></td><td>特養 / 老健 / GH / サ高住 / 介護付有料</td></tr>
+              <tr><td>住所</td><td><span class="spec-badge fixed">固定</span></td><td>豊中市◯◯町◯-◯</td></tr>
+              <tr><td>最寄り駅・徒歩</td><td><span class="spec-badge fixed">固定</span></td><td>阪急◯◯駅 徒歩◯分</td></tr>
+              <tr><td>エリア分類</td><td><span class="spec-badge system">自動</span></td><td>住所から自動分類（庄内 / 岡町 / 曽根 / 千里 / 服部 / 少路）</td></tr>
+              <tr><td>電話番号</td><td><span class="spec-badge fixed">固定</span></td><td>有料プランのみ表示</td></tr>
+              <tr><td>担当者名</td><td><span class="spec-badge fixed">固定</span></td><td>有料プランのみ表示</td></tr>
+              <tr><td>月額費用目安</td><td><span class="spec-badge fixed">固定</span></td><td>例：15〜20万円/月</td></tr>
+              <tr><td>施設の特徴・強み</td><td><span class="spec-badge fixed">固定</span></td><td>看取り対応・機能訓練あり など（任意）</td></tr>
+              <tr><td>空室数（個室）</td><td><span class="spec-badge variable">変動</span></td><td>施設が随時更新</td></tr>
+              <tr><td>空室数（多床室）</td><td><span class="spec-badge variable">変動</span></td><td>施設が随時更新</td></tr>
+              <tr><td>キャンペーン情報</td><td><span class="spec-badge variable">変動</span></td><td>施設が随時更新（任意）</td></tr>
+              <tr><td>最終更新日時</td><td><span class="spec-badge system">自動</span></td><td>更新操作時に自動記録</td></tr>
+              <tr><td>掲載プラン</td><td><span class="spec-badge system">自動</span></td><td>free / standard / premium</td></tr>
+            </table>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 追加・変更すべき項目（兵頭さんの要望）</div>
+              <div contenteditable="true" data-key="dataspec-req" data-placeholder="「対応可能な要介護度」が必要？「送迎の有無」は？など、追加したい項目を記入..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-hd"><div class="rs-card-title">フェーズ別実装機能</div></div>
+            <div style="padding:10px 14px;font-size:12px;color:var(--g600);line-height:1.8;">
+              <strong style="color:var(--brand);">Phase 1（現在）：</strong>静的HTML・エリア/種別フィルター・空室あり/なし表示・施設詳細・有料ゲート（連絡先ブラー）<br>
+              <strong style="color:#8b5cf6;">Phase 2：</strong>Supabase DB・施設が自分で更新（メールOTP）・更新日時管理・有料プラン制御<br>
+              <strong style="color:#f59e0b;">Phase 3：</strong>更新リマインダー自動送信・空室アラート通知・未更新の自動グレーアウト<br>
+              <strong style="color:#3b82f6;">Phase 4：</strong>Stripe課金・PWA化・複数エリア展開・施設向け統計
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 追加・変更したい機能（兵頭さんの要望）</div>
+              <div contenteditable="true" data-key="features-req" data-placeholder="「◯◯の機能がほしい」「△△は不要」など要望を記入..."></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ロードマップ -->
+      <div class="req-content" id="tab-roadmap">
+        <div class="rs">
+          <div class="rs-title">開発ロードマップ</div>
+          <div class="rs-body">Phase 1完成済み。Phase 2以降は需要確認後に着手。<span class="role-maker">YUMEMATCH</span>が開発担当、<span class="role-client">兵頭さん</span>が各フェーズのGO/STOP判断。</div>
+
+          <div class="rm-card">
+            <div class="rm-phase-bar">
+              <div class="rm-dot rm-ph1"></div>
+              <div class="rm-phase-title">Phase 1 — 仮説検証</div>
+              <span style="background:var(--ok-bg);color:var(--ok);font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-left:8px;">完成済</span>
+              <div class="rm-phase-period">費用: ¥0</div>
+            </div>
+            <div class="rm-tasks">
+              <div class="rm-task"><span class="rm-task-who c">兵頭さん</span>モックを施設・病院・ケアマネに共有してデモ</div>
+              <div class="rm-task"><span class="rm-task-who c">兵頭さん</span>「使いたい」「払ってもいい」の声を3〜5件収集</div>
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>フィードバックを反映してモックを随時更新・再デプロイ</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 進捗・メモ</div>
+              <div contenteditable="true" data-key="rm1-notes" data-placeholder="誰に見せたか、反応はどうだったか、次のアクションなど..."></div>
+            </div>
+          </div>
+
+          <div class="rm-card">
+            <div class="rm-phase-bar">
+              <div class="rm-dot rm-ph2"></div>
+              <div class="rm-phase-title">Phase 2 — 施設が自分で更新</div>
+              <div class="rm-phase-period">2〜3週間 ／ 月0〜数千円（参考例）</div>
+            </div>
+            <div class="rm-tasks">
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>Supabase DB設計・構築</div>
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>施設向け更新ページ実装（メールOTP・ログイン不要）</div>
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>有料プランゲート実装（連絡先の表示/非表示）</div>
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>更新日時の自動管理・古いデータの警告表示</div>
+              <div class="rm-task"><span class="rm-task-who c">兵頭さん</span>施設担当者へのアカウント案内・初期登録サポート</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 進捗・メモ・要望</div>
+              <div contenteditable="true" data-key="rm2-notes" data-placeholder="着手日、追加要望、ブロッカーなど..."></div>
+            </div>
+          </div>
+
+          <div class="rm-card">
+            <div class="rm-phase-bar">
+              <div class="rm-dot rm-ph3"></div>
+              <div class="rm-phase-title">Phase 3 — 通知・自動化</div>
+              <div class="rm-phase-period">1〜2週間 ／ LINE月数千円〜（参考例）</div>
+            </div>
+            <div class="rm-tasks">
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>施設への更新リマインダー自動送信（LINE or メール、週1）</div>
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>空室アラート登録機能・LINEプッシュ通知</div>
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>未更新施設の自動グレーアウト（7日以上更新なし）</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 進捗・メモ・要望</div>
+              <div contenteditable="true" data-key="rm3-notes" data-placeholder="着手日、追加要望など..."></div>
+            </div>
+          </div>
+
+          <div class="rm-card">
+            <div class="rm-phase-bar">
+              <div class="rm-dot rm-ph4"></div>
+              <div class="rm-phase-title">Phase 4 — 拡張・収益化</div>
+              <div class="rm-phase-period">需要に応じて</div>
+            </div>
+            <div class="rm-tasks">
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>Stripe連携（プラン変更・解約の自己完結）</div>
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>PWA化（スマホでアプリ的に使える）</div>
+              <div class="rm-task"><span class="rm-task-who c">兵頭さん</span>複数エリア展開先の選定（吹田・池田・箕面など）</div>
+              <div class="rm-task"><span class="rm-task-who m">YUMEMATCH</span>施設向け統計ダッシュボード</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 進捗・メモ・要望</div>
+              <div contenteditable="true" data-key="rm4-notes" data-placeholder="拡張優先順位、対象エリアの候補など..."></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 運用フロー -->
+      <div class="req-content" id="tab-opflow">
+        <div class="rs">
+          <div class="rs-title">運用フロー（Phase 1）</div>
+          <div class="rs-body"><span class="role-maker">YUMEMATCH</span>が技術担当、<span class="role-client">兵頭さん</span>が現場との橋渡し役。</div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd"><div class="rs-card-title">施設情報の登録・更新フロー（Phase 1：手動）</div></div>
+            <div style="padding:8px 14px;">
+              <div class="op-step">
+                <div class="op-num">1</div>
+                <div class="op-text"><span class="role-client">兵頭さん</span> 施設担当者に電話・訪問で掲載同意を取得<br><span style="font-size:10px;color:var(--g400);">担当者名・電話番号・空室数・施設特徴をヒアリングしてYUMEMATCHに連携</span></div>
+              </div>
+              <div class="op-step">
+                <div class="op-num">2</div>
+                <div class="op-text"><span class="role-maker">YUMEMATCH</span> HTMLのデータを追記してSurgeに再デプロイ<br><span style="font-size:10px;color:var(--g400);">5分以内で反映可能</span></div>
+              </div>
+              <div class="op-step">
+                <div class="op-num">3</div>
+                <div class="op-text">空室変動時：施設 → <span class="role-client">兵頭さん</span>にLINE → <span class="role-maker">YUMEMATCH</span>が反映<br><span style="font-size:10px;color:var(--g400);">定期的に施設に「空室状況を教えてください」と連絡する運用</span></div>
+              </div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 修正・メモ</div>
+              <div contenteditable="true" data-key="opflow-register" data-placeholder="実際に動かしてわかったこと、フローの改善案など..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd"><div class="rs-card-title">病院・ケアマネへのサービス提供</div></div>
+            <div style="padding:8px 14px;">
+              <div class="op-step">
+                <div class="op-num">1</div>
+                <div class="op-text"><span class="role-client">兵頭さん</span> 病院・ケアマネにURLを共有・デモ<br><span style="font-size:10px;color:var(--g400);">kaigo-link-mock-v2.surge.sh を紹介</span></div>
+              </div>
+              <div class="op-step">
+                <div class="op-num">2</div>
+                <div class="op-text"><span class="role-client">兵頭さん</span> 「使いたい」「いくらなら払う？」のヒアリング結果をフィードバック<br><span style="font-size:10px;color:var(--g400);">Phase 2移行判断の材料にする</span></div>
+              </div>
+              <div class="op-step">
+                <div class="op-num">3</div>
+                <div class="op-text"><span class="role-maker">YUMEMATCH</span> フィードバックをもとにモックを改修・再デプロイ</div>
+              </div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 修正・メモ</div>
+              <div contenteditable="true" data-key="opflow-sales" data-placeholder="反応・フィードバック・改善要望など..."></div>
+            </div>
+          </div>
+
+          <!-- ── Phase 2 自動更新 実装案 ── -->
+          <div style="margin:18px 0 8px; font-size:13px; font-weight:900; color:var(--g900);">Phase 2：施設が自分で空室を更新する仕組み — 実装案</div>
+          <div style="font-size:12px; color:var(--g500); margin-bottom:12px; line-height:1.7;">以下3案のうち1つを採用する。<span class="role-maker">YUMEMATCH</span>が実装を担当。選択はコスト・施設側の操作ハードルを考慮して兵頭さんと合意の上決定する。</div>
+
+          <!-- 案A -->
+          <div class="rs-card" style="margin-bottom:10px; border-left:3px solid var(--brand);">
+            <div class="rs-card-hd" style="background:var(--brand-l);">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:var(--brand);color:white;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;">案A</span>
+                <div class="rs-card-title">Googleフォーム ＋ スプレッドシート ＋ GAS</div>
+                <span style="margin-left:auto;font-size:10px;color:var(--brand-d);font-weight:700;">★☆☆ 最も簡単</span>
+              </div>
+            </div>
+            <div style="padding:10px 14px;">
+              <!-- フロー -->
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ データフロー</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:11px;color:var(--g600);margin-bottom:12px;">
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">施設担当者がGoogleフォームを送信</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">スプレッドシートに自動記録</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">GASがJSONに変換してGitHubにpush</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:var(--brand-ll);padding:3px 8px;border-radius:6px;color:var(--brand-d);">サイトがJSONを読み込んで即時反映</span>
+              </div>
+
+              <!-- 実装方法 -->
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ 実装内容（YUMEMATCH作業）</div>
+              <div style="font-size:12px;color:var(--g600);line-height:1.8;margin-bottom:12px;">
+                ① Googleフォームを作成（施設名・個室空き数・多床室空き数・更新者名の4項目）<br>
+                ② スプレッドシートとフォームを連携（送信で自動行追加）<br>
+                ③ GASスクリプトを作成：スプレッドシートを読んでJSONを生成 → GitHub APIでpush<br>
+                ④ サイトのHTMLをJSONを参照する構造に書き換え（fetch + 動的レンダリング）<br>
+                ⑤ GitHub Pagesにデプロイ先を移行（JSONと同リポジトリ）<br>
+                <span style="font-size:10px;color:var(--g400);">※GASのトリガーを「フォーム送信時」に設定すると送信後1〜2分以内に反映</span>
+              </div>
+
+              <!-- コスト・期間 -->
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;">
+                <div style="background:var(--ok-bg);border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:var(--ok);margin-bottom:2px;">月額コスト</div>
+                  <div style="font-size:15px;font-weight:900;color:var(--ok);">¥0</div>
+                  <div style="font-size:9px;color:var(--g400);">全部Google無料枠</div>
+                </div>
+                <div style="background:var(--g100);border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:var(--g600);margin-bottom:2px;">実装工数</div>
+                  <div style="font-size:15px;font-weight:900;color:var(--g700);">3〜5日</div>
+                  <div style="font-size:9px;color:var(--g400);">設計〜テストまで</div>
+                </div>
+                <div style="background:var(--g100);border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:var(--g600);margin-bottom:2px;">反映速度</div>
+                  <div style="font-size:15px;font-weight:900;color:var(--g700);">1〜2分</div>
+                  <div style="font-size:9px;color:var(--g400);">GAS実行ラグあり</div>
+                </div>
+              </div>
+
+              <!-- 懸念点 -->
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ 懸念点</div>
+              <div style="font-size:12px;color:var(--g600);line-height:1.8;margin-bottom:4px;">
+                <span style="color:#ef4444;font-weight:700;">⚠</span> GASの無料枠（1日6分実行）を超えると動かなくなる。施設数が増えたら要注意<br>
+                <span style="color:#ef4444;font-weight:700;">⚠</span> フォームURLを知っていれば誰でも送信できる（施設の認証なし）<br>
+                <span style="color:#ef4444;font-weight:700;">⚠</span> GitHubへのpushにGitHub Personal Access Token（PAT）の管理が必要<br>
+                <span style="color:#d97706;font-weight:700;">△</span> 施設ごとに専用フォームを用意するか、施設名をプルダウンで選ばせるか設計が必要
+              </div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 案Aへのコメント・判断</div>
+              <div contenteditable="true" data-key="opflow-planA" data-placeholder="採用する？しない？懸念点への対応案など..."></div>
+            </div>
+          </div>
+
+          <!-- 案B -->
+          <div class="rs-card" style="margin-bottom:10px; border-left:3px solid #8b5cf6;">
+            <div class="rs-card-hd" style="background:#f5f3ff;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:#8b5cf6;color:white;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;">案B</span>
+                <div class="rs-card-title">施設専用の更新URL（メールOTP ＋ Supabase）</div>
+                <span style="margin-left:auto;font-size:10px;color:#6d28d9;font-weight:700;">★★☆ 本格的</span>
+              </div>
+            </div>
+            <div style="padding:10px 14px;">
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ データフロー</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:11px;color:var(--g600);margin-bottom:12px;">
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">週1でメールを自動送信「空室状況を更新してください」</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">メール内リンクをクリック → 施設専用フォームが開く</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">Supabase DBに書き込み</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:#ede9fe;padding:3px 8px;border-radius:6px;color:#6d28d9;">サイトがSupabaseを参照して即時反映</span>
+              </div>
+
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ 実装内容（YUMEMATCH作業）</div>
+              <div style="font-size:12px;color:var(--g600);line-height:1.8;margin-bottom:12px;">
+                ① Supabaseでテーブル設計：facilities（施設マスタ）, vacancies（空室履歴）<br>
+                ② 施設ごとにランダムなURLトークンを発行・DB保存（アカウント不要でURL認証）<br>
+                ③ 更新フォームページを作成（URLトークンで施設を特定→送信→Supabase更新）<br>
+                ④ Resend または SendGrid でリマインダーメールを定期自動送信（週1回）<br>
+                ⑤ サイトのフロントエンドをSupabase参照に書き換え（fetch Supabase REST API）<br>
+                ⑥ RLSポリシー設定（施設は自施設データのみ更新可能）
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;">
+                <div style="background:#fef3c7;border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:#92400e;margin-bottom:2px;">月額コスト</div>
+                  <div style="font-size:15px;font-weight:900;color:#92400e;">¥0〜500</div>
+                  <div style="font-size:9px;color:var(--g400);">Supabase無料枠で当面OK</div>
+                </div>
+                <div style="background:var(--g100);border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:var(--g600);margin-bottom:2px;">実装工数</div>
+                  <div style="font-size:15px;font-weight:900;color:var(--g700);">2〜3週間</div>
+                  <div style="font-size:9px;color:var(--g400);">DB設計〜メール送信まで</div>
+                </div>
+                <div style="background:var(--g100);border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:var(--g600);margin-bottom:2px;">反映速度</div>
+                  <div style="font-size:15px;font-weight:900;color:var(--g700);">即時</div>
+                  <div style="font-size:9px;color:var(--g400);">送信と同時に反映</div>
+                </div>
+              </div>
+
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ 懸念点</div>
+              <div style="font-size:12px;color:var(--g600);line-height:1.8;margin-bottom:4px;">
+                <span style="color:#ef4444;font-weight:700;">⚠</span> URLトークンは推測困難だが、メールを転送されると第三者が更新できてしまう<br>
+                <span style="color:#ef4444;font-weight:700;">⚠</span> Supabase無料枠は月50万行・帯域5GB。施設数が増えたら有料プランへ（月$25〜）<br>
+                <span style="color:#d97706;font-weight:700;">△</span> メール送信サービス（Resend等）の初期設定が別途必要<br>
+                <span style="color:#d97706;font-weight:700;">△</span> 施設担当者がメールを見ない場合、更新されない（リマインダー設計が重要）
+              </div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 案Bへのコメント・判断</div>
+              <div contenteditable="true" data-key="opflow-planB" data-placeholder="採用する？しない？懸念点への対応案など..."></div>
+            </div>
+          </div>
+
+          <!-- 案C -->
+          <div class="rs-card" style="margin-bottom:10px; border-left:3px solid #f59e0b;">
+            <div class="rs-card-hd" style="background:#fffbeb;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:#f59e0b;color:white;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;">案C</span>
+                <div class="rs-card-title">LINE Messaging API（LINEで送るだけ）</div>
+                <span style="margin-left:auto;font-size:10px;color:#92400e;font-weight:700;">★★★ 施設ハードル最低</span>
+              </div>
+            </div>
+            <div style="padding:10px 14px;">
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ データフロー</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:11px;color:var(--g600);margin-bottom:12px;">
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">施設担当者がLINEに「個室2 多床室0」と送信</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">Webhook → Cloudflare Worker がテキストをパース</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:var(--g100);padding:3px 8px;border-radius:6px;">SupabaseまたはKV Storeに書き込み</span>
+                <span style="color:var(--g400);">→</span>
+                <span style="background:#fef3c7;padding:3px 8px;border-radius:6px;color:#92400e;">サイトが即時反映</span>
+              </div>
+
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ 実装内容（YUMEMATCH作業）</div>
+              <div style="font-size:12px;color:var(--g600);line-height:1.8;margin-bottom:12px;">
+                ① LINE公式アカウント（Messaging API）を開設<br>
+                ② 施設ごとにLINE友だちとして登録（または施設をグループに招待）<br>
+                ③ Cloudflare WorkerでWebhookを受信：LINEユーザーID → 施設を特定<br>
+                ④ メッセージをパース：「個室:数字 多床室:数字」の書式を認識<br>
+                ⑤ SupabaseまたはCloudflare KV（このプロジェクトでは既存Worker活用）にupsert<br>
+                ⑥ パース失敗時はLINEでエラー返信「送信形式: 個室2 多床室1」<br>
+                ⑦ サイトのフロントエンドをDB参照に書き換え
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;">
+                <div style="background:#fef3c7;border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:#92400e;margin-bottom:2px;">月額コスト</div>
+                  <div style="font-size:15px;font-weight:900;color:#92400e;">¥3,000〜</div>
+                  <div style="font-size:9px;color:var(--g400);">LINE月額 ＋ Supabase</div>
+                </div>
+                <div style="background:var(--g100);border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:var(--g600);margin-bottom:2px;">実装工数</div>
+                  <div style="font-size:15px;font-weight:900;color:var(--g700);">3〜4週間</div>
+                  <div style="font-size:9px;color:var(--g400);">Webhook〜パーサー開発</div>
+                </div>
+                <div style="background:var(--g100);border-radius:8px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:700;color:var(--g600);margin-bottom:2px;">反映速度</div>
+                  <div style="font-size:15px;font-weight:900;color:var(--g700);">即時</div>
+                  <div style="font-size:9px;color:var(--g400);">LINE送信と同時に反映</div>
+                </div>
+              </div>
+
+              <div style="font-size:11px;font-weight:800;color:var(--g500);margin-bottom:6px;letter-spacing:.06em;">▌ 懸念点</div>
+              <div style="font-size:12px;color:var(--g600);line-height:1.8;margin-bottom:4px;">
+                <span style="color:#ef4444;font-weight:700;">⚠</span> LINE公式アカウントの月額固定費が発生（無料プランはメッセージ数制限あり）<br>
+                <span style="color:#ef4444;font-weight:700;">⚠</span> テキストのパース精度：「個室が2つ空きました」等の自然文には対応できない<br>
+                <span style="color:#ef4444;font-weight:700;">⚠</span> 施設ごとにLINE友だち追加・初期設定のオンボーディングコストが高い<br>
+                <span style="color:#d97706;font-weight:700;">△</span> 誤送信時の取り消し・修正フローを別途設計する必要がある<br>
+                <span style="color:#d97706;font-weight:700;">△</span> 将来的にClaude APIと組み合わせれば自然文パースも可能（AIコスト追加）
+              </div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 案Cへのコメント・判断</div>
+              <div contenteditable="true" data-key="opflow-planC" data-placeholder="採用する？しない？懸念点への対応案など..."></div>
+            </div>
+          </div>
+
+          <!-- 案比較サマリー -->
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd"><div class="rs-card-title">案の比較サマリー</div></div>
+            <table class="spec-table">
+              <tr><th>比較軸</th><th>案A（Gフォーム）</th><th>案B（専用URL）</th><th>案C（LINE）</th></tr>
+              <tr><td>月額コスト</td><td><span class="spec-badge fixed">¥0</span></td><td><span class="spec-badge variable">¥0〜500</span></td><td><span class="spec-badge system">¥3,000〜</span></td></tr>
+              <tr><td>実装工数</td><td>3〜5日</td><td>2〜3週間</td><td>3〜4週間</td></tr>
+              <tr><td>即時反映</td><td>△ 1〜2分ラグ</td><td>◎ 即時</td><td>◎ 即時</td></tr>
+              <tr><td>施設の操作</td><td>△ フォームURL</td><td>○ メールリンク</td><td>◎ LINEのみ</td></tr>
+              <tr><td>認証強度</td><td>✗ 認証なし</td><td>○ URLトークン</td><td>○ LINEアカウント</td></tr>
+              <tr><td>スケーラビリティ</td><td>△ GAS制限あり</td><td>◎ Supabase拡張可</td><td>○ 拡張可</td></tr>
+              <tr><td>推奨フェーズ</td><td>Phase 2 最速MVP</td><td>Phase 2〜3 本格稼働</td><td>Phase 3 拡張期</td></tr>
+            </table>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 採用案の決定・理由</div>
+              <div contenteditable="true" data-key="opflow-decision" data-placeholder="どの案で行くか、理由、変更点など合意内容を記入..."></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 懸念点 -->
+      <div class="req-content" id="tab-concerns">
+        <div class="rs">
+          <div class="rs-title">懸念点と対策</div>
+          <div class="rs-body">開発・運用上のリスク。<span class="role-client">兵頭さん</span>の判断が必要な点は✏️欄に記入してください。</div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd">
+              <div class="concern-title">🔄 データの鮮度</div>
+              <div class="concern-body">施設が空室情報を更新し続けてくれるかがサービス価値の核心。更新が止まると「古い情報しかない」と離脱される。</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 対策・判断 <span class="role-client">兵頭さん</span></div>
+              <div contenteditable="true" data-key="concern-freshness" data-placeholder="更新インセンティブをどう設計する？誰が施設に働きかける？など..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd">
+              <div class="concern-title">🏢 施設の登録促進</div>
+              <div class="concern-body">掲載施設が少ないと病院・ケアマネが使わない（鶏と卵問題）。初期は無料掲載で施設数を増やす必要がある。</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 対策・判断 <span class="role-client">兵頭さん</span></div>
+              <div contenteditable="true" data-key="concern-chicken-egg" data-placeholder="最初に声をかける施設は？無料期間はどのくらい？兵頭さんのコネクションで何施設いける？など..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd">
+              <div class="concern-title">⚖️ 紹介会社との競合</div>
+              <div class="concern-body">既存の紹介会社が施設・病院との関係を持っている。「空室確認ツール」として位置付けて棲み分けるか検討が必要。</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 対策・判断 <span class="role-client">兵頭さん</span></div>
+              <div contenteditable="true" data-key="concern-competitor" data-placeholder="共存できる？正面から競合する？棲み分けのロジックは？など..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd">
+              <div class="concern-title">🔒 個人情報・コンプライアンス</div>
+              <div class="concern-body">施設の担当者名・電話番号の掲載には施設側の同意が必要。利用規約・プライバシーポリシーの整備も必要。</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 対策・判断 <span class="role-client">兵頭さん</span></div>
+              <div contenteditable="true" data-key="concern-privacy" data-placeholder="掲載同意はどんな形で取る？利用規約は誰が作る？など..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-hd">
+              <div class="concern-title">👥 運用継続性</div>
+              <div class="concern-body">YUMEMATCH（製作者）・兵頭さん（依頼者）どちらがどこを担うかを明確にしないと止まる。属人化リスクもある。</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 対策・判断</div>
+              <div contenteditable="true" data-key="concern-ops" data-placeholder="施設への営業は兵頭さん担当？技術・更新はYUMEMATCH担当？問い合わせ対応は誰？など..."></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 決定事項 -->
+      <div class="req-content" id="tab-decisions">
+        <div class="rs">
+          <div class="rs-title">決定すべき事項</div>
+          <div class="rs-body">プロジェクトを前進させるために決めなければならないことのリスト。</div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd">
+              <div class="dec-q">最初にアプローチする施設は？</div>
+              <div class="dec-who"><span class="role-client">兵頭さん</span> 判断</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 記入</div>
+              <div contenteditable="true" data-key="dec-facilities" data-placeholder="施設名と担当者を記入..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd">
+              <div class="dec-q">最初にデモする病院・ケアマネは？</div>
+              <div class="dec-who"><span class="role-client">兵頭さん</span> 判断</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 記入</div>
+              <div contenteditable="true" data-key="dec-hospitals" data-placeholder="病院名・担当者名を記入..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd">
+              <div class="dec-q">Phase 2への移行判断基準は？</div>
+              <div class="dec-who"><span class="role-client">兵頭さん</span> ＋ <span class="role-maker">YUMEMATCH</span> 合意</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 記入</div>
+              <div contenteditable="true" data-key="dec-phase2-trigger" data-placeholder="例）登録施設5件 AND 有料意向ありが3件以上、など..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd">
+              <div class="dec-q">サービス名・ブランド</div>
+              <div class="dec-who"><span class="role-client">兵頭さん</span> ＋ <span class="role-maker">YUMEMATCH</span> 合意</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 記入</div>
+              <div contenteditable="true" data-key="dec-brand" data-placeholder="「KaigoLink」で確定？他の候補は？..."></div>
+            </div>
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-hd">
+              <div class="dec-q">その他・気になること</div>
+              <div class="dec-who">📝 自由記入</div>
+            </div>
+            <div class="edit-block">
+              <div class="edit-hd">✏️ 記入</div>
+              <div contenteditable="true" data-key="dec-other" data-placeholder="どんなことでも..."></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ビジネス設計（参考） -->
+      <div class="req-content" id="tab-biz">
+        <div class="rs">
+          <div class="rs-title">ビジネス設計（参考）</div>
+          <div class="rs-body">料金プランは参考例です。正式な設計は兵頭さんとYUMEMATCHで合意の上決定します。</div>
+
+          <div class="biz-note">
+            📝 このセクションはビジネス面の参考情報です。開発フェーズでは不要な場合が多く、Phase 2移行のタイミングで改めて決定する想定です。
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd"><div class="rs-card-title">病院・ケアマネ向け料金（参考例）</div></div>
+            <div style="padding:10px 14px;">
+              <div class="price-mini-grid">
+                <div class="price-mini"><div class="price-mini-plan">無料</div><div class="price-mini-price">¥0<sub>/月</sub></div><div class="price-mini-ex">参考例</div></div>
+                <div class="price-mini featured"><div class="price-mini-plan">スタンダード</div><div class="price-mini-price">¥3,000<sub>/月</sub></div><div class="price-mini-ex">参考例</div></div>
+                <div class="price-mini"><div class="price-mini-plan">チーム</div><div class="price-mini-price">¥8,000<sub>/月</sub></div><div class="price-mini-ex">参考例</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rs-card" style="margin-bottom:10px;">
+            <div class="rs-card-hd"><div class="rs-card-title">施設向け掲載料金（参考例）</div></div>
+            <div style="padding:10px 14px;">
+              <div class="price-mini-grid">
+                <div class="price-mini"><div class="price-mini-plan">ベーシック</div><div class="price-mini-price">¥2,000<sub>/月</sub></div><div class="price-mini-ex">参考例</div></div>
+                <div class="price-mini featured"><div class="price-mini-plan">スタンダード</div><div class="price-mini-price">¥5,000<sub>/月</sub></div><div class="price-mini-ex">参考例</div></div>
+                <div class="price-mini"><div class="price-mini-plan">プレミアム</div><div class="price-mini-price">¥10,000<sub>/月</sub></div><div class="price-mini-ex">参考例</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rs-card">
+            <div class="rs-card-hd"><div class="rs-card-title">収益・運営体制の方針</div></div>
+            <div class="edit-block" style="border-top:none;">
+              <div class="edit-hd">✏️ 記入</div>
+              <div contenteditable="true" data-key="biz-notes" data-placeholder="YUMEMATCH名義で運営？利益配分は？兵頭さんとどう連携する？など..."></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /req-scroll -->
+  </div><!-- /pane-reqs -->
+
+  <!-- ── RIGHT: コメント・要望 ── -->
+  <div class="pane pane-comments">
+    <div class="pane-hd">
+      <span class="pane-hd-title">コメント・要望</span>
+      <span style="font-size:9px;color:#4ade80;font-weight:700;">● Notion同期</span>
+    </div>
+    <div class="cmt-form">
+      <div class="cmt-meta">
+        <select class="cmt-select" id="cmt-author">
+          <option value="兵頭さん">兵頭さん</option>
+          <option value="YUMEMATCH">YUMEMATCH</option>
+          <option value="その他">その他</option>
+        </select>
+        <select class="cmt-select" id="cmt-tag">
+          <option value="要望">要望</option>
+          <option value="質問">質問</option>
+          <option value="確認">確認</option>
+          <option value="アイデア">アイデア</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <textarea class="cmt-textarea" id="cmt-text" placeholder="コメント・要望・質問を自由に記入..."></textarea>
+      <button class="cmt-submit" onclick="addComment()">投稿する</button>
+    </div>
+    <div class="pane-scroll">
+      <div class="cmt-list" id="cmt-list">
+        <div class="cmt-empty" id="cmt-empty">コメントがありません</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /workspace -->
+
+<!-- ── MODAL: 議事録追加 ── -->
+<div class="modal-overlay" id="minute-modal">
+  <div class="modal">
+    <div class="modal-title">議事録を追加</div>
+    <div class="modal-field">
+      <label class="modal-label">日付</label>
+      <input type="date" class="modal-input" id="min-date-input">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">タイトル</label>
+      <input type="text" class="modal-input" id="min-title-input" placeholder="例）兵頭さんとの打ち合わせ">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">内容</label>
+      <textarea class="modal-textarea" id="min-body-input" placeholder="議事録の内容を貼り付けまたは入力..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeMinuteModal()">キャンセル</button>
+      <button class="modal-ok" onclick="addMinute()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 議事録・コメント → Notion（Worker経由）
+  // 設計書メモ（contenteditable）→ localStorage（個人メモ用）
+  const API = 'https://kaigo-ws-api.newgo-koike.workers.dev';
+  const REQ_KEY = 'kaigolink-requirements-v1';
+
+  // ── 設計書メモ（localStorage） ──────────────────────
+  function saveRequirements() {
+    const reqs = {};
+    document.querySelectorAll('[data-key]').forEach(el => {
+      reqs[el.dataset.key] = el.innerHTML;
+    });
+    localStorage.setItem(REQ_KEY, JSON.stringify(reqs));
+    setBadge('メモを保存しました ✓', true);
+  }
+
+  function loadRequirements() {
+    try {
+      const reqs = JSON.parse(localStorage.getItem(REQ_KEY) || '{}');
+      document.querySelectorAll('[data-key]').forEach(el => {
+        if (reqs[el.dataset.key] !== undefined) el.innerHTML = reqs[el.dataset.key];
+      });
+    } catch(e) {}
+  }
+
+  let saveTimer;
+  document.addEventListener('input', e => {
+    if (!e.target.matches('[contenteditable]')) return;
+    setBadge('未保存', false);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveRequirements, 1200);
+  });
+
+  function setBadge(msg, ok) {
+    const b = document.getElementById('save-badge');
+    b.textContent = msg; b.classList.toggle('ok', ok);
+    if (ok) setTimeout(() => { b.textContent = ''; b.classList.remove('ok'); }, 2500);
+  }
+
+  // ── 共通 ────────────────────────────────────────────
+  function switchTab(id, btn) {
+    document.querySelectorAll('.req-tab').forEach(t => t.classList.remove('on'));
+    document.querySelectorAll('.req-content').forEach(c => c.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('tab-' + id).classList.add('on');
+    document.getElementById('req-scroll').scrollTop = 0;
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fmtDate(s) {
+    if (!s) return '';
+    const d = new Date(s + 'T00:00:00');
+    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function fmtDatetime(s) {
+    if (!s) return '';
+    const d = new Date(s);
+    return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  // ── 議事録 ──────────────────────────────────────────
+  let minutes = [];
+
+  async function loadMinutes() {
+    document.getElementById('min-list').innerHTML = '<div class="min-empty">読み込み中...</div>';
+    try {
+      const r = await fetch(`${API}/api/minutes`);
+      if (!r.ok) throw new Error(r.status);
+      const data = await r.json();
+      minutes = data.minutes || [];
+      renderMinutes();
+    } catch(e) {
+      document.getElementById('min-list').innerHTML = '<div class="min-empty" style="color:#ef4444;">読み込みに失敗<br>Workerが未デプロイの可能性があります</div>';
+    }
+  }
+
+  function openMinuteModal() {
+    document.getElementById('min-date-input').value = new Date().toISOString().slice(0,10);
+    document.getElementById('min-title-input').value = '';
+    document.getElementById('min-body-input').value  = '';
+    document.getElementById('minute-modal').classList.add('open');
+    setTimeout(() => document.getElementById('min-title-input').focus(), 80);
+  }
+  function closeMinuteModal() {
+    document.getElementById('minute-modal').classList.remove('open');
+  }
+  document.getElementById('minute-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeMinuteModal();
+  });
+
+  async function addMinute() {
+    const date    = document.getElementById('min-date-input').value;
+    const title   = document.getElementById('min-title-input').value.trim();
+    const content = document.getElementById('min-body-input').value.trim();
+    if (!title && !content) return;
+    const btn = document.querySelector('.modal-ok');
+    btn.disabled = true; btn.textContent = '追加中...';
+    try {
+      const r = await fetch(`${API}/api/minutes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title || '（無題）', date, content }),
+      });
+      if (!r.ok) throw new Error(r.status);
+      closeMinuteModal();
+      await loadMinutes();
+    } catch(e) {
+      alert('追加に失敗しました: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = '追加する';
+    }
+  }
+
+  async function deleteMinute(pageId) {
+    if (!confirm('この議事録を削除しますか？')) return;
+    try {
+      await fetch(`${API}/api/minutes/${pageId}`, { method: 'DELETE' });
+      await loadMinutes();
+    } catch(e) {
+      alert('削除に失敗しました');
+    }
+  }
+
+  function renderMinutes() {
+    const list = document.getElementById('min-list');
+    if (!minutes.length) {
+      list.innerHTML = '<div class="min-empty">議事録がありません<br>「＋ 追加」から記録してください</div>';
+      return;
+    }
+    list.innerHTML = minutes.map((m, i) => `
+      <div class="min-card">
+        <div class="min-card-hd" onclick="toggleMin('${esc(m.id)}')">
+          <span class="min-date">${fmtDate(m.date)}</span>
+          <span class="min-card-title">${esc(m.title)}</span>
+          <span class="min-toggle" id="mt-${esc(m.id)}">▼</span>
+        </div>
+        ${m.content ? `<div class="min-card-body" id="mb-${esc(m.id)}"><span class="min-del" onclick="event.stopPropagation();deleteMinute('${esc(m.id)}')">削除</span>${esc(m.content)}</div>` : ''}
+      </div>`).join('');
+  }
+
+  function toggleMin(id) {
+    const b = document.getElementById('mb-' + id);
+    const t = document.getElementById('mt-' + id);
+    if (!b) return;
+    b.classList.toggle('open');
+    t.textContent = b.classList.contains('open') ? '▲' : '▼';
+  }
+
+  // ── コメント ─────────────────────────────────────────
+  let comments = [];
+
+  async function loadComments() {
+    document.getElementById('cmt-list').innerHTML = '<div class="cmt-empty">読み込み中...</div>';
+    try {
+      const r = await fetch(`${API}/api/comments`);
+      if (!r.ok) throw new Error(r.status);
+      const data = await r.json();
+      comments = data.comments || [];
+      renderComments();
+    } catch(e) {
+      document.getElementById('cmt-list').innerHTML = '<div class="cmt-empty" style="color:#ef4444;">読み込みに失敗</div>';
+    }
+  }
+
+  async function addComment() {
+    const author  = document.getElementById('cmt-author').value;
+    const tag     = document.getElementById('cmt-tag').value;
+    const content = document.getElementById('cmt-text').value.trim();
+    if (!content) return;
+    const btn = document.querySelector('.cmt-submit');
+    btn.disabled = true; btn.textContent = '投稿中...';
+    try {
+      const r = await fetch(`${API}/api/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, author, tag }),
+      });
+      if (!r.ok) throw new Error(r.status);
+      document.getElementById('cmt-text').value = '';
+      await loadComments();
+    } catch(e) {
+      alert('投稿に失敗しました: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = '投稿する';
+    }
+  }
+
+  async function deleteComment(pageId) {
+    if (!confirm('このコメントを削除しますか？')) return;
+    try {
+      await fetch(`${API}/api/comments/${pageId}`, { method: 'DELETE' });
+      await loadComments();
+    } catch(e) {
+      alert('削除に失敗しました');
+    }
+  }
+
+  function renderComments() {
+    const list = document.getElementById('cmt-list');
+    if (!comments.length) {
+      list.innerHTML = '<div class="cmt-empty">コメントがありません</div>';
+      return;
+    }
+    list.innerHTML = comments.map(c => `
+      <div class="cmt-card">
+        <div class="cmt-card-meta">
+          <span class="cmt-author">${esc(c.author)}</span>
+          <span class="cmt-tag ${esc(c.tag)}">${esc(c.tag)}</span>
+          <span class="cmt-date">${fmtDatetime(c.postedAt || c.createdTime)}</span>
+          <span class="cmt-del" onclick="deleteComment('${esc(c.id)}')">削除</span>
+        </div>
+        <div class="cmt-text">${esc(c.content)}</div>
+      </div>`).join('');
+  }
+
+  // ── 初期化 ───────────────────────────────────────────
+  loadRequirements();
+  loadMinutes();
+  loadComments();
+</script>
+</body>
+</html>
