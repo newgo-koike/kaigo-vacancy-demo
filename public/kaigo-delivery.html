@@ -564,6 +564,12 @@
             <li><div class="step-num">3</div><div class="step-txt"><strong>修正したい項目を変更する</strong><br>タグ・入居条件・住所・電話番号などを修正</div></li>
             <li><div class="step-num">4</div><div class="step-txt"><strong>「✅ この内容で更新する」をクリック</strong><br>保存後、検索ページに即時反映されます</div></li>
           </ol>
+          <div class="manual-note">
+            <strong>QRコードは2種類あります</strong><br>
+            📢 <strong>病院共有用QR</strong>：施設の共有ページ（kaigo-facility-view）へのリンク。ケアマネや病院担当者に配布する用。<br>
+            🔑 <strong>施設更新用QR</strong>：施設担当者が空室を更新するページへのリンク。施設担当者のみに渡す用。<br>
+            各QRの「💾 保存」ボタンでPNG出力できます。
+          </div>
         </div>
         <div class="manual-ss"><img src="img/ss-master.png" alt="マスター管理画面"></div>
       </div>
@@ -625,10 +631,10 @@
           <h3>施設を検索する</h3>
           <ol class="manual-steps">
             <li><div class="step-num">1</div><div class="step-txt"><strong>検索ページにアクセス</strong><br>Meets Medicalから案内されたURLを開く</div></li>
-            <li><div class="step-num">2</div><div class="step-txt"><strong>エリアペイン（左1列目）でエリアを選択</strong><br>空室あり施設数がリアルタイムで更新されます。</div></li>
+            <li><div class="step-num">2</div><div class="step-txt"><strong>エリアペイン（左1列目）でエリアを選択</strong><br>空室あり施設数がリアルタイムで更新されます。上部の検索バーから施設名・駅名でも絞り込めます（例：「曽根駅」「柴原」）。</div></li>
             <li><div class="step-num">3</div><div class="step-txt"><strong>種別・条件ペイン（左2列目）で施設種別・入居条件を選択</strong><br>「指定なし」がデフォルト。生活保護・身元保証・介護認定をワンタップで絞れます。</div></li>
             <li><div class="step-num">4</div><div class="step-txt"><strong>こだわり条件ペイン（左3列目）で医療・特徴タグを選択</strong><br>複数選択するとAND検索（すべての条件を満たす施設のみ表示）。</div></li>
-            <li><div class="step-num">5</div><div class="step-txt"><strong>施設一覧から施設をクリックして詳細を確認</strong><br>右端の詳細ペインに空室数・住所・連絡先（有料施設のみ）が表示されます。</div></li>
+            <li><div class="step-num">5</div><div class="step-txt"><strong>施設一覧から施設をクリックして詳細を確認</strong><br>施設名横の緑バッジ（✓）は有料プランの目印。右端の詳細ペインに空室数・住所・連絡先（有料施設のみ）が表示されます。</div></li>
           </ol>
         </div>
         <div class="manual-ss"><img src="img/ss-search.png" alt="検索ページ画面"></div>
@@ -656,6 +662,10 @@
       <tr>
         <td>更新URL管理</td>
         <td>施設ごとの更新URLは<strong>施設担当者のみ</strong>に送付してください。URLを知っている人は誰でも更新できます。URLの再発行は現時点では手動対応（Firebase Consoleでドキュメント再作成）です。</td>
+      </tr>
+      <tr>
+        <td>有料プランバッジ</td>
+        <td>有料プランの施設には、施設名の横に緑の丸チェックバッジ（✓）が表示されます。ケアマネが一覧を見た際に「直接問い合わせできる施設」を一目で判別できます。マスター管理のプランボタンで切り替えると即時反映されます。</td>
       </tr>
       <tr>
         <td>更新の督促</td>
