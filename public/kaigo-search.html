@@ -181,6 +181,7 @@
     .d-call-btn:hover { background:var(--brand-d); }
     .d-hp-btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; background:var(--g800); color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; text-decoration:none; width:100%; justify-content:center; }
     .d-hp-btn:hover { background:var(--g900); }
+    .plan-badge { font-size:9px; padding:1px 7px; border-radius:10px; background:var(--brand-l); color:var(--brand-d); font-weight:700; border:1px solid rgba(13,148,136,.2); letter-spacing:.02em; }
 
     .toast { position:fixed; bottom:24px; right:24px; background:var(--g900); color:white; padding:12px 20px; border-radius:11px; font-size:13px; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,.25); opacity:0; transform:translateY(12px); transition:all .22s; z-index:999; pointer-events:none; }
     .toast.on { opacity:1; transform:translateY(0); }
@@ -525,8 +526,9 @@ function applyFilter() {
   const types = getChecked('type');
   const q = (document.getElementById('q')?.value || '').toLowerCase();
 
+  const qStation = q.replace(/駅$/, '');
   const list = DATA.filter(f => {
-    if (q && !f.name.toLowerCase().includes(q) && !f.station.toLowerCase().includes(q) && !f.addr.includes(q)) return false;
+    if (q && !f.name.toLowerCase().includes(q) && !f.station.toLowerCase().includes(qStation) && !f.addr.includes(q)) return false;
     if (areas.length && !areas.includes(f.area)) return false;
     if (types.length && !types.includes(f.type)) return false;
     if (activeVac === 'ok' && f.total === 0) return false;
@@ -541,7 +543,7 @@ function applyFilter() {
 }
 
 function updateCounts(areas, types, q) {
-  const qf = q ? DATA.filter(f => f.name.toLowerCase().includes(q) || f.station.toLowerCase().includes(q)) : DATA;
+  const qf = q ? DATA.filter(f => f.name.toLowerCase().includes(q) || f.station.toLowerCase().includes(q.replace(/駅$/,''))) : DATA;
   const vc = activeVac === 'all' ? ()=>true : f=>f.total>0;
   AREAS.forEach(a => {
     const el = document.getElementById('ac-' + a.key);
@@ -583,7 +585,7 @@ function renderList(list) {
         </div>
         <div class="fcc-foot">
           <span class="${f.daysAgo>14?'fcc-stale':''}">${f.daysAgo===0?'本日更新':f.daysAgo+'日前更新'}${f.daysAgo>14?' ⚠️':''}</span>
-          ${f.plan==='free'?'🔒':''}
+          ${f.plan!=='free'?'<span class="plan-badge">問合せ可</span>':''}
         </div>
       </div>
     </div>`;
