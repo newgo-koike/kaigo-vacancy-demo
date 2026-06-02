@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施設登録 | Meets Medical</title>
+  <style>
+    :root {
+      --brand:#0d9488; --brand-d:#0f766e;
+      --brand-l:#f0fdfa;
+      --ok:#16a34a; --ok-bg:#dcfce7;
+      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
+      --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
+      --g800:#1e293b; --g900:#0f172a;
+      --r:12px; --r-lg:16px;
+      --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { min-height:100%; }
+    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; }
+
+    .hdr { background:var(--g900); padding:0 20px; height:58px; display:flex; align-items:center; gap:10px; }
+    .hdr-logo { width:30px; height:30px; background:var(--brand); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+    .hdr-title { font-size:14px; font-weight:800; color:white; }
+    .hdr-sub { font-size:10px; color:var(--g400); }
+    .hdr-nav { margin-left:auto; }
+    .hdr-nav a { color:var(--g400); font-size:12px; text-decoration:none; padding:6px 12px; border:1px solid var(--g700); border-radius:6px; }
+    .hdr-nav a:hover { color:white; border-color:var(--g500); }
+
+    .page { max-width:680px; margin:0 auto; padding:28px 16px 80px; }
+    .page-ttl { font-size:22px; font-weight:900; color:var(--g900); margin-bottom:4px; }
+    .page-sub { font-size:13px; color:var(--g500); margin-bottom:24px; }
+
+    .s-card { background:white; border-radius:var(--r-lg); padding:20px 22px; box-shadow:var(--sh); margin-bottom:14px; border:1px solid var(--g200); }
+    .sc-ttl { font-size:14px; font-weight:700; color:var(--g700); margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--g100); display:flex; align-items:center; gap:8px; }
+
+    .f-grp { margin-bottom:14px; }
+    .f-grp:last-child { margin-bottom:0; }
+    .f-lbl { display:block; font-size:12px; font-weight:600; color:var(--g600); margin-bottom:5px; }
+    .f-req { color:#ef4444; }
+    .f-hint { font-size:10px; color:var(--g400); margin-top:3px; }
+    .f-inp,.f-ta,.f-sel { width:100%; padding:10px 12px; border:1.5px solid var(--g200); border-radius:9px; font-size:14px; outline:none; font-family:inherit; color:var(--g800); transition:border-color .15s,box-shadow .15s; background:white; }
+    .f-inp:focus,.f-ta:focus,.f-sel:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+    .f-ta { resize:vertical; min-height:70px; }
+    .f-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+    /* 入居条件セレクト */
+    .cond-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .cond-grp { }
+    .cond-lbl { display:block; font-size:11px; font-weight:600; color:var(--g600); margin-bottom:5px; }
+    .cond-sel { width:100%; padding:9px 10px; border:1.5px solid var(--g200); border-radius:9px; font-size:13px; outline:none; font-family:inherit; color:var(--g800); background:white; transition:border-color .15s; }
+    .cond-sel:focus { border-color:var(--brand); }
+
+    /* タグ */
+    .tag-sec-hd { font-size:10px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; padding:10px 10px 5px; background:var(--g50); border-top:1px solid var(--g100); border-bottom:1px solid var(--g100); margin-bottom:0; }
+    .tag-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+    .tag-item { display:flex; align-items:flex-start; gap:8px; padding:8px 10px; cursor:pointer; border-bottom:1px solid var(--g100); border-right:1px solid var(--g100); user-select:none; transition:background .1s; border-radius:0; }
+    .tag-item:hover { background:var(--g50); }
+    .tag-item.on { background:var(--brand-l); }
+    .tag-cb { width:15px; height:15px; min-width:15px; accent-color:var(--brand); cursor:pointer; margin-top:2px; }
+    .tag-name { font-size:11px; color:var(--g700); line-height:1.4; }
+
+    /* 写真 */
+    .photo-drop { border:2px dashed var(--g300); border-radius:10px; padding:28px 16px; text-align:center; cursor:pointer; transition:border-color .15s,background .15s; }
+    .photo-drop:hover { border-color:var(--brand); background:var(--brand-l); }
+    .photo-drop-ico { font-size:32px; margin-bottom:8px; }
+    .photo-drop-txt { font-size:13px; color:var(--g500); }
+    .photo-drop-sub { font-size:11px; color:var(--g400); margin-top:4px; }
+    .photo-preview { width:100%; max-height:220px; object-fit:cover; border-radius:8px; display:none; margin-bottom:8px; }
+    .photo-remove-btn { font-size:12px; color:var(--g500); background:none; border:1px solid var(--g200); border-radius:6px; padding:5px 12px; cursor:pointer; font-family:inherit; }
+
+    /* 空室入力 */
+    .v-row { display:flex; gap:16px; align-items:flex-start; }
+    .v-num-grp { text-align:center; flex-shrink:0; width:120px; }
+    .v-lbl { font-size:11px; color:var(--g500); display:block; margin-bottom:5px; font-weight:600; }
+    .v-inp { width:100%; padding:8px; border:2px solid var(--g200); border-radius:10px; font-size:32px; font-weight:900; text-align:center; outline:none; color:var(--brand-d); font-family:inherit; }
+    .v-inp:focus { border-color:var(--brand); }
+
+    /* ボタン */
+    .reg-btn { width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:var(--r); font-size:17px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .12s; box-shadow:0 4px 14px rgba(13,148,136,.3); margin-top:4px; }
+    .reg-btn:hover:not(:disabled) { background:var(--brand-d); transform:translateY(-1px); }
+    .reg-btn:disabled { background:var(--g400); cursor:not-allowed; transform:none; box-shadow:none; }
+
+    /* 完了画面 */
+    .success-wrap { display:none; }
+    .success-hero { background:linear-gradient(135deg,#064e3b,#0d9488); border-radius:var(--r-lg); padding:28px 24px; margin-bottom:16px; text-align:center; }
+    .success-ico { font-size:48px; margin-bottom:12px; }
+    .success-ttl { font-size:20px; font-weight:900; color:white; margin-bottom:6px; }
+    .success-msg { font-size:13px; color:rgba(255,255,255,.85); line-height:1.6; }
+    .success-fac-name { font-size:18px; font-weight:700; color:white; }
+
+    .url-card { background:white; border-radius:var(--r-lg); padding:20px; box-shadow:var(--sh); border:1px solid var(--g200); margin-bottom:14px; }
+    .url-card-ttl { font-size:13px; font-weight:700; color:var(--g700); margin-bottom:12px; }
+    .url-row { display:flex; gap:8px; margin-bottom:8px; }
+    .url-inp { flex:1; font-size:12px; padding:9px 12px; border:1.5px solid var(--g200); border-radius:8px; color:var(--g700); background:var(--g50); font-family:inherit; outline:none; }
+    .url-copy { padding:9px 14px; background:var(--g800); color:white; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .url-copy:hover { background:var(--g900); }
+    .url-desc { font-size:11px; color:var(--g400); line-height:1.5; }
+    .qr-wrap { margin-top:14px; display:flex; align-items:flex-start; gap:14px; padding:14px; background:var(--g50); border-radius:10px; border:1px solid var(--g200); }
+    .qr-box { width:120px; height:120px; flex-shrink:0; background:white; padding:5px; border:1px solid var(--g200); border-radius:8px; }
+    .qr-desc { font-size:11px; color:var(--g500); line-height:1.7; }
+    .qr-label { font-size:12px; font-weight:700; color:var(--g700); margin-bottom:4px; }
+
+    .next-btn { display:block; text-align:center; padding:13px; background:var(--g800); color:white; border:none; border-radius:var(--r); font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; text-decoration:none; margin-top:8px; }
+    .next-btn:hover { background:var(--g900); }
+    .mode-banner { background:#dbeafe; border:1px solid #93c5fd; border-radius:10px; padding:12px 16px; margin-bottom:14px; font-size:13px; color:#1e40af; font-weight:600; display:none; }
+
+    .toast { position:fixed; bottom:24px; right:24px; background:var(--g900); color:white; padding:12px 18px; border-radius:11px; font-size:13px; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,.25); opacity:0; transform:translateY(12px); transition:all .22s; z-index:999; pointer-events:none; }
+    .toast.on { opacity:1; transform:translateY(0); }
+
+    @media(max-width:520px) {
+      .f-grid2 { grid-template-columns:1fr; }
+      .cond-grid { grid-template-columns:1fr; }
+      .tag-grid { grid-template-columns:1fr; }
+      .v-row { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-logo">🏥</div>
+  <div>
+    <div class="hdr-title">Meets Medical</div>
+    <div class="hdr-sub">施設登録（管理者専用）</div>
+  </div>
+  <div class="hdr-nav"><a href="kaigo-master.html">← マスター管理</a></div>
+</header>
+
+<!-- 登録フォーム -->
+<div class="page" id="form-wrap">
+  <div class="mode-banner" id="update-banner">📝 更新モード：既存施設の情報を編集しています</div>
+  <div class="page-ttl" id="page-ttl">新規施設を登録する</div>
+  <div class="page-sub" id="page-sub">登録後に発行される「更新URL」をLINEで施設担当者に送付してください。</div>
+
+  <div class="s-card">
+    <div class="sc-ttl">🏥 施設基本情報</div>
+    <div class="f-grp">
+      <label class="f-lbl">施設名称 <span class="f-req">*</span></label>
+      <input class="f-inp" id="r-name" type="text" placeholder="例）○○グループホーム 庄内" onblur="checkDuplicate()">
+      <div id="dup-warn" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:8px;padding:10px 14px;margin-top:8px;font-size:12px;color:#92400e">
+        ⚠️ <strong>同名の施設がすでに登録されています。</strong><br>新規登録すると重複します。
+        <a id="dup-link" href="#" target="_blank" style="color:#0d9488;font-weight:700">→ 既存施設の情報を編集する</a>
+      </div>
+    </div>
+    <div class="f-grp">
+      <label class="f-lbl">施設種別 <span class="f-req">*</span></label>
+      <select class="f-sel" id="r-type">
+        <option value="">─ 選択してください ─</option>
+        <option value="介護付有料">介護付有料老人ホーム</option>
+        <option value="住宅型有料">住宅型有料老人ホーム</option>
+        <option value="グループホーム">グループホーム（認知症対応型）</option>
+        <option value="サ高住">サービス付高齢者向け住宅（サ高住）</option>
+        <option value="特養">特別養護老人ホーム（特養）</option>
+        <option value="老健">介護老人保健施設（老健）</option>
+      </select>
+    </div>
+    <div class="f-grp">
+      <label class="f-lbl">住所</label>
+      <input class="f-inp" id="r-address" type="text" placeholder="例）大阪府豊中市庄内西町1-2-3" oninput="autoDetectArea()">
+    </div>
+    <div class="f-grp">
+      <label class="f-lbl">エリア</label>
+      <input class="f-inp" id="r-area" type="text" placeholder="住所入力後に自動判定（手動入力も可）">
+      <div class="f-hint">住所を入力すると自動でエリアを判定します</div>
+    </div>
+    <div class="f-grid2">
+      <div class="f-grp">
+        <label class="f-lbl">最寄り駅</label>
+        <input class="f-inp" id="r-station" type="text" placeholder="例）阪急庄内駅">
+      </div>
+      <div class="f-grp">
+        <label class="f-lbl">駅からの距離</label>
+        <input class="f-inp" id="r-distance" type="text" placeholder="例）徒歩5分">
+      </div>
+    </div>
+    <div class="f-grp">
+      <label class="f-lbl">駐車場</label>
+      <input class="f-inp" id="r-parking" type="text" placeholder="例）10台収容可、無料">
+    </div>
+    <div class="f-grp">
+      <label class="f-lbl">施設HP・公式サイトURL</label>
+      <input class="f-inp" id="r-hp" type="url" placeholder="例）https://example.com">
+      <div class="f-hint">無料プランの施設は「HPから入居相談」ボタンのリンク先になります</div>
+    </div>
+    <div class="f-grid2">
+      <div class="f-grp">
+        <label class="f-lbl">担当者名</label>
+        <input class="f-inp" id="r-contact-name" type="text" placeholder="例）鈴木 担当">
+      </div>
+      <div class="f-grp">
+        <label class="f-lbl">問い合わせ電話番号</label>
+        <input class="f-inp" id="r-contact-tel" type="tel" placeholder="例）06-0000-0000">
+      </div>
+    </div>
+  </div>
+
+  <div class="s-card">
+    <div class="sc-ttl">📋 入居条件</div>
+    <div class="cond-grid">
+      <div class="cond-grp">
+        <label class="cond-lbl">生活保護</label>
+        <select class="cond-sel" id="r-seikatsu">
+          <option value="">未設定</option>
+          <option>可</option>
+          <option>相談可</option>
+          <option>不可</option>
+        </select>
+      </div>
+      <div class="cond-grp">
+        <label class="cond-lbl">身元保証なし</label>
+        <select class="cond-sel" id="r-mimon">
+          <option value="">未設定</option>
+          <option>可</option>
+          <option>相談可</option>
+          <option>不可</option>
+        </select>
+      </div>
+      <div class="cond-grp">
+        <label class="cond-lbl">介護認定なし（障がい認定のみ）</label>
+        <select class="cond-sel" id="r-kaigo">
+          <option value="">未設定</option>
+          <option>可</option>
+          <option>相談可</option>
+          <option>不可</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-card">
+    <div class="sc-ttl">✨ こだわり・特徴 / 看護・医療体制</div>
+    <div class="tag-sec-hd">こだわり・特徴</div>
+    <div class="tag-grid" id="tag-list-feature"></div>
+    <div class="tag-sec-hd">看護・医療体制</div>
+    <div class="tag-grid" id="tag-list-medical"></div>
+  </div>
+
+  <div class="s-card">
+    <div class="sc-ttl">📊 初期空室情報</div>
+    <div class="v-row">
+      <div class="v-num-grp">
+        <span class="v-lbl">現在の空室数</span>
+        <input class="v-inp" id="r-vacancy" type="number" value="0" min="0" max="999">
+      </div>
+      <div style="flex:1">
+        <div class="f-grp" style="margin-bottom:10px">
+          <label class="f-lbl">備考・待機状況（任意）</label>
+          <textarea class="f-ta" id="r-notes" placeholder="例）現在2名待機中&#10;例）個室のみ空きあり"></textarea>
+        </div>
+        <div class="f-grp" style="margin-bottom:0">
+          <label class="f-lbl">キャンペーン・お知らせ（任意）</label>
+          <textarea class="f-ta" id="r-campaign" placeholder="例）6月末まで入居金0円キャンペーン実施中"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s-card">
+    <div class="sc-ttl">📷 施設写真（任意）</div>
+    <img class="photo-preview" id="photo-preview" src="" alt="プレビュー">
+    <div class="photo-drop" id="photo-drop" onclick="document.getElementById('photo-file').click()">
+      <div class="photo-drop-ico">📷</div>
+      <div class="photo-drop-txt">クリックして写真を選択</div>
+      <div class="photo-drop-sub">JPG・PNG・WEBP 対応（後から変更可能）</div>
+    </div>
+    <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="onPhotoSelect(this)">
+    <div id="photo-actions" style="display:none;margin-top:8px">
+      <button class="photo-remove-btn" onclick="removePhoto()">🗑 写真を削除</button>
+    </div>
+  </div>
+
+  <button class="reg-btn" id="reg-btn" onclick="doRegister()">✅ この施設を登録する</button>
+</div>
+
+<!-- 完了画面 -->
+<div class="page success-wrap" id="success-wrap">
+  <div class="success-hero">
+    <div class="success-ico">✅</div>
+    <div class="success-ttl">施設を登録しました</div>
+    <div class="success-msg" style="margin-top:6px">
+      <div class="success-fac-name" id="suc-name"></div>
+    </div>
+  </div>
+
+  <div class="url-card">
+    <div class="url-card-ttl">📲 施設担当者への更新URL（LINEで送付）</div>
+    <div class="url-row">
+      <input class="url-inp" type="text" id="suc-manage-url" readonly>
+      <button class="url-copy" onclick="copyUrl('suc-manage-url')">コピー</button>
+    </div>
+    <div class="url-desc">このURLを施設担当者にLINEで送付してください。担当者はこのURLから空室情報・写真を更新できます。<br><strong>※ 画面上には表示しないでください（URL=認証キーのため）</strong></div>
+    <div class="qr-wrap">
+      <div class="qr-box" id="manage-qr"></div>
+      <div>
+        <div class="qr-label">更新用QRコード</div>
+        <div class="qr-desc">このQRコードを施設訪問時に見せると、担当者がスマートフォンで読み取って更新ページにアクセスできます。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="url-card">
+    <div class="url-card-ttl">🔗 施設公開ページURL（病院・紹介先への共有用）</div>
+    <div class="url-row">
+      <input class="url-inp" type="text" id="suc-public-url" readonly>
+      <button class="url-copy" onclick="copyUrl('suc-public-url')">コピー</button>
+    </div>
+    <div class="url-desc">病院・ケアマネ・ソーシャルワーカーに共有するURLです。</div>
+  </div>
+
+  <a class="next-btn" href="kaigo-register.html">＋ 続けて別の施設を登録する</a>
+  <a class="next-btn" href="kaigo-master.html" style="margin-top:8px;background:var(--g700)">マスター管理ページへ</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+const TAGS_FEATURE = [
+  '看取り・ターミナルケア','個室あり',
+  '入居一時金0円','訪問看護可','日中看護師常駐','作業療法士（OT）',
+  'キッチン付き居室','家具付き居室','ナースコールあり','機械浴・特殊浴あり',
+  '理美容サービスあり','レクリエーション充実','将棋・囲碁あり','禁煙',
+  '駅近・交通アクセス良好','大手が運営','夫婦入居可・2人部屋あり',
+  '終身利用可','体験入居可','病院・クリニック併設','24時間看護師常駐',
+  '夜間有人','言語聴覚士（ST）','風呂付き居室','介護ベッド付居室',
+  'ゲストルームあり','入浴週3回以上','カラオケあり',
+  '園芸・庭園あり','アルコール可','外出自由',
+  '安い・低価格','ペット・犬・猫可','ショートステイ可',
+  'デイサービス併設','24時間介護士常駐','理学療法士（PT）','手厚い人員体制',
+  'トイレ付き居室','ネット利用可','口腔ケア・訪問歯科あり',
+  '施設内手作りの食事','麻雀あり','喫煙可',
+];
+const TAGS_MEDICAL = [
+  'リハビリ','胃ろう','人工呼吸器','たん吸引','気管切開',
+  '褥瘡・床ずれ','脳血管性認知症','パーキンソン病','脳梗塞・クモ膜下出血',
+  'リウマチ・関節症','誤嚥性肺炎','介護食',
+  '糖尿病・インスリン','ペースメーカー','鼻腔・経管栄養','ストーマ・人工肛門',
+  'ALS','心筋梗塞・狭心症','肝炎',
+  '統合失調症','流動食・嚥下食','人工透析',
+  '中心静脈栄養（IVH）','在宅酸素療法','カテーテル・尿バルーン','アルツハイマー',
+  'レビー小体型認知症','がん・末期癌','骨折・骨粗しょう症','喘息・気管支炎',
+  'うつ・鬱病',
+];
+
+// タグ一覧を描画
+function renderTagGrid(elId, tags) {
+  document.getElementById(elId).innerHTML = tags.map(t =>
+    `<label class="tag-item" onclick="this.classList.toggle('on',this.querySelector('input').checked)">
+      <input type="checkbox" class="tag-cb" name="tag" value="${t}">
+      <span class="tag-name">${t}</span>
+    </label>`
+  ).join('');
+}
+renderTagGrid('tag-list-feature', TAGS_FEATURE);
+renderTagGrid('tag-list-medical', TAGS_MEDICAL);
+
+// エリア自動判定
+const AREA_MAP = [
+  ['千里',   ['千里','緑丘','北緑丘','西緑丘','箕輪']],
+  ['蛍池',   ['蛍池','原田']],
+  ['少路',   ['少路','御殿山','東豊中']],
+  ['刀根山', ['刀根山','待兼山','柴原']],
+  ['曽根',   ['曽根','利倉','南桜塚']],
+  ['岡町',   ['岡町','岡上の町','末広町','上野坂','本町','長興寺']],
+  ['服部',   ['服部','大黒']],
+  ['庄内',   ['庄内','三和町','豊南','走井']],
+];
+function autoDetectArea() {
+  const addr = (document.getElementById('r-address').value || '').trim();
+  const el = document.getElementById('r-area');
+  if (!addr) return;
+  for (const [area, kws] of AREA_MAP) {
+    if (kws.some(k => addr.includes(k))) { el.value = area; return; }
+  }
+  el.value = '豊中';
+}
+
+// 重複チェック：同名施設がすでに登録されている場合に警告
+async function checkDuplicate() {
+  const name = document.getElementById('r-name').value.trim();
+  const warn = document.getElementById('dup-warn');
+  if (!name || editingId) { warn.style.display = 'none'; return; }
+  const snap = await db.collection('facilities').where('name','==',name).limit(1).get();
+  if (snap.empty) { warn.style.display = 'none'; return; }
+  const doc = snap.docs[0];
+  document.getElementById('dup-link').href = `kaigo-register.html?id=${doc.id}`;
+  warn.style.display = 'block';
+}
+
+// 更新モード：URLに ?id= がある場合は既存施設を編集
+let editingId = null;
+(function initEditMode() {
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) return;
+  editingId = id;
+  document.getElementById('update-banner').style.display = 'block';
+  document.getElementById('page-ttl').textContent = '施設情報を更新する';
+  document.getElementById('page-sub').textContent = '変更した情報を「更新する」ボタンで保存してください。空室・写真も同時に更新できます。';
+  document.getElementById('reg-btn').textContent = '✅ この内容で更新する';
+  db.collection('facilities').doc(id).get().then(doc => {
+    if (!doc.exists) { showToast('⚠️ 施設が見つかりません'); return; }
+    const d = doc.data();
+    document.getElementById('r-name').value           = d.name || '';
+    document.getElementById('r-type').value           = d.type || '';
+    document.getElementById('r-address').value        = d.address || '';
+    document.getElementById('r-area').value           = d.area || '';
+    document.getElementById('r-station').value        = d.station || '';
+    document.getElementById('r-distance').value       = d.stationDistance || '';
+    document.getElementById('r-parking').value        = d.parking || '';
+    document.getElementById('r-hp').value             = d.hp || '';
+    document.getElementById('r-contact-name').value   = d.contactName || '';
+    document.getElementById('r-contact-tel').value    = d.contactTel || '';
+    document.getElementById('r-seikatsu').value       = d.seikatsuHogo || '';
+    document.getElementById('r-mimon').value          = d.mimonHosho || '';
+    document.getElementById('r-kaigo').value          = d.kaigoNintei || '';
+    document.getElementById('r-vacancy').value        = d.vacancy || 0;
+    document.getElementById('r-notes').value          = d.vacancyNotes || '';
+    document.getElementById('r-campaign').value       = d.campaign || '';
+    if (d.photoUrl) {
+      const prev = document.getElementById('photo-preview');
+      prev.src = d.photoUrl; prev.style.display = 'block';
+      document.getElementById('photo-drop').style.display = 'none';
+      document.getElementById('photo-actions').style.display = 'block';
+    }
+    // タグのチェック（タグリスト描画後に実行）
+    setTimeout(() => {
+      const features = d.features || [];
+      document.querySelectorAll('input[name="tag"]').forEach(cb => {
+        if (features.includes(cb.value)) { cb.checked = true; cb.closest('label').classList.add('on'); }
+      });
+    }, 100);
+  }).catch(e => showToast('⚠️ 読み込みエラー: ' + e.message));
+})();
+
+// 短いID生成（7文字、紛らわしい文字を除く）
+const SAFE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
+function genId(len = 7) {
+  return Array.from({length: len}, () => SAFE_CHARS[Math.floor(Math.random() * SAFE_CHARS.length)]).join('');
+}
+async function uniqueId() {
+  for (let i = 0; i < 5; i++) {
+    const id = genId();
+    const doc = await db.collection('facilities').doc(id).get();
+    if (!doc.exists) return id;
+  }
+  // 衝突が連続した場合は長めのIDを返す（実運用上ほぼ発生しない）
+  return genId(10);
+}
+
+// 写真
+let selectedPhotoFile = null;
+function onPhotoSelect(input) {
+  if (!input.files || !input.files[0]) return;
+  selectedPhotoFile = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById('photo-preview');
+    prev.src = e.target.result; prev.style.display = 'block';
+    document.getElementById('photo-drop').style.display = 'none';
+    document.getElementById('photo-actions').style.display = 'block';
+  };
+  reader.readAsDataURL(selectedPhotoFile);
+}
+function removePhoto() {
+  selectedPhotoFile = null;
+  document.getElementById('photo-file').value = '';
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-drop').style.display = 'block';
+  document.getElementById('photo-actions').style.display = 'none';
+}
+
+function collectFormData() {
+  return {
+    name:            document.getElementById('r-name').value.trim(),
+    type:            document.getElementById('r-type').value,
+    area:            document.getElementById('r-area').value.trim(),
+    address:         document.getElementById('r-address').value.trim(),
+    station:         document.getElementById('r-station').value.trim(),
+    stationDistance: document.getElementById('r-distance').value.trim(),
+    parking:         document.getElementById('r-parking').value.trim(),
+    hp:              document.getElementById('r-hp').value.trim(),
+    contactName:     document.getElementById('r-contact-name').value.trim(),
+    contactTel:      document.getElementById('r-contact-tel').value.trim(),
+    seikatsuHogo:    document.getElementById('r-seikatsu').value,
+    mimonHosho:      document.getElementById('r-mimon').value,
+    kaigoNintei:     document.getElementById('r-kaigo').value,
+    features:        Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(cb => cb.value),
+    vacancy:         Math.max(0, parseInt(document.getElementById('r-vacancy').value) || 0),
+    vacancyNotes:    document.getElementById('r-notes').value.trim(),
+    campaign:        document.getElementById('r-campaign').value.trim(),
+  };
+}
+
+async function uploadPhotoIfSelected(id, btn) {
+  if (!selectedPhotoFile) return;
+  btn.textContent = '写真をアップロード中...';
+  try {
+    const ext = selectedPhotoFile.type.includes('png') ? 'png' : 'jpg';
+    const ref = storage.ref(`facilities/${id}/photo.${ext}`);
+    await ref.put(selectedPhotoFile, { contentType: selectedPhotoFile.type });
+    const url = await ref.getDownloadURL();
+    await db.collection('facilities').doc(id).update({ photoUrl: url });
+  } catch(e) {
+    showToast('⚠️ 写真のアップロードに失敗しましたが、施設情報は保存されました');
+  }
+}
+
+// 新規登録
+async function doRegister() {
+  if (editingId) { await doUpdate(); return; }
+
+  const d = collectFormData();
+  if (!d.name) { showToast('⚠️ 施設名称を入力してください'); document.getElementById('r-name').focus(); return; }
+  if (!d.type) { showToast('⚠️ 施設種別を選択してください'); document.getElementById('r-type').focus(); return; }
+
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true; btn.textContent = '登録中...';
+
+  try {
+    const id = await uniqueId();
+    await db.collection('facilities').doc(id).set({
+      ...d, plan:'free', photoUrl:null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    await uploadPhotoIfSelected(id, btn);
+    showSuccess(id, d.name, false);
+  } catch(e) {
+    showToast('⚠️ 登録に失敗しました: ' + e.message);
+    btn.disabled = false; btn.textContent = '✅ この施設を登録する';
+  }
+}
+
+// 既存施設の更新
+async function doUpdate() {
+  const d = collectFormData();
+  if (!d.name) { showToast('⚠️ 施設名称を入力してください'); return; }
+  if (!d.type) { showToast('⚠️ 施設種別を選択してください'); return; }
+
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true; btn.textContent = '更新中...';
+
+  try {
+    await db.collection('facilities').doc(editingId).update({
+      ...d, updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    await uploadPhotoIfSelected(editingId, btn);
+    showSuccess(editingId, d.name, true);
+  } catch(e) {
+    showToast('⚠️ 更新に失敗しました: ' + e.message);
+    btn.disabled = false; btn.textContent = '✅ この内容で更新する';
+  }
+}
+
+function showSuccess(id, name, isUpdate=false) {
+  document.getElementById('form-wrap').style.display = 'none';
+  const sw = document.getElementById('success-wrap');
+  sw.style.display = 'block';
+  if (isUpdate) {
+    sw.querySelector('.success-ttl').textContent = '施設情報を更新しました';
+    sw.querySelector('.success-ico').textContent = '✏️';
+  }
+
+  const base = 'https://kaigo-link-dev-59bc5.web.app';
+  const manageUrl = `${base}/kaigo-manage.html?id=${id}`;
+  const publicUrl  = `${base}/kaigo-facility-view.html?id=${id}`;
+
+  document.getElementById('suc-name').textContent = name;
+  document.getElementById('suc-manage-url').value = manageUrl;
+  document.getElementById('suc-public-url').value = publicUrl;
+
+  try {
+    new QRCode(document.getElementById('manage-qr'), {
+      text: manageUrl,
+      width: 110,
+      height: 110,
+      colorDark: '#0f172a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  } catch(e) {
+    document.getElementById('manage-qr').innerHTML = '<div style="font-size:10px;color:#94a3b8;padding:4px;">QR生成エラー</div>';
+  }
+}
+
+function copyUrl(id) {
+  navigator.clipboard.writeText(document.getElementById(id).value)
+    .then(() => showToast('📋 URLをコピーしました'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3200);
+}
+</script>
+</body>
+</html>

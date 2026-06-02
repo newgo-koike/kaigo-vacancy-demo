@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>介護施設検索ツール</title>
+  <title>介護施設 空き状況検索</title>
   <style>
     :root {
-      --brand:#0d9488; --brand-d:#0f766e; --brand-dd:#134e4a;
-      --brand-l:#f0fdfa; --brand-ll:#ccfbf1;
+      --brand:#0d9488; --brand-d:#0f766e;
+      --brand-l:#f0fdfa;
       --ok:#16a34a; --ok-bg:#dcfce7;
       --few:#ea580c; --few-bg:#ffedd5;
       --full-c:#64748b; --full-bg:#f1f5f9;
@@ -16,215 +16,185 @@
       --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0; --g300:#cbd5e1;
       --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
       --g800:#1e293b; --g900:#0f172a;
-      --r:12px; --r-lg:16px; --r-xl:20px;
-      --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
-      --sh-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
-      --hdr-h:62px; --banner-h:44px;
+      --r:12px; --hdr-h:58px;
+      --sh:0 1px 3px rgba(0,0,0,.08);
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html,body { height:100%; overflow:hidden; }
-    body {
-      font-family:-apple-system,'Helvetica Neue','Hiragino Sans',Arial,sans-serif;
-      background:var(--g50); color:var(--g800); line-height:1.5;
-      -webkit-font-smoothing:antialiased;
-      display:flex; flex-direction:column;
-    }
+    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; }
 
-    /* ── HEADER ── */
-    .hdr {
-      flex-shrink:0;
-      background:var(--g900); height:var(--hdr-h); padding:0 24px;
-      display:flex; align-items:center; justify-content:space-between;
-      box-shadow:0 1px 0 rgba(255,255,255,.06); z-index:100;
-    }
-    .hdr-brand { display:flex; align-items:center; gap:10px; }
-    .hdr-logo { width:32px; height:32px; background:var(--brand); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; }
-    .hdr-title { font-size:15px; font-weight:800; color:white; letter-spacing:-.02em; }
-    .hdr-sub   { font-size:10px; color:var(--g400); margin-top:1px; }
-    .tab-sw { display:flex; background:rgba(255,255,255,.08); border-radius:8px; padding:3px; gap:2px; }
-    .tab-btn { padding:6px 14px; border:none; border-radius:6px; cursor:pointer; font-size:12px; font-weight:500; background:transparent; color:var(--g400); transition:all .15s; font-family:inherit; white-space:nowrap; text-decoration:none; display:flex; align-items:center; }
-    .tab-btn.on { background:var(--brand); color:white; font-weight:700; }
-    .tab-btn:hover:not(.on) { color:white; background:rgba(255,255,255,.1); }
+    /* HEADER */
+    .hdr { flex-shrink:0; background:var(--g900); height:var(--hdr-h); padding:0 20px; display:flex; align-items:center; gap:10px; z-index:100; }
+    .hdr-logo { width:30px; height:30px; background:var(--brand); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+    .hdr-title { font-size:14px; font-weight:800; color:white; }
+    .hdr-sub { font-size:10px; color:var(--g400); }
 
-    /* ── VALUE BANNER ── */
-    .value-banner {
-      flex-shrink:0;
-      background:linear-gradient(135deg,#1e1b4b,#312e81,#1e1b4b);
-      height:var(--banner-h); padding:0 24px;
-      display:flex; align-items:center; gap:14px; overflow:hidden;
-    }
-    .vb-tag { font-size:10px; font-weight:700; letter-spacing:.06em; background:#facc15; color:#1e1b4b; padding:2px 8px; border-radius:20px; white-space:nowrap; }
-    .vb-text { font-size:12px; color:rgba(255,255,255,.9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .vb-em { color:#facc15; font-weight:700; }
-
-    /* ── 4-PANE SEARCH LAYOUT ── */
-    .search-layout {
-      flex:1; display:flex; overflow:hidden;
-      border-top:1px solid var(--g200);
-    }
+    /* LAYOUT */
+    .search-layout { flex:1; display:flex; overflow:hidden; border-top:1px solid var(--g200); }
     .pane { display:flex; flex-direction:column; overflow:hidden; }
-    .pane-hd {
-      flex-shrink:0; padding:12px 16px 10px;
-      font-size:10px; font-weight:800; color:var(--g400);
-      letter-spacing:.1em; text-transform:uppercase;
-      border-bottom:1px solid var(--g200); background:white;
-      display:flex; align-items:center; justify-content:space-between;
-    }
+    .pane-hd { flex-shrink:0; padding:10px 14px 9px; font-size:9px; font-weight:800; color:var(--g400); letter-spacing:.1em; text-transform:uppercase; border-bottom:1px solid var(--g200); background:white; display:flex; align-items:center; justify-content:space-between; }
     .pane-hd-clear { font-size:11px; font-weight:600; color:var(--brand); background:none; border:none; cursor:pointer; font-family:inherit; letter-spacing:0; text-transform:none; padding:0; }
     .pane-scroll { flex:1; overflow-y:auto; }
 
-    /* PANE: AREA */
-    .pane-area { width:200px; min-width:200px; background:white; border-right:1px solid var(--g200); }
-    .area-item { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; border-bottom:1px solid var(--g100); user-select:none; transition:background .1s; }
+    /* PANE AREA */
+    .pane-area { width:196px; min-width:196px; background:white; border-right:1px solid var(--g200); }
+    .area-item { display:flex; align-items:center; gap:9px; padding:11px 14px; cursor:pointer; border-bottom:1px solid var(--g100); user-select:none; transition:background .1s; }
     .area-item:hover { background:var(--g50); }
     .area-item.on { background:var(--brand-l); }
-    .area-cb { width:17px; height:17px; min-width:17px; accent-color:var(--brand); cursor:pointer; }
+    .area-cb { width:16px; height:16px; min-width:16px; accent-color:var(--brand); cursor:pointer; }
     .area-texts { flex:1; min-width:0; }
-    .area-name { font-size:13px; font-weight:600; color:var(--g800); display:block; }
-    .area-sub  { font-size:10px; color:var(--g400); display:block; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .area-count { font-size:11px; color:var(--g500); background:var(--g100); padding:2px 7px; border-radius:10px; white-space:nowrap; min-width:28px; text-align:center; }
+    .area-name { font-size:12px; font-weight:600; color:var(--g800); display:block; }
+    .area-sub { font-size:10px; color:var(--g400); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .area-count { font-size:10px; color:var(--g500); background:var(--g100); padding:2px 6px; border-radius:9px; white-space:nowrap; min-width:24px; text-align:center; }
     .area-count.has-vac { background:var(--ok-bg); color:var(--ok); font-weight:700; }
 
-    /* PANE: TYPE */
-    .pane-type { width:176px; min-width:176px; background:var(--g50); border-right:1px solid var(--g200); }
-    .type-item { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; border-bottom:1px solid var(--g100); user-select:none; transition:background .1s; }
+    /* PANE TYPE + CONDITIONS */
+    .pane-type { width:234px; min-width:234px; background:var(--g50); border-right:1px solid var(--g200); }
+    .type-item { display:flex; align-items:center; gap:9px; padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--g100); user-select:none; transition:background .1s; }
     .type-item:hover { background:white; }
     .type-item.on { background:var(--brand-l); }
-    .type-cb { width:17px; height:17px; min-width:17px; accent-color:var(--brand); cursor:pointer; }
-    .type-name  { font-size:12px; font-weight:600; color:var(--g700); flex:1; line-height:1.3; }
-    .type-count { font-size:11px; color:var(--g500); background:white; padding:2px 7px; border-radius:10px; white-space:nowrap; min-width:26px; text-align:center; border:1px solid var(--g200); }
+    .type-cb { width:16px; height:16px; min-width:16px; accent-color:var(--brand); cursor:pointer; }
+    .type-name { font-size:12px; font-weight:600; color:var(--g700); flex:1; }
+    .type-sub { font-size:10px; color:var(--g400); margin-top:1px; }
+    .type-count { font-size:10px; color:var(--g500); background:white; padding:2px 6px; border-radius:9px; white-space:nowrap; border:1px solid var(--g200); }
 
-    /* PANE: LIST */
-    .pane-list { flex:1; min-width:260px; background:var(--g50); border-right:1px solid var(--g200); }
-    .list-toolbar { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); padding:10px 14px; display:flex; flex-direction:column; gap:8px; }
-    .list-search-row { display:flex; gap:8px; align-items:center; }
-    .list-search-wrap { flex:1; position:relative; }
-    .list-search-ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--g400); font-size:13px; pointer-events:none; }
-    .list-search-inp { width:100%; padding:8px 10px 8px 32px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; outline:none; font-family:inherit; background:var(--g50); color:var(--g800); transition:border-color .15s,box-shadow .15s; }
-    .list-search-inp:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.12); background:white; }
-    .list-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-    .list-count { font-size:12px; color:var(--g400); }
-    .list-stats { display:flex; gap:10px; align-items:center; }
-    .lst-stat { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--g500); }
-    .lst-dot  { width:7px; height:7px; border-radius:50%; }
-    .lst-num  { font-weight:700; color:var(--g700); }
-    .vac-toggle { display:flex; border:1.5px solid var(--g200); border-radius:7px; overflow:hidden; }
-    .vac-tab { padding:5px 12px; font-size:12px; font-weight:500; background:white; border:none; cursor:pointer; font-family:inherit; color:var(--g500); transition:all .15s; }
+    .filter-sec { }
+    .filter-sec-hd { padding:9px 14px 7px; font-size:9px; font-weight:800; color:var(--g400); letter-spacing:.1em; text-transform:uppercase; background:var(--g100); border-top:1px solid var(--g200); border-bottom:1px solid var(--g200); }
+
+    /* 入居条件 — toggle buttons */
+    .cond-area { padding:10px 14px; border-bottom:1px solid var(--g200); background:var(--g50); display:flex; flex-direction:column; gap:10px; }
+    .cond-row { display:flex; flex-direction:column; gap:5px; }
+    .cond-lbl { font-size:11px; color:var(--g600); font-weight:700; }
+    .cond-btn-group { display:flex; gap:4px; flex-wrap:wrap; }
+    .cond-btn { padding:4px 10px; border-radius:20px; font-size:10px; font-weight:600; border:1.5px solid var(--g200); background:white; color:var(--g600); cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
+    .cond-btn:hover { border-color:var(--brand); color:var(--brand); }
+    .cond-btn.on { border-color:var(--brand); background:var(--brand); color:white; }
+
+    /* PANE TAGS */
+    .pane-tags { width:224px; min-width:224px; background:white; border-right:1px solid var(--g200); }
+    .tag-sec-lbl { padding:6px 12px 4px; font-size:9px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; background:var(--g50); border-top:1px solid var(--g100); border-bottom:1px solid var(--g100); }
+    .tag-bar { display:flex; flex-wrap:wrap; gap:4px; padding:6px 10px 8px; }
+    .tag-chip { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:500; border:1.5px solid var(--g200); background:white; color:var(--g600); cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
+    .tag-chip:hover { border-color:var(--brand); color:var(--brand); }
+    .tag-chip.on { border-color:var(--brand); background:var(--brand); color:white; font-weight:700; }
+
+    /* PANE LIST */
+    .pane-list { flex:1; min-width:240px; background:var(--g50); border-right:1px solid var(--g200); }
+    .list-toolbar { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); }
+    .list-search-meta { padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
+    .list-search-wrap { position:relative; }
+    .list-search-ico { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--g400); font-size:12px; pointer-events:none; }
+    .list-search-inp { width:100%; padding:8px 10px 8px 30px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; outline:none; font-family:inherit; background:var(--g50); color:var(--g800); transition:border-color .15s; }
+    .list-search-inp:focus { border-color:var(--brand); background:white; }
+    .list-meta { display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; }
+    .list-count { font-size:11px; color:var(--g400); }
+    .list-stats { display:flex; gap:8px; align-items:center; }
+    .lst-stat { display:flex; align-items:center; gap:3px; font-size:10px; color:var(--g500); }
+    .lst-dot { width:6px; height:6px; border-radius:50%; }
+    .lst-num { font-weight:700; color:var(--g700); }
+    .vac-toggle { display:flex; border:1.5px solid var(--g200); border-radius:6px; overflow:hidden; }
+    .vac-tab { padding:4px 11px; font-size:11px; font-weight:500; background:white; border:none; cursor:pointer; font-family:inherit; color:var(--g500); transition:all .15s; }
     .vac-tab.on { background:var(--brand); color:white; font-weight:700; }
 
-    /* compact facility card */
-    .fcc { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--g200); cursor:pointer; background:white; transition:background .1s; }
+    /* FACILITY CARD */
+    .fcc { display:flex; align-items:center; gap:10px; padding:11px 12px; border-bottom:1px solid var(--g200); cursor:pointer; background:white; transition:background .1s; }
     .fcc:hover { background:var(--g50); }
-    .fcc.selected { background:var(--brand-l); border-left:3px solid var(--brand); padding-left:11px; }
-    .fcc-vac { width:44px; height:44px; min-width:44px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,.3); box-shadow:0 2px 6px rgba(0,0,0,.18); }
-    .fcc-vac.vc-ok   { background:var(--ok); }
-    .fcc-vac.vc-few  { background:var(--few); }
+    .fcc.selected { background:var(--brand-l); border-left:3px solid var(--brand); padding-left:9px; }
+    .fcc-vac { width:42px; height:42px; min-width:42px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.18); }
+    .fcc-vac.vc-ok { background:var(--ok); }
+    .fcc-vac.vc-few { background:var(--few); }
     .fcc-vac.vc-full { background:var(--g400); }
-    .fcc-vnum { font-size:18px; font-weight:900; color:white; line-height:1; letter-spacing:-1px; }
-    .fcc-vunit{ font-size:8px; font-weight:700; color:rgba(255,255,255,.9); letter-spacing:.03em; }
-    .fcc-full { font-size:11px; font-weight:800; color:white; letter-spacing:.02em; }
+    .fcc-vnum { font-size:17px; font-weight:900; color:white; line-height:1; letter-spacing:-1px; }
+    .fcc-vunit { font-size:8px; font-weight:700; color:rgba(255,255,255,.9); }
+    .fcc-full { font-size:10px; font-weight:800; color:white; }
     .fcc-body { flex:1; min-width:0; }
-    .fcc-name { font-size:13px; font-weight:700; color:var(--g800); margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .fcc-row  { display:flex; align-items:center; gap:6px; margin-bottom:2px; flex-wrap:wrap; }
-    .fcc-type { font-size:10px; padding:2px 7px; border-radius:4px; font-weight:700; background:var(--g100); color:var(--g500); white-space:nowrap; }
+    .fcc-name { font-size:13px; font-weight:700; color:var(--g800); margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .fcc-row { display:flex; align-items:center; gap:5px; margin-bottom:2px; flex-wrap:wrap; }
+    .fcc-type { font-size:10px; padding:1px 6px; border-radius:4px; font-weight:700; background:var(--g100); color:var(--g500); white-space:nowrap; }
     .fcc-station { font-size:11px; color:var(--g500); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .fcc-foot { font-size:10px; color:var(--g400); display:flex; align-items:center; gap:6px; }
-    .fcc-lock { color:var(--g400); }
+    .fcc-foot { font-size:10px; color:var(--g400); display:flex; align-items:center; gap:5px; }
     .fcc-stale { color:#ef4444; font-weight:600; }
-    .list-empty { text-align:center; padding:60px 20px; color:var(--g400); }
+    .list-empty { text-align:center; padding:60px 20px; color:var(--g400); font-size:13px; line-height:1.8; }
 
-    /* PANE: DETAIL */
-    .pane-detail { width:380px; min-width:380px; background:white; }
+    /* PANE DETAIL */
+    .pane-detail { width:370px; min-width:370px; background:white; display:flex; flex-direction:column; }
     .detail-placeholder { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; text-align:center; color:var(--g300); }
-    .dp-ico   { font-size:44px; margin-bottom:14px; }
-    .dp-title { font-size:15px; font-weight:700; color:var(--g400); margin-bottom:6px; }
-    .dp-sub   { font-size:13px; color:var(--g300); line-height:1.6; }
-    .detail-content { flex:1; overflow-y:auto; }
-    .dp-photo { position:relative; height:200px; overflow:hidden; background:var(--g200); flex-shrink:0; }
-    .dp-photo img { width:100%; height:100%; object-fit:cover; display:block; }
-    .dp-photo-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,20,40,.8) 0%,rgba(10,20,40,.1) 55%,transparent 100%); }
-    .dp-photo-name { position:absolute; bottom:14px; left:16px; right:16px; color:white; font-size:17px; font-weight:800; line-height:1.25; }
-    .dp-photo-type { position:absolute; top:12px; left:12px; background:rgba(10,20,40,.55); backdrop-filter:blur(8px); color:white; font-size:10px; padding:3px 9px; border-radius:20px; font-weight:600; }
-    .dv-block { display:flex; align-items:stretch; margin:0; overflow:hidden; }
-    .dv-num-side { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:18px 20px; min-width:90px; }
+    .dp-ico { font-size:40px; margin-bottom:12px; }
+    .dp-title { font-size:14px; font-weight:700; color:var(--g400); margin-bottom:6px; }
+    .dp-sub { font-size:12px; color:var(--g300); line-height:1.6; }
+    .detail-content { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+
+    .dp-photo { position:relative; height:170px; overflow:hidden; background:linear-gradient(135deg,var(--g700),var(--g900)); flex-shrink:0; display:flex; align-items:flex-end; padding:12px 16px; }
+    .dp-photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .dp-photo-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,20,40,.85) 0%,transparent 60%); }
+    .dp-photo-name { position:relative; color:white; font-size:17px; font-weight:800; line-height:1.25; z-index:1; }
+    .dp-photo-type { position:absolute; top:11px; left:12px; background:rgba(10,20,40,.55); backdrop-filter:blur(8px); color:white; font-size:10px; padding:3px 9px; border-radius:20px; font-weight:600; z-index:1; }
+
+    .dv-block { display:flex; align-items:stretch; overflow:hidden; flex-shrink:0; }
+    .dv-num-side { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:14px 18px; min-width:80px; }
     .dv-ok  .dv-num-side { background:var(--ok-bg); }
     .dv-few .dv-num-side { background:var(--few-bg); }
     .dv-full .dv-num-side { background:var(--full-bg); }
-    .dv-big { font-size:46px; font-weight:900; line-height:1; letter-spacing:-2.5px; }
+    .dv-big { font-size:40px; font-weight:900; line-height:1; letter-spacing:-2px; }
     .dv-ok  .dv-big  { color:var(--ok); }
     .dv-few .dv-big  { color:var(--few); }
     .dv-full .dv-big { color:var(--full-c); }
-    .dv-unit { font-size:12px; font-weight:700; margin-top:-1px; }
+    .dv-unit { font-size:11px; font-weight:700; }
     .dv-ok  .dv-unit  { color:var(--ok); }
     .dv-few .dv-unit  { color:var(--few); }
     .dv-full .dv-unit { color:var(--full-c); }
-    .dv-info-side { flex:1; padding:14px 16px; }
-    .dv-ok  .dv-info-side  { background:color-mix(in srgb,var(--ok-bg) 40%,white); }
-    .dv-few .dv-info-side  { background:color-mix(in srgb,var(--few-bg) 40%,white); }
+    .dv-info-side { flex:1; padding:12px 14px; }
+    .dv-ok  .dv-info-side { background:color-mix(in srgb,var(--ok-bg) 35%,white); }
+    .dv-few .dv-info-side { background:color-mix(in srgb,var(--few-bg) 35%,white); }
     .dv-full .dv-info-side { background:color-mix(in srgb,var(--full-bg) 50%,white); }
-    .dv-status { font-size:14px; font-weight:800; margin-bottom:4px; }
-    .dv-ok  .dv-status  { color:var(--ok); }
-    .dv-few .dv-status  { color:var(--few); }
+    .dv-status { font-size:14px; font-weight:800; margin-bottom:3px; }
+    .dv-ok  .dv-status { color:var(--ok); }
+    .dv-few .dv-status { color:var(--few); }
     .dv-full .dv-status { color:var(--full-c); }
-    .dv-detail  { font-size:12px; color:var(--g600); line-height:1.5; }
+    .dv-notes { font-size:12px; color:var(--g600); margin-top:4px; padding:4px 8px; background:var(--amber-bg); border-radius:5px; border-left:3px solid var(--amber); }
     .dv-updated { font-size:10px; color:var(--g400); margin-top:5px; }
-    .d-body { padding:16px 18px 24px; }
-    .d-sec { margin-bottom:16px; }
-    .d-sec-hd { display:flex; align-items:center; gap:7px; font-size:10px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px; padding-bottom:7px; border-bottom:1px solid var(--g100); }
-    .d-badge { font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700; }
-    .badge-f { background:var(--g100); color:var(--g500); }
-    .badge-v { background:var(--ok-bg); color:var(--ok); }
-    .d-rows { display:flex; flex-direction:column; gap:6px; }
-    .d-row  { display:flex; gap:8px; font-size:13px; }
-    .d-lbl  { color:var(--g400); width:72px; flex-shrink:0; font-size:12px; }
-    .d-val  { color:var(--g700); font-weight:500; }
-    .feat-tags { display:flex; flex-wrap:wrap; gap:4px; }
-    .feat-tag  { font-size:11px; padding:3px 8px; background:var(--g100); border-radius:5px; color:var(--g600); font-weight:500; }
-    .d-campaign { background:var(--purple-bg); border-radius:9px; padding:11px 13px; }
-    .d-camp-label { font-size:10px; color:var(--purple); font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin-bottom:4px; }
-    .d-camp-text  { font-size:13px; color:var(--g700); font-weight:500; line-height:1.5; }
-    .d-contact    { border-radius:12px; border:1px solid var(--g200); overflow:hidden; }
-    .d-cont-hd    { background:var(--g50); padding:10px 14px; font-size:11px; font-weight:700; color:var(--g500); letter-spacing:.04em; border-bottom:1px solid var(--g200); }
-    .d-cont-inner { padding:14px 16px; position:relative; min-height:100px; }
-    .d-cont-name  { font-size:13px; font-weight:600; color:var(--g700); margin-bottom:2px; }
-    .d-cont-tel   { font-size:24px; font-weight:900; color:var(--brand-d); letter-spacing:-.5px; margin-bottom:12px; }
-    .d-call-btn { display:inline-flex; align-items:center; gap:7px; padding:10px 22px; background:var(--brand); color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .1s; }
-    .d-call-btn:hover { background:var(--brand-d); transform:translateY(-1px); }
-    .cont-locked { filter:blur(7px); user-select:none; pointer-events:none; }
-    .cont-gate { position:absolute; inset:0; background:rgba(248,250,252,.93); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; backdrop-filter:blur(2px); padding:14px; }
-    .gate-lock  { font-size:22px; }
-    .gate-title { font-size:13px; font-weight:800; color:var(--g800); }
-    .gate-desc  { font-size:11px; color:var(--g500); text-align:center; line-height:1.5; }
-    .gate-em    { color:var(--brand-d); font-weight:700; }
-    .gate-btn { margin-top:4px; padding:8px 20px; background:var(--brand); color:white; border:none; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .1s; }
-    .gate-btn:hover { background:var(--brand-d); transform:translateY(-1px); }
-    .gate-hint { font-size:10px; color:var(--g400); }
 
-    /* TOAST */
-    .toast { position:fixed; bottom:24px; right:24px; background:var(--g900); color:white; padding:12px 20px; border-radius:11px; font-size:14px; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,.25); opacity:0; transform:translateY(14px); transition:all .22s cubic-bezier(.34,1.56,.64,1); z-index:999; pointer-events:none; }
+    .d-body { padding:14px 16px 28px; flex:1; }
+    .d-sec { margin-bottom:14px; }
+    .d-sec-hd { display:flex; align-items:center; gap:6px; font-size:9px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--g100); }
+    .d-badge { font-size:8px; padding:2px 5px; border-radius:4px; font-weight:700; background:var(--g100); color:var(--g500); }
+    .d-rows { display:flex; flex-direction:column; gap:6px; }
+    .d-row { display:flex; gap:8px; font-size:12px; }
+    .d-lbl { color:var(--g400); width:72px; flex-shrink:0; }
+    .d-val { color:var(--g700); font-weight:500; flex:1; }
+    .cond-badges { display:flex; flex-wrap:wrap; gap:4px; }
+    .cond-badge { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:600; }
+    .cond-ok { background:var(--ok-bg); color:var(--ok); }
+    .cond-sou { background:var(--amber-bg); color:var(--amber); }
+    .cond-ng { background:var(--full-bg); color:var(--full-c); }
+    .feat-tags { display:flex; flex-wrap:wrap; gap:4px; }
+    .feat-tag { font-size:10px; padding:3px 8px; background:var(--g100); border-radius:5px; color:var(--g600); font-weight:500; }
+    .d-campaign { background:var(--purple-bg); border-radius:9px; padding:11px 13px; }
+    .d-camp-label { font-size:10px; color:var(--purple); font-weight:700; margin-bottom:4px; }
+    .d-camp-text { font-size:13px; color:var(--g700); line-height:1.5; }
+    .d-contact { border-radius:12px; border:1px solid var(--g200); overflow:hidden; }
+    .d-cont-hd { background:var(--g50); padding:9px 14px; font-size:10px; font-weight:700; color:var(--g500); letter-spacing:.04em; border-bottom:1px solid var(--g200); }
+    .d-cont-inner { padding:14px 16px; position:relative; min-height:80px; }
+    .d-cont-name { font-size:13px; font-weight:600; color:var(--g700); margin-bottom:2px; }
+    .d-cont-tel { font-size:22px; font-weight:900; color:var(--brand-d); letter-spacing:-.5px; margin-bottom:10px; }
+    .d-call-btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; background:var(--brand); color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; width:100%; justify-content:center; }
+    .d-call-btn:hover { background:var(--brand-d); }
+    .d-hp-btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; background:var(--g800); color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; text-decoration:none; width:100%; justify-content:center; }
+    .d-hp-btn:hover { background:var(--g900); }
+
+    .toast { position:fixed; bottom:24px; right:24px; background:var(--g900); color:white; padding:12px 20px; border-radius:11px; font-size:13px; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,.25); opacity:0; transform:translateY(12px); transition:all .22s; z-index:999; pointer-events:none; }
     .toast.on { opacity:1; transform:translateY(0); }
   </style>
 </head>
 <body>
 
 <header class="hdr">
-  <div class="hdr-brand">
-    <div class="hdr-logo">🏠</div>
-    <div>
-      <div class="hdr-title">介護施設検索ツール</div>
-      <div class="hdr-sub">介護施設空き状況プラットフォーム</div>
-    </div>
-  </div>
-  <div class="tab-sw">
-    <button class="tab-btn on">🔍 介護施設情報検索</button>
-    <a class="tab-btn" href="kaigo-manage.html">📝 施設情報更新</a>
+  <div class="hdr-logo">🏥</div>
+  <div>
+    <div class="hdr-title">介護施設 空き状況検索</div>
+    <div class="hdr-sub">豊中エリア 介護施設情報プラットフォーム</div>
   </div>
 </header>
-
-<div class="value-banner">
-  <div class="vb-tag">直接連絡で紹介手数料0円</div>
-  <div class="vb-text">従来の紹介会社への手数料<span class="vb-em">（平均20〜30万円/件）</span>が不要に。有料プランで施設の連絡先を確認できます。</div>
-</div>
 
 <div class="search-layout">
 
@@ -237,34 +207,86 @@
     <div class="pane-scroll" id="area-list"></div>
   </div>
 
-  <!-- PANE 2: 施設種別 -->
+  <!-- PANE 2: 種別・入居条件 -->
   <div class="pane pane-type">
     <div class="pane-hd">
-      施設の種類
-      <button class="pane-hd-clear" onclick="clearFilter('type')">リセット</button>
+      種別・条件
+      <button class="pane-hd-clear" onclick="clearAllConditions()">リセット</button>
     </div>
-    <div class="pane-scroll" id="type-list"></div>
+    <div class="pane-scroll">
+      <div class="filter-sec">
+        <div class="filter-sec-hd">施設の種類</div>
+        <div id="type-list"></div>
+      </div>
+      <div class="filter-sec">
+        <div class="filter-sec-hd">入居条件</div>
+        <div class="cond-area">
+          <div class="cond-row">
+            <span class="cond-lbl">生活保護</span>
+            <div class="cond-btn-group">
+              <button class="cond-btn on" data-key="seikatsu" data-val="" onclick="clearCond('seikatsu',this)">指定なし</button>
+              <button class="cond-btn" data-key="seikatsu" data-val="可" onclick="toggleCond('seikatsu','可',this)">可</button>
+              <button class="cond-btn" data-key="seikatsu" data-val="相談可" onclick="toggleCond('seikatsu','相談可',this)">相談可</button>
+              <button class="cond-btn" data-key="seikatsu" data-val="不可" onclick="toggleCond('seikatsu','不可',this)">不可</button>
+            </div>
+          </div>
+          <div class="cond-row">
+            <span class="cond-lbl">身元保証なし</span>
+            <div class="cond-btn-group">
+              <button class="cond-btn on" data-key="mimon" data-val="" onclick="clearCond('mimon',this)">指定なし</button>
+              <button class="cond-btn" data-key="mimon" data-val="可" onclick="toggleCond('mimon','可',this)">可</button>
+              <button class="cond-btn" data-key="mimon" data-val="相談可" onclick="toggleCond('mimon','相談可',this)">相談可</button>
+              <button class="cond-btn" data-key="mimon" data-val="不可" onclick="toggleCond('mimon','不可',this)">不可</button>
+            </div>
+          </div>
+          <div class="cond-row">
+            <span class="cond-lbl">介護認定なし（障がい認定のみ）</span>
+            <div class="cond-btn-group">
+              <button class="cond-btn on" data-key="kaigo" data-val="" onclick="clearCond('kaigo',this)">指定なし</button>
+              <button class="cond-btn" data-key="kaigo" data-val="可" onclick="toggleCond('kaigo','可',this)">可</button>
+              <button class="cond-btn" data-key="kaigo" data-val="相談可" onclick="toggleCond('kaigo','相談可',this)">相談可</button>
+              <button class="cond-btn" data-key="kaigo" data-val="不可" onclick="toggleCond('kaigo','不可',this)">不可</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- PANE 3: 施設一覧 -->
+  <!-- PANE 3: こだわり条件 -->
+  <div class="pane pane-tags">
+    <div class="pane-hd">
+      こだわり条件
+      <button class="pane-hd-clear" onclick="clearTags()">クリア</button>
+    </div>
+    <div class="pane-scroll">
+      <div class="tag-sec-lbl">こだわり・特徴</div>
+      <div id="tag-bar-feature" class="tag-bar"></div>
+      <div class="tag-sec-lbl">看護・医療体制</div>
+      <div id="tag-bar-medical" class="tag-bar"></div>
+    </div>
+  </div>
+
+  <!-- PANE 4: 施設一覧 -->
   <div class="pane pane-list">
     <div class="list-toolbar">
-      <div class="list-search-row">
+      <!-- 検索・統計 -->
+      <div class="list-search-meta">
         <div class="list-search-wrap">
           <span class="list-search-ico">🔍</span>
           <input class="list-search-inp" id="q" type="text" placeholder="施設名・駅名で検索..." oninput="applyFilter()">
         </div>
-      </div>
-      <div class="list-meta">
-        <span class="list-count" id="list-count">読み込み中...</span>
-        <div class="list-stats">
-          <div class="lst-stat"><div class="lst-dot" style="background:#4ade80"></div><span class="lst-num" id="st-ok">—</span>空室</div>
-          <div class="lst-stat"><div class="lst-dot" style="background:#fb923c"></div><span class="lst-num" id="st-few">—</span>残りわずか</div>
-          <div class="lst-stat"><div class="lst-dot" style="background:#94a3b8"></div><span class="lst-num" id="st-full">—</span>満室</div>
-        </div>
-        <div class="vac-toggle">
-          <button class="vac-tab on" id="vac-all" onclick="setVac('all',this)">すべて</button>
-          <button class="vac-tab" id="vac-ok" onclick="setVac('ok',this)">空室あり</button>
+        <div class="list-meta">
+          <span class="list-count" id="list-count">読み込み中...</span>
+          <div class="list-stats">
+            <div class="lst-stat"><div class="lst-dot" style="background:#4ade80"></div><span class="lst-num" id="st-ok">—</span>空室</div>
+            <div class="lst-stat"><div class="lst-dot" style="background:#fb923c"></div><span class="lst-num" id="st-few">—</span>わずか</div>
+            <div class="lst-stat"><div class="lst-dot" style="background:#94a3b8"></div><span class="lst-num" id="st-full">—</span>満室</div>
+          </div>
+          <div class="vac-toggle">
+            <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
+            <button class="vac-tab" onclick="setVac('ok',this)">空室あり</button>
+          </div>
         </div>
       </div>
     </div>
@@ -274,7 +296,7 @@
   </div>
 
   <!-- PANE 4: 施設詳細 -->
-  <div class="pane pane-detail" id="pane-detail">
+  <div class="pane pane-detail">
     <div class="detail-placeholder" id="detail-placeholder">
       <div class="dp-ico">🏠</div>
       <div class="dp-title">施設を選んで詳細を表示</div>
@@ -300,14 +322,43 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-/* ─── DATA ─── */
+const TAGS_FEATURE = [
+  '看取り・ターミナルケア','個室あり',
+  '入居一時金0円','訪問看護可','日中看護師常駐','作業療法士（OT）',
+  'キッチン付き居室','家具付き居室','ナースコールあり','機械浴・特殊浴あり',
+  '理美容サービスあり','レクリエーション充実','将棋・囲碁あり','禁煙',
+  '駅近・交通アクセス良好','大手が運営','夫婦入居可・2人部屋あり',
+  '終身利用可','体験入居可','病院・クリニック併設','24時間看護師常駐',
+  '夜間有人','言語聴覚士（ST）','風呂付き居室','介護ベッド付居室',
+  'ゲストルームあり','入浴週3回以上','カラオケあり',
+  '園芸・庭園あり','アルコール可','外出自由',
+  '安い・低価格','ペット・犬・猫可','ショートステイ可',
+  'デイサービス併設','24時間介護士常駐','理学療法士（PT）','手厚い人員体制',
+  'トイレ付き居室','ネット利用可','口腔ケア・訪問歯科あり',
+  '施設内手作りの食事','麻雀あり','喫煙可',
+];
+const TAGS_MEDICAL = [
+  'リハビリ','胃ろう','人工呼吸器','たん吸引','気管切開',
+  '褥瘡・床ずれ','脳血管性認知症','パーキンソン病','脳梗塞・クモ膜下出血',
+  'リウマチ・関節症','誤嚥性肺炎','介護食',
+  '糖尿病・インスリン','ペースメーカー','鼻腔・経管栄養','ストーマ・人工肛門',
+  'ALS','心筋梗塞・狭心症','肝炎',
+  '統合失調症','流動食・嚥下食','人工透析',
+  '中心静脈栄養（IVH）','在宅酸素療法','カテーテル・尿バルーン','アルツハイマー',
+  'レビー小体型認知症','がん・末期癌','骨折・骨粗しょう症','喘息・気管支炎',
+  'うつ・鬱病',
+];
+
 let DATA = [];
+let activeVac = 'all';
+let selectedId = null;
+const condState = { seikatsu:'', mimon:'', kaigo:'' };
+const selectedTags = new Set();
 
 function mapDoc(doc) {
   const d = doc.data();
-  const now  = new Date();
-  const upd  = d.updatedAt ? d.updatedAt.toDate() : new Date();
-  const daysAgo = Math.floor((now - upd) / 86400000);
+  const upd = d.updatedAt ? d.updatedAt.toDate() : new Date();
+  const daysAgo = Math.floor((new Date() - upd) / 86400000);
   const total = typeof d.vacancy === 'number' ? d.vacancy : 0;
   return {
     id: doc.id,
@@ -316,116 +367,150 @@ function mapDoc(doc) {
     addr: d.address || '',
     station: [d.station, d.stationDistance].filter(Boolean).join(' '),
     area: d.area || '',
-    vacancy: { single: total, double: 0, multi: 0 },
+    parking: d.parking || '',
     total,
-    campaign: d.campaign || null,
+    vacancyNotes: d.vacancyNotes || '',
     features: d.features || [],
-    contact: { name: d.contactName || '施設担当', tel: d.contactTel || '' },
+    seikatsuHogo: d.seikatsuHogo || '',
+    mimonHosho: d.mimonHosho || '',
+    kaigoNintei: d.kaigoNintei || '',
+    campaign: d.campaign || null,
+    hp: d.hp || '',
+    contact: { name: d.contactName || '', tel: d.contactTel || '' },
     plan: d.plan || 'free',
     updated: upd.toISOString().slice(0, 10),
     daysAgo,
-    photo: `https://picsum.photos/seed/${doc.id.slice(0,10)}/700/400`,
+    photoUrl: d.photoUrl || null,
   };
 }
 
-/* ─── Firebase listener ─── */
 db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
-  snap => {
-    DATA = snap.docs.map(mapDoc);
-    initPanes();
-    applyFilter();
-  },
-  () => {
-    document.getElementById('fac-list').innerHTML = '<div class="list-empty">⚠️ データの読み込みに失敗しました</div>';
-  }
+  snap => { DATA = snap.docs.map(mapDoc); initPanes(); applyFilter(); },
+  () => { document.getElementById('fac-list').innerHTML = '<div class="list-empty">⚠️ 読み込みに失敗しました</div>'; }
 );
 
-/* ─── AREA / TYPE CONFIG ─── */
-/* AREA_META: エリアごとの表示名・補足テキスト定義。
-   新しい地域に横展開する際はここにエントリを追加するだけでよい。
-   DATA に存在しないエリアは自動で表示されないのでメンテ不要。 */
 const AREA_META = {
-  '庄内': {label:'庄内エリア',      sub:'阪急庄内駅周辺'},
-  '岡町': {label:'岡町・豊中エリア', sub:'阪急岡町駅・豊中駅周辺'},
-  '曽根': {label:'曽根エリア',      sub:'阪急曽根駅周辺'},
-  '千里': {label:'千里エリア',      sub:'北大阪急行 千里中央周辺'},
-  '服部': {label:'服部エリア',      sub:'阪急服部天神駅周辺'},
-  '少路': {label:'少路エリア',      sub:'大阪モノレール少路駅周辺'},
+  '庄内':{label:'庄内エリア',sub:'阪急庄内駅周辺'},
+  '岡町':{label:'岡町・豊中エリア',sub:'阪急岡町駅・豊中駅周辺'},
+  '曽根':{label:'曽根エリア',sub:'阪急曽根駅周辺'},
+  '千里':{label:'千里エリア',sub:'北大阪急行 千里中央周辺'},
+  '服部':{label:'服部エリア',sub:'阪急服部天神駅周辺'},
+  '少路':{label:'少路エリア',sub:'大阪モノレール少路駅周辺'},
+  '蛍池':{label:'蛍池エリア',sub:'阪急・モノレール蛍池駅周辺'},
+  '刀根山':{label:'刀根山エリア',sub:'モノレール柴原阪大前駅周辺'},
+  '豊中':{label:'豊中エリア',sub:'豊中市内その他'},
 };
-/* 表示順のヒント（ここにない未知エリアは末尾に追加される） */
-const AREA_ORDER = ['庄内','岡町','曽根','千里','服部','少路'];
+const AREA_ORDER = ['庄内','服部','曽根','岡町','蛍池','刀根山','千里','少路','豊中'];
+const TYPES = [
+  {key:'特養',label:'特養',sub:'特別養護老人ホーム'},
+  {key:'老健',label:'老健',sub:'介護老人保健施設'},
+  {key:'グループホーム',label:'グループホーム',sub:'認知症対応型共同生活'},
+  {key:'サ高住',label:'サ高住',sub:'サービス付高齢者向け住宅'},
+  {key:'介護付有料',label:'介護付有料',sub:'介護付有料老人ホーム'},
+  {key:'住宅型有料',label:'住宅型有料',sub:'住宅型有料老人ホーム'},
+];
 
-let AREAS = []; // initPanes() 呼び出し時に DATA から動的生成
+let AREAS = [];
 
-function buildAreasFromData() {
-  const seen = new Set();
-  const result = [];
-  AREA_ORDER.forEach(key => {
-    if (DATA.some(f => f.area === key)) {
-      seen.add(key);
-      result.push({key, ...(AREA_META[key] || {label: key, sub: ''})});
-    }
-  });
-  DATA.forEach(f => {
-    if (f.area && !seen.has(f.area)) {
-      seen.add(f.area);
-      result.push({key: f.area, ...(AREA_META[f.area] || {label: f.area, sub: ''})});
-    }
-  });
+function buildAreas() {
+  const seen = new Set(); const result = [];
+  AREA_ORDER.forEach(k => { if (DATA.some(f => f.area === k)) { seen.add(k); result.push({key:k,...(AREA_META[k]||{label:k,sub:''})}); } });
+  DATA.forEach(f => { if (f.area && !seen.has(f.area)) { seen.add(f.area); result.push({key:f.area,...(AREA_META[f.area]||{label:f.area,sub:''})}); } });
   return result;
 }
 
-const TYPES = [
-  {key:'特養',    label:'特養',    sub:'特別養護老人ホーム'},
-  {key:'老健',    label:'老健',    sub:'介護老人保健施設'},
-  {key:'グループホーム', label:'グループホーム', sub:'認知症対応型共同生活'},
-  {key:'サ高住',  label:'サ高住',  sub:'サービス付高齢者向け住宅'},
-  {key:'介護付有料', label:'介護付有料', sub:'介護付有料老人ホーム'},
-];
-
-let activeVac = 'all';
-let selectedId = null;
-
-/* ─── INIT FILTER PANES ─── */
 function initPanes() {
-  AREAS = buildAreasFromData();
-  const al = document.getElementById('area-list');
-  al.innerHTML = AREAS.map(a => {
+  AREAS = buildAreas();
+  document.getElementById('area-list').innerHTML = AREAS.map(a => {
     const cnt = DATA.filter(f => f.area === a.key).length;
     const vac = DATA.filter(f => f.area === a.key && f.total > 0).length;
-    return `<label class="area-item on" onclick="onAreaClick(event,this)">
+    return `<label class="area-item on" onclick="toggleLabel(event,this)">
       <input type="checkbox" class="area-cb" name="area" value="${a.key}" checked onchange="applyFilter()">
-      <div class="area-texts">
-        <span class="area-name">${a.label}</span>
-        <span class="area-sub">${a.sub}</span>
-      </div>
+      <div class="area-texts"><span class="area-name">${a.label}</span><span class="area-sub">${a.sub}</span></div>
       <span class="area-count${vac>0?' has-vac':''}" id="ac-${a.key}">${cnt}</span>
     </label>`;
   }).join('');
 
-  const tl = document.getElementById('type-list');
-  tl.innerHTML = TYPES.map(t => {
+  document.getElementById('type-list').innerHTML = TYPES.map(t => {
     const cnt = DATA.filter(f => f.type === t.key).length;
-    return `<label class="type-item on" onclick="onTypeClick(event,this)">
+    return `<label class="type-item on" onclick="toggleLabel(event,this)">
       <input type="checkbox" class="type-cb" name="type" value="${t.key}" checked onchange="applyFilter()">
-      <div>
-        <div class="type-name">${t.label}</div>
-        <div style="font-size:10px;color:var(--g400);margin-top:1px">${t.sub}</div>
-      </div>
+      <div><div class="type-name">${t.label}</div><div class="type-sub">${t.sub}</div></div>
       <span class="type-count" id="tc-${t.key}">${cnt}</span>
     </label>`;
   }).join('');
+
+  const featureBar = document.getElementById('tag-bar-feature');
+  const medicalBar = document.getElementById('tag-bar-medical');
+  if (!featureBar.childElementCount) {
+    featureBar.innerHTML = TAGS_FEATURE.map(t => `<button class="tag-chip">${t}</button>`).join('');
+    medicalBar.innerHTML = TAGS_MEDICAL.map(t => `<button class="tag-chip">${t}</button>`).join('');
+    featureBar.querySelectorAll('.tag-chip').forEach(btn => {
+      btn.addEventListener('click', () => toggleTag(btn.textContent, btn));
+    });
+    medicalBar.querySelectorAll('.tag-chip').forEach(btn => {
+      btn.addEventListener('click', () => toggleTag(btn.textContent, btn));
+    });
+  }
 }
 
-function onAreaClick(e, lbl) { lbl.classList.toggle('on', lbl.querySelector('input').checked); }
-function onTypeClick(e, lbl) { lbl.classList.toggle('on', lbl.querySelector('input').checked); }
-function clearFilter(name) {
-  document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
-    cb.checked = true;
-    cb.closest('label').classList.add('on');
-  });
+function toggleLabel(e, lbl) { lbl.classList.toggle('on', lbl.querySelector('input').checked); }
+
+function clearCond(key, btn) {
+  condState[key] = '';
+  document.querySelectorAll(`.cond-btn[data-key="${key}"]`).forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
   applyFilter();
 }
+
+function toggleCond(key, val, btn) {
+  if (condState[key] === val) {
+    // 同じボタンを再クリック → 指定なしに戻す
+    condState[key] = '';
+    document.querySelectorAll(`.cond-btn[data-key="${key}"]`).forEach(b => b.classList.remove('on'));
+    const noneBtn = document.querySelector(`.cond-btn[data-key="${key}"][data-val=""]`);
+    if (noneBtn) noneBtn.classList.add('on');
+  } else {
+    document.querySelectorAll(`.cond-btn[data-key="${key}"]`).forEach(b => b.classList.remove('on'));
+    condState[key] = val;
+    btn.classList.add('on');
+  }
+  applyFilter();
+}
+
+function toggleTag(tag, btn) {
+  if (selectedTags.has(tag)) {
+    selectedTags.delete(tag);
+    btn.classList.remove('on');
+  } else {
+    selectedTags.add(tag);
+    btn.classList.add('on');
+  }
+  applyFilter();
+}
+
+function clearTags() {
+  selectedTags.clear();
+  document.querySelectorAll('.tag-chip').forEach(b => b.classList.remove('on'));
+  applyFilter();
+}
+
+function clearFilter(name) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(cb => { cb.checked = true; cb.closest('label').classList.add('on'); });
+  applyFilter();
+}
+
+function clearAllConditions() {
+  clearFilter('type');
+  Object.keys(condState).forEach(k => {
+    condState[k] = '';
+    document.querySelectorAll(`.cond-btn[data-key="${k}"]`).forEach(b => b.classList.remove('on'));
+    const noneBtn = document.querySelector(`.cond-btn[data-key="${k}"][data-val=""]`);
+    if (noneBtn) noneBtn.classList.add('on');
+  });
+  clearTags();
+}
+
 function setVac(v, btn) {
   activeVac = v;
   document.querySelectorAll('.vac-tab').forEach(t => t.classList.remove('on'));
@@ -433,150 +518,164 @@ function setVac(v, btn) {
   applyFilter();
 }
 
-/* ─── FILTER ─── */
-function getChecked(name) {
-  return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
-}
+function getChecked(name) { return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value); }
+
 function applyFilter() {
   const areas = getChecked('area');
   const types = getChecked('type');
   const q = (document.getElementById('q')?.value || '').toLowerCase();
+
   const list = DATA.filter(f => {
-    const mq = !q || f.name.toLowerCase().includes(q) || f.station.toLowerCase().includes(q) || f.addr.includes(q);
-    const ma = areas.length === 0 || areas.includes(f.area);
-    const mt = types.length === 0 || types.includes(f.type);
-    const mv = activeVac === 'all' || f.total > 0;
-    return mq && ma && mt && mv;
+    if (q && !f.name.toLowerCase().includes(q) && !f.station.toLowerCase().includes(q) && !f.addr.includes(q)) return false;
+    if (areas.length && !areas.includes(f.area)) return false;
+    if (types.length && !types.includes(f.type)) return false;
+    if (activeVac === 'ok' && f.total === 0) return false;
+    if (selectedTags.size > 0 && ![...selectedTags].every(t => f.features.includes(t))) return false;
+    if (condState.seikatsu && f.seikatsuHogo !== condState.seikatsu) return false;
+    if (condState.mimon && f.mimonHosho !== condState.mimon) return false;
+    if (condState.kaigo && f.kaigoNintei !== condState.kaigo) return false;
+    return true;
   });
   renderList(list);
   updateCounts(areas, types, q);
 }
 
-/* ─── UPDATE BADGE COUNTS ─── */
 function updateCounts(areas, types, q) {
   const qf = q ? DATA.filter(f => f.name.toLowerCase().includes(q) || f.station.toLowerCase().includes(q)) : DATA;
-  const vacCheck = activeVac === 'all' ? () => true : f => f.total > 0;
+  const vc = activeVac === 'all' ? ()=>true : f=>f.total>0;
   AREAS.forEach(a => {
     const el = document.getElementById('ac-' + a.key);
     if (!el) return;
-    const cnt = qf.filter(f => f.area === a.key && (types.length===0||types.includes(f.type)) && vacCheck(f)).length;
+    const cnt = qf.filter(f => f.area===a.key && (types.length===0||types.includes(f.type)) && vc(f)).length;
     el.textContent = cnt;
-    const vac = qf.filter(f => f.area === a.key && (types.length===0||types.includes(f.type)) && f.total > 0).length;
-    el.className = 'area-count' + (vac > 0 ? ' has-vac' : '');
+    const v = qf.filter(f => f.area===a.key && (types.length===0||types.includes(f.type)) && f.total>0).length;
+    el.className = 'area-count' + (v>0?' has-vac':'');
   });
   TYPES.forEach(t => {
     const el = document.getElementById('tc-' + t.key);
     if (!el) return;
-    const cnt = qf.filter(f => f.type === t.key && (areas.length===0||areas.includes(f.area)) && vacCheck(f)).length;
-    el.textContent = cnt;
+    el.textContent = qf.filter(f => f.type===t.key && (areas.length===0||areas.includes(f.area)) && vc(f)).length;
   });
 }
 
-/* ─── RENDER LIST ─── */
 function renderList(list) {
-  const ok   = DATA.filter(f => f.total > 2).length;
-  const few  = DATA.filter(f => f.total > 0 && f.total <= 2).length;
-  const full = DATA.filter(f => f.total === 0).length;
-  document.getElementById('st-ok').textContent   = ok;
-  document.getElementById('st-few').textContent  = few;
-  document.getElementById('st-full').textContent = full;
+  document.getElementById('st-ok').textContent   = DATA.filter(f => f.total > 2).length;
+  document.getElementById('st-few').textContent  = DATA.filter(f => f.total > 0 && f.total <= 2).length;
+  document.getElementById('st-full').textContent = DATA.filter(f => f.total === 0).length;
   document.getElementById('list-count').textContent = list.length + ' 件表示中';
 
   const el = document.getElementById('fac-list');
-  if (!list.length) {
-    el.innerHTML = '<div class="list-empty">🔍<br>条件に合う施設が見つかりませんでした</div>';
-    return;
-  }
-  const typeShortMap = {'特養':'特養','老健':'老健','グループホーム':'GH','サ高住':'サ高住','介護付有料':'介護付有料'};
+  if (!list.length) { el.innerHTML = '<div class="list-empty">🔍<br>条件に合う施設が見つかりませんでした</div>'; return; }
+
+  const typeShort = {'特養':'特養','老健':'老健','グループホーム':'GH','サ高住':'サ高住','介護付有料':'介護付有料'};
   el.innerHTML = list.map(f => {
     const cls = f.total === 0 ? 'vc-full' : f.total <= 2 ? 'vc-few' : 'vc-ok';
-    const vacHtml = f.total === 0
+    const vacH = f.total === 0
       ? `<span class="fcc-full">満室</span>`
       : `<span class="fcc-vnum">${f.total}</span><span class="fcc-vunit">室空き</span>`;
     return `<div class="fcc${selectedId===f.id?' selected':''}" onclick="selectFac('${f.id}')" id="fcc-${f.id}">
-      <div class="fcc-vac ${cls}">${vacHtml}</div>
+      <div class="fcc-vac ${cls}">${vacH}</div>
       <div class="fcc-body">
         <div class="fcc-name">${f.name}</div>
         <div class="fcc-row">
-          <span class="fcc-type">${typeShortMap[f.type]||f.type}</span>
-          <span class="fcc-station">🚉 ${f.station}</span>
+          <span class="fcc-type">${typeShort[f.type]||f.type}</span>
+          ${f.station ? `<span class="fcc-station">🚉 ${f.station}</span>` : ''}
         </div>
         <div class="fcc-foot">
-          <span class="fcc-updated${f.daysAgo>14?' fcc-stale':''}">
-            ${f.daysAgo===0?'本日更新':f.daysAgo+'日前更新'}${f.daysAgo>14?' ⚠️':''}
-          </span>
-          ${f.plan==='free'?'<span class="fcc-lock">🔒</span>':''}
+          <span class="${f.daysAgo>14?'fcc-stale':''}">${f.daysAgo===0?'本日更新':f.daysAgo+'日前更新'}${f.daysAgo>14?' ⚠️':''}</span>
+          ${f.plan==='free'?'🔒':''}
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-/* ─── SELECT FACILITY ─── */
+function condBadge(val, okVal) {
+  if (!val) return '<span style="color:var(--g400);font-size:11px">未設定</span>';
+  const cls = val === okVal ? 'cond-ok' : val === '相談可' ? 'cond-sou' : 'cond-ng';
+  return `<span class="cond-badge ${cls}">${val}</span>`;
+}
+
 function selectFac(id) {
   selectedId = id;
   document.querySelectorAll('.fcc').forEach(el => el.classList.remove('selected'));
-  const cardEl = document.getElementById('fcc-' + id);
-  if (cardEl) cardEl.classList.add('selected');
+  const card = document.getElementById('fcc-' + id);
+  if (card) card.classList.add('selected');
 
   const f = DATA.find(x => x.id === id);
   if (!f) return;
 
   document.getElementById('detail-placeholder').style.display = 'none';
   const dc = document.getElementById('detail-content');
-  dc.style.display = 'block';
+  dc.style.display = 'flex';
 
-  const vacCls = f.total === 0 ? 'dv-full' : f.total <= 2 ? 'dv-few' : 'dv-ok';
-  const status = f.total === 0 ? '現在満室です' : f.total <= 2 ? `残り${f.total}室 — お早めに` : `${f.total}室 空きあり`;
-  const parts = [];
-  if (f.vacancy.single > 0) parts.push(`空室 ${f.vacancy.single}室`);
-  const detail = parts.length ? parts.join('　/　') : '空室なし';
+  const vacCls = f.total===0 ? 'dv-full' : f.total<=2 ? 'dv-few' : 'dv-ok';
+  const status = f.total===0 ? '現在満室です' : f.total<=2 ? `残り${f.total}室 — お早めに` : `${f.total}室 空きあり`;
 
-  const contactHtml = `<div class="d-contact">
-      <div class="d-cont-hd">📞 入居相談・見学申し込み</div>
-      <div class="d-cont-inner">
-        <div class="d-cont-name">${f.contact.name}</div>
-        ${f.contact.tel ? `<div class="d-cont-tel">${f.contact.tel}</div><button class="d-call-btn">📞 電話で問い合わせる</button>` : '<div style="font-size:13px;color:var(--g400)">電話番号未登録</div>'}
+  const photoH = `<div class="dp-photo">
+    ${f.photoUrl ? `<img src="${f.photoUrl}" alt="${f.name}" loading="lazy">` : ''}
+    <div class="dp-photo-grad"></div>
+    <div class="dp-photo-type">${f.type}</div>
+    <div class="dp-photo-name">${f.name}</div>
+  </div>`;
+
+  const notesH = f.vacancyNotes ? `<div class="dv-notes">📝 ${f.vacancyNotes}</div>` : '';
+
+  const condH = (f.seikatsuHogo || f.mimonHosho || f.kaigoNintei) ? `
+    <div class="d-sec">
+      <div class="d-sec-hd">入居条件</div>
+      <div class="d-rows">
+        ${f.seikatsuHogo ? `<div class="d-row"><span class="d-lbl">生活保護</span><div class="cond-badges">${condBadge(f.seikatsuHogo,'可')}</div></div>` : ''}
+        ${f.mimonHosho  ? `<div class="d-row"><span class="d-lbl">身元保証なし</span><div class="cond-badges">${condBadge(f.mimonHosho,'可')}</div></div>` : ''}
+        ${f.kaigoNintei ? `<div class="d-row"><span class="d-lbl">介護認定なし</span><div class="cond-badges">${condBadge(f.kaigoNintei,'なし')}</div></div>` : ''}
       </div>
-    </div>`;
+    </div>` : '';
+
+  const inquiryH = f.plan !== 'free'
+    ? `<div class="d-contact">
+         <div class="d-cont-hd">今すぐ問い合わせ</div>
+         <div class="d-cont-inner">
+           ${f.contact.name ? `<div class="d-cont-name">担当：${f.contact.name}</div>` : ''}
+           ${f.contact.tel
+             ? `<div class="d-cont-tel">${f.contact.tel}</div><button class="d-call-btn" onclick="window.location.href='tel:${f.contact.tel}'">📞 電話で問い合わせる</button>`
+             : '<div style="font-size:12px;color:var(--g400);margin-top:4px">電話番号未登録</div>'}
+         </div>
+       </div>`
+    : `<div class="d-contact">
+         <div class="d-cont-hd">入居相談・見学申し込み</div>
+         <div class="d-cont-inner">
+           ${f.hp
+             ? `<a class="d-hp-btn" href="${f.hp}" target="_blank" rel="noopener">🌐 施設HPから申し込む</a>`
+             : '<div style="font-size:12px;color:var(--g400)">施設HPは未登録です</div>'}
+         </div>
+       </div>`;
 
   dc.innerHTML = `
-    <div class="dp-photo">
-      <img src="${f.photo}" alt="${f.name}" loading="lazy">
-      <div class="dp-photo-grad"></div>
-      <div class="dp-photo-name">${f.name}</div>
-      <div class="dp-photo-type">${f.type}</div>
-    </div>
+    ${photoH}
     <div class="dv-block ${vacCls}">
-      <div class="dv-num-side">
-        <div class="dv-big">${f.total}</div>
-        <div class="dv-unit">室空き</div>
-      </div>
+      <div class="dv-num-side"><div class="dv-big">${f.total}</div><div class="dv-unit">室空き</div></div>
       <div class="dv-info-side">
         <div class="dv-status">${status}</div>
-        <div class="dv-detail">${detail}</div>
+        ${notesH}
         <div class="dv-updated">更新：${f.updated}${f.daysAgo>14?' ⚠️ 古い情報の可能性あり':''}</div>
       </div>
     </div>
     <div class="d-body">
       <div class="d-sec">
-        <div class="d-sec-hd">施設基本情報 <span class="d-badge badge-f">固定情報</span></div>
+        <div class="d-sec-hd">施設基本情報 <span class="d-badge">固定情報</span></div>
         <div class="d-rows">
           <div class="d-row"><span class="d-lbl">施設種別</span><span class="d-val">${f.type}</span></div>
-          <div class="d-row"><span class="d-lbl">住所</span><span class="d-val">${f.addr}</span></div>
-          <div class="d-row"><span class="d-lbl">最寄り駅</span><span class="d-val">${f.station}</span></div>
-          ${f.features.length ? `<div class="d-row"><span class="d-lbl">特徴</span><div class="feat-tags">${f.features.map(t=>`<span class="feat-tag">${t}</span>`).join('')}</div></div>` : ''}
+          ${f.addr    ? `<div class="d-row"><span class="d-lbl">住所</span><span class="d-val">${f.addr}</span></div>` : ''}
+          ${f.station ? `<div class="d-row"><span class="d-lbl">最寄り駅</span><span class="d-val">${f.station}</span></div>` : ''}
+          ${f.parking ? `<div class="d-row"><span class="d-lbl">駐車場</span><span class="d-val">${f.parking}</span></div>` : ''}
+          ${f.features.length ? `<div class="d-row"><span class="d-lbl">こだわり</span><div class="feat-tags">${f.features.map(t=>`<span class="feat-tag">${t}</span>`).join('')}</div></div>` : ''}
         </div>
       </div>
-      ${f.campaign ? `
+      ${condH}
+      ${f.campaign ? `<div class="d-sec"><div class="d-sec-hd">キャンペーン</div><div class="d-campaign"><div class="d-camp-label">🎁 お知らせ</div><div class="d-camp-text">${f.campaign}</div></div></div>` : ''}
       <div class="d-sec">
-        <div class="d-sec-hd">キャンペーン情報 <span class="d-badge badge-v">変動情報</span></div>
-        <div class="d-campaign">
-          <div class="d-camp-label">🎁 キャンペーン</div>
-          <div class="d-camp-text">${f.campaign}</div>
-        </div>
-      </div>` : ''}
-      ${contactHtml}
+        ${inquiryH}
+      </div>
     </div>
   `;
   dc.scrollTop = 0;
@@ -584,9 +683,8 @@ function selectFac(id) {
 
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('on');
-  setTimeout(() => t.classList.remove('on'), 3200);
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3000);
 }
 </script>
 </body>

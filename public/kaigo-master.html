@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マスター管理 | Meets Medical</title>
+  <style>
+    :root {
+      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
+      --ok:#16a34a; --ok-bg:#dcfce7;
+      --few:#ea580c; --few-bg:#ffedd5;
+      --full-c:#64748b; --full-bg:#f1f5f9;
+      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0; --g300:#cbd5e1;
+      --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
+      --g800:#1e293b; --g900:#0f172a;
+      --sh:0 1px 3px rgba(0,0,0,.08);
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html,body { height:100%; }
+    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; }
+
+    .hdr { flex-shrink:0; background:var(--g900); height:54px; padding:0 20px; display:flex; align-items:center; gap:10px; }
+    .hdr-logo { width:28px; height:28px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+    .hdr-title { font-size:14px; font-weight:800; color:white; }
+    .hdr-sub { font-size:10px; color:var(--g400); }
+    .hdr-actions { margin-left:auto; display:flex; gap:8px; }
+    .hdr-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 13px; background:var(--brand); color:white; border:none; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; text-decoration:none; white-space:nowrap; transition:background .15s; }
+    .hdr-btn:hover { background:var(--brand-d); }
+    .hdr-btn-ghost { background:transparent; border:1px solid var(--g600); }
+    .hdr-btn-ghost:hover { background:rgba(255,255,255,.08); }
+
+    /* STATS + SEARCH BAR */
+    .top-bar { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); padding:10px 20px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+    .stat { display:flex; align-items:center; gap:6px; }
+    .stat-num { font-size:20px; font-weight:900; color:var(--g900); line-height:1; }
+    .stat-lbl { font-size:11px; color:var(--g500); }
+    .stat-sep { width:1px; height:28px; background:var(--g200); flex-shrink:0; }
+    .search-wrap { margin-left:auto; position:relative; }
+    .search-ico { position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--g400); }
+    .search-inp { padding:7px 12px 7px 28px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; outline:none; font-family:inherit; width:220px; transition:border-color .15s; }
+    .search-inp:focus { border-color:var(--brand); }
+
+    /* TABLE */
+    .table-wrap { flex:1; overflow:auto; }
+    table { width:100%; border-collapse:collapse; min-width:860px; }
+    thead th { position:sticky; top:0; background:var(--g100); border-bottom:2px solid var(--g200); padding:10px 12px; font-size:11px; font-weight:700; color:var(--g500); letter-spacing:.05em; text-align:left; white-space:nowrap; z-index:10; }
+    tbody tr { border-bottom:1px solid var(--g200); transition:background .1s; }
+    tbody tr:hover { background:var(--g50); }
+    tbody td { padding:10px 12px; vertical-align:middle; }
+
+    /* 空室バッジ */
+    .vac-bubble { width:38px; height:38px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,.2); }
+    .vac-ok { background:var(--ok); }
+    .vac-few { background:var(--few); }
+    .vac-full { background:var(--g400); }
+    .vac-num { font-size:15px; font-weight:900; color:white; line-height:1; letter-spacing:-0.5px; }
+    .vac-unit { font-size:7px; font-weight:700; color:rgba(255,255,255,.9); }
+    .vac-full-txt { font-size:9px; font-weight:800; color:white; }
+
+    .fac-name { font-size:13px; font-weight:700; color:var(--g800); margin-bottom:2px; }
+    .fac-type { font-size:10px; color:var(--g500); }
+    .area-badge { font-size:11px; color:var(--g600); }
+    .update-txt { font-size:11px; color:var(--g500); white-space:nowrap; }
+    .stale { color:#ef4444; font-weight:600; }
+    .plan-badge { font-size:10px; padding:2px 7px; border-radius:10px; font-weight:600; white-space:nowrap; }
+    .plan-free { background:var(--g100); color:var(--g500); }
+    .plan-paid { background:var(--ok-bg); color:var(--ok); }
+
+    /* URL セル */
+    .url-cell { display:flex; align-items:center; gap:5px; width:100%; }
+    .url-txt { font-size:11px; color:var(--g600); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0; background:var(--g50); padding:5px 8px; border:1px solid var(--g200); border-radius:6px; font-family:monospace; cursor:default; }
+    .copy-btn { padding:5px 9px; background:var(--g800); color:white; border:none; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; flex-shrink:0; transition:background .15s; }
+    .copy-btn:hover { background:var(--g900); }
+
+    /* QR */
+    .qr-cell { display:flex; flex-direction:column; align-items:center; gap:5px; }
+    .qr-box { width:72px; height:72px; background:white; padding:3px; border:1px solid var(--g200); border-radius:6px; flex-shrink:0; }
+    .qr-dl-btn { padding:3px 10px; background:var(--g700); color:white; border:none; border-radius:5px; font-size:10px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; transition:background .15s; }
+    .qr-dl-btn:hover { background:var(--g900); }
+
+    /* 空 */
+    .empty-row td { text-align:center; padding:60px; color:var(--g400); font-size:13px; }
+
+    .toast { position:fixed; bottom:24px; right:24px; background:var(--g900); color:white; padding:11px 18px; border-radius:10px; font-size:13px; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,.25); opacity:0; transform:translateY(10px); transition:all .2s; z-index:999; pointer-events:none; }
+    .toast.on { opacity:1; transform:translateY(0); }
+
+    /* 了承ボタン */
+    .apv-btn { padding:4px 10px; border:1.5px solid var(--g300); border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; background:white; color:var(--g500); white-space:nowrap; transition:all .15s; }
+    .apv-btn:hover { border-color:var(--brand); color:var(--brand); }
+    .apv-btn.apv-on { background:var(--ok-bg); border-color:var(--ok); color:var(--ok); }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-logo">🏥</div>
+  <div>
+    <div class="hdr-title">Meets Medical</div>
+    <div class="hdr-sub">マスター管理</div>
+  </div>
+  <div class="hdr-actions">
+    <a class="hdr-btn hdr-btn-ghost" href="kaigo-search.html" target="_blank">検索画面を確認</a>
+    <a class="hdr-btn" href="kaigo-register.html">＋ 施設を登録</a>
+  </div>
+</header>
+
+<div class="top-bar">
+  <div class="stat"><div class="stat-num" id="st-total">—</div><div class="stat-lbl">登録施設数</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat"><div class="stat-num" style="color:var(--ok)" id="st-open">—</div><div class="stat-lbl">空室あり</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat"><div class="stat-num" style="color:var(--g400)" id="st-full">—</div><div class="stat-lbl">満室</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat"><div class="stat-num" style="color:#ef4444" id="st-stale">—</div><div class="stat-lbl">14日以上未更新</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat"><div class="stat-num" style="color:var(--brand)" id="st-approved">—</div><div class="stat-lbl">掲載承認済</div></div>
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input class="search-inp" id="q" type="text" placeholder="施設名・エリアで絞り込み..." oninput="renderTable()">
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:36px">#</th>
+        <th style="width:64px;text-align:center">掲載承認</th>
+        <th>施設名</th>
+        <th style="width:70px">エリア</th>
+        <th style="width:60px;text-align:center">空室</th>
+        <th style="width:80px">最終更新</th>
+        <th style="width:60px">プラン</th>
+        <th>更新URL（LINEで送付）</th>
+        <th style="width:60px;text-align:center">情報編集</th>
+        <th style="width:96px;text-align:center">QRコード</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr class="empty-row"><td colspan="10">読み込み中...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+const BASE = 'https://kaigo-link-dev-59bc5.web.app';
+
+let DATA = [];
+
+db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
+  snap => {
+    DATA = snap.docs.map(doc => {
+      const d = doc.data();
+      const upd = d.updatedAt ? d.updatedAt.toDate() : new Date();
+      const daysAgo = Math.floor((new Date() - upd) / 86400000);
+      return {
+        id: doc.id,
+        name: d.name || '名称未設定',
+        type: d.type || '',
+        area: d.area || '',
+        vacancy: typeof d.vacancy === 'number' ? d.vacancy : 0,
+        plan: d.plan || 'free',
+        updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
+        daysAgo,
+        approved: d.approved === true,
+      };
+    });
+    updateStats();
+    renderTable();
+  },
+  err => {
+    document.getElementById('tbody').innerHTML = `<tr class="empty-row"><td colspan="9">⚠️ 読み込みエラー: ${err.message}</td></tr>`;
+  }
+);
+
+function updateStats() {
+  document.getElementById('st-total').textContent = DATA.length;
+  document.getElementById('st-open').textContent  = DATA.filter(f => f.vacancy > 0).length;
+  document.getElementById('st-full').textContent  = DATA.filter(f => f.vacancy === 0).length;
+  document.getElementById('st-stale').textContent    = DATA.filter(f => f.daysAgo > 14).length;
+  document.getElementById('st-approved').textContent = DATA.filter(f => f.approved).length;
+}
+
+function renderTable() {
+  const q = (document.getElementById('q')?.value || '').toLowerCase();
+  const list = q
+    ? DATA.filter(f => f.name.toLowerCase().includes(q) || f.area.toLowerCase().includes(q) || f.type.includes(q))
+    : DATA;
+
+  const tbody = document.getElementById('tbody');
+  if (!list.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">条件に合う施設がありません</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map((f, i) => {
+    const vcCls = f.vacancy === 0 ? 'vac-full' : f.vacancy <= 2 ? 'vac-few' : 'vac-ok';
+    const vacH  = f.vacancy === 0
+      ? `<span class="vac-full-txt">満室</span>`
+      : `<span class="vac-num">${f.vacancy}</span><span class="vac-unit">室</span>`;
+    const manageUrl = `${BASE}/kaigo-manage.html?id=${f.id}`;
+
+    return `<tr>
+      <td style="color:var(--g400);font-size:12px;text-align:center">${i + 1}</td>
+      <td style="text-align:center">
+        <button class="apv-btn ${f.approved?'apv-on':''}" onclick="toggleApproved('${f.id}',${!f.approved})">${f.approved?'✅ 済':'□ 未'}</button>
+      </td>
+      <td>
+        <div class="fac-name">${f.name}</div>
+        <div class="fac-type">${f.type}</div>
+      </td>
+      <td><span class="area-badge">${f.area || '─'}</span></td>
+      <td style="text-align:center">
+        <div style="display:flex;justify-content:center">
+          <div class="vac-bubble ${vcCls}">${vacH}</div>
+        </div>
+      </td>
+      <td><span class="update-txt ${f.daysAgo > 14 ? 'stale' : ''}">${f.updated}${f.daysAgo > 14 ? ' ⚠️' : ''}</span></td>
+      <td>
+        <span class="plan-badge ${f.plan === 'free' ? 'plan-free' : 'plan-paid'}">${f.plan === 'free' ? '🔒 無料' : '✅ 有料'}</span>
+      </td>
+      <td>
+        <div class="url-cell">
+          <span class="url-txt" title="${manageUrl}">${manageUrl}</span>
+          <button class="copy-btn" onclick="copyText('${manageUrl}')">コピー</button>
+        </div>
+      </td>
+      <td style="text-align:center">
+        <a href="${BASE}/kaigo-register.html?id=${f.id}" target="_blank" style="display:inline-block;padding:5px 10px;background:var(--g100);color:var(--g700);border:1px solid var(--g200);border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📝 編集</a>
+      </td>
+      <td class="qr-cell">
+        <div class="qr-box" id="qr-${f.id}"></div>
+        <button class="qr-dl-btn" onclick="downloadQR('${f.id}','${f.name.replace(/'/g,"\\'")}')">💾 保存</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // QRコード生成（描画後に実行）
+  requestAnimationFrame(() => {
+    list.forEach(f => {
+      const el = document.getElementById('qr-' + f.id);
+      if (!el || el.childElementCount > 0) return;
+      try {
+        new QRCode(el, {
+          text: `${BASE}/kaigo-manage.html?id=${f.id}`,
+          width: 66,
+          height: 66,
+          colorDark: '#0f172a',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      } catch(e) { el.innerHTML = '<div style="font-size:9px;color:#94a3b8;padding:2px">─</div>'; }
+    });
+  });
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('📋 URLをコピーしました'));
+}
+
+function downloadQR(id, name) {
+  const el = document.getElementById('qr-' + id);
+  if (!el) return;
+  const canvas = el.querySelector('canvas');
+  if (!canvas) { showToast('⚠️ QRコードがまだ生成されていません'); return; }
+  const a = document.createElement('a');
+  a.download = name + '_QR.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  showToast('📷 QRコードを保存しました');
+}
+
+async function toggleApproved(id, val) {
+  try {
+    await db.collection('facilities').doc(id).update({ approved: val });
+    showToast(val ? '✅ 了承済にしました' : '□ 未了承に戻しました');
+  } catch(e) {
+    showToast('⚠️ 更新に失敗: ' + e.message);
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3000);
+}
+</script>
+</body>
+</html>
