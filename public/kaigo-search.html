@@ -581,14 +581,13 @@ function renderList(list) {
     return `<div class="fcc${selectedId===f.id?' selected':''}" onclick="selectFac('${f.id}')" id="fcc-${f.id}">
       <div class="fcc-vac ${cls}">${vacH}</div>
       <div class="fcc-body">
-        <div class="fcc-name">${f.name}${f.plan!=='free'?'<span class="name-plan-badge">✅ 問合せ可</span>':''}</div>
+        <div class="fcc-name">${f.name}${f.plan!=='free'?'<span class="name-plan-badge">有料</span>':''}</div>
         <div class="fcc-row">
           <span class="fcc-type">${typeShort[f.type]||f.type}</span>
           ${f.station ? `<span class="fcc-station">🚉 ${f.station}</span>` : ''}
         </div>
         <div class="fcc-foot">
           <span class="${f.daysAgo>14?'fcc-stale':''}">${f.daysAgo===0?'本日更新':f.daysAgo+'日前更新'}${f.daysAgo>14?' ⚠️':''}</span>
-          ${f.plan!=='free'?'<span class="plan-badge">問合せ可</span>':''}
         </div>
       </div>
     </div>`;
