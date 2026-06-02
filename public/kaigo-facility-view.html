@@ -95,6 +95,14 @@
     .call-btn   { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .1s; text-decoration:none; }
     .call-btn:hover { background:var(--brand-d); transform:translateY(-1px); }
 
+    /* vacancy notes */
+    .vac-notes { font-size:12px; color:var(--g600); margin-top:7px; padding:6px 10px; background:rgba(217,119,6,.08); border-radius:6px; border-left:3px solid #d97706; line-height:1.5; }
+
+    /* contact blur (free plan) */
+    .cont-locked { position:relative; min-height:120px; }
+    .cont-blur { filter:blur(5px); user-select:none; pointer-events:none; }
+    .cont-lock-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,.72); backdrop-filter:blur(2px); border-radius:0 0 var(--r-lg) var(--r-lg); }
+
     /* footer note */
     .foot-note { text-align:center; font-size:12px; color:var(--g400); margin-top:28px; line-height:1.7; }
     .foot-note a { color:var(--brand); text-decoration:none; }
@@ -163,7 +171,9 @@ function render(doc) {
   const vacCls = total === 0 ? 'vac-full' : total <= 2 ? 'vac-few' : 'vac-ok';
   const status = total === 0 ? '現在満室です' : total <= 2 ? `残り${total}室 — お早めにご相談ください` : `${total}室 空きあり`;
   const photo  = `https://picsum.photos/seed/${doc.id.slice(0,10)}/700/400`;
-  const station = [d.station, d.stationDistance].filter(Boolean).join(' ');
+  const station  = [d.station, d.stationDistance].filter(Boolean).join(' ');
+  const hp       = d.hp || '';
+  const isPaid   = d.plan === 'paid';
 
   document.title = `${d.name || '施設情報'} | 介護施設検索ツール`;
 
@@ -183,6 +193,7 @@ function render(doc) {
       </div>
       <div class="vac-info">
         <div class="vac-status">${status}</div>
+        ${d.vacancyNotes ? `<div class="vac-notes">📝 ${d.vacancyNotes}</div>` : ''}
         <div class="vac-upd">更新日: ${updStr}${days > 14 ? ' ⚠️ 古い情報の可能性があります' : ''}</div>
       </div>
     </div>
@@ -193,14 +204,26 @@ function render(doc) {
       <div class="camp-text">${d.campaign}</div>
     </div>` : ''}
 
-    ${(d.contactName || d.contactTel) ? `
     <div class="contact-card">
       <div class="cont-hd">📞 入居相談・見学申し込み</div>
-      <div class="cont-inner">
-        ${d.contactName ? `<div class="cont-name">${d.contactName}</div>` : ''}
-        ${d.contactTel  ? `<div class="cont-tel">${d.contactTel}</div><a class="call-btn" href="tel:${d.contactTel}">📞 電話で問い合わせる</a>` : ''}
+      <div class="cont-inner cont-locked">
+        ${isPaid ? `
+          ${d.contactName ? `<div class="cont-name">担当：${d.contactName}</div>` : ''}
+          ${d.contactTel  ? `<div class="cont-tel">${d.contactTel}</div><a class="call-btn" href="tel:${d.contactTel}">📞 電話で問い合わせる</a>` : ''}
+        ` : `
+          <div class="cont-blur">
+            <div class="cont-name">担当：〇〇　〇〇〇〇</div>
+            <div class="cont-tel">000-0000-0000</div>
+            <a class="call-btn" href="#">📞 電話で問い合わせる</a>
+          </div>
+          <div class="cont-lock-overlay">
+            <div style="font-size:22px">🔒</div>
+            <div style="font-size:12px;font-weight:700;color:var(--g700)">直接問い合わせは有料プランのみ</div>
+            ${hp ? `<a href="${hp}" target="_blank" rel="noopener" class="call-btn" style="background:var(--g800);margin-top:2px">🌐 施設HPを見る</a>` : '<div style="font-size:11px;color:var(--g400)">施設HPは未登録です</div>'}
+          </div>
+        `}
       </div>
-    </div>` : ''}
+    </div>
 
     <div class="card">
       <div class="card-ttl">🏥 施設基本情報</div>

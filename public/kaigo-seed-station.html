@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>最寄り駅 一括補完 | Meets Medical 管理</title>
+  <style>
+    :root {
+      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
+      --ok:#16a34a; --ok-bg:#dcfce7;
+      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
+      --g400:#94a3b8; --g500:#64748b; --g700:#334155; --g800:#1e293b; --g900:#0f172a;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); padding:32px 20px; max-width:720px; margin:0 auto; }
+    h1 { font-size:20px; font-weight:800; margin-bottom:6px; }
+    .sub { font-size:13px; color:var(--g500); margin-bottom:28px; line-height:1.6; }
+    .card { background:white; border:1px solid var(--g200); border-radius:12px; padding:20px; margin-bottom:12px; }
+    .fac-name { font-size:14px; font-weight:700; margin-bottom:4px; }
+    .fac-meta { font-size:12px; color:var(--g500); margin-bottom:10px; }
+    label { font-size:12px; font-weight:600; color:var(--g700); display:block; margin-bottom:4px; }
+    .inp-row { display:flex; gap:8px; }
+    input { flex:1; padding:8px 10px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; font-family:inherit; outline:none; }
+    input:focus { border-color:var(--brand); }
+    .status { font-size:11px; margin-top:6px; color:var(--g500); }
+    .status.ok { color:var(--ok); font-weight:700; }
+    .status.err { color:#ef4444; font-weight:700; }
+    .run-btn { display:inline-flex; align-items:center; gap:7px; padding:12px 28px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:8px; }
+    .run-btn:hover { background:var(--brand-d); }
+    .run-btn:disabled { background:var(--g400); cursor:default; }
+    #summary { font-size:13px; color:var(--g500); margin-bottom:20px; }
+    #done-msg { background:var(--ok-bg); border:1px solid var(--ok); color:var(--ok); padding:14px 18px; border-radius:10px; font-weight:700; font-size:14px; display:none; margin-top:16px; }
+    .all-done { text-align:center; padding:60px 20px; color:var(--g400); font-size:14px; }
+  </style>
+</head>
+<body>
+
+<h1>🚉 最寄り駅 一括補完ツール</h1>
+<p class="sub">駅データが未入力の施設を自動検出し、エリアに基づいて駅名を補完します。<br>各施設の駅名・距離を確認・編集してから「一括保存」を実行してください。</p>
+
+<div id="summary">読み込み中...</div>
+<div id="list"></div>
+<button class="run-btn" id="run-btn" onclick="saveAll()" style="display:none">💾 一括保存する</button>
+<div id="done-msg">✅ 全施設の最寄り駅データを保存しました！</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+
+// エリア→最寄り駅のデフォルトマッピング
+const STATION_DEFAULT = {
+  '庄内':   { station:'庄内',      distance:'阪急宝塚線' },
+  '岡町':   { station:'岡町',      distance:'阪急宝塚線' },
+  '曽根':   { station:'曽根',      distance:'阪急宝塚線' },
+  '服部':   { station:'服部天神',  distance:'阪急宝塚線' },
+  '千里':   { station:'千里中央',  distance:'北大阪急行' },
+  '少路':   { station:'少路',      distance:'大阪モノレール' },
+  '蛍池':   { station:'蛍池',      distance:'阪急宝塚線' },
+  '刀根山': { station:'柴原阪大前',distance:'大阪モノレール' },
+  '豊中':   { station:'豊中',      distance:'阪急宝塚線' },
+};
+
+let targets = [];
+
+async function load() {
+  const snap = await db.collection('facilities').orderBy('area').get();
+  targets = snap.docs
+    .filter(doc => !doc.data().station)
+    .map(doc => ({ id: doc.id, name: doc.data().name || '名称未設定', area: doc.data().area || '', type: doc.data().type || '' }));
+
+  const sum = document.getElementById('summary');
+  const list = document.getElementById('list');
+
+  if (!targets.length) {
+    sum.textContent = '';
+    list.innerHTML = '<div class="all-done">🎉 全施設に最寄り駅が設定済みです！</div>';
+    return;
+  }
+
+  sum.textContent = `駅データが未入力の施設が ${targets.length} 件あります。確認・編集して一括保存してください。`;
+  list.innerHTML = targets.map((f, i) => {
+    const def = STATION_DEFAULT[f.area] || { station:'', distance:'' };
+    return `<div class="card">
+      <div class="fac-name">${f.name}</div>
+      <div class="fac-meta">${f.type}｜${f.area}エリア</div>
+      <div class="inp-row">
+        <div style="flex:1">
+          <label>最寄り駅名</label>
+          <input id="st-${i}" type="text" value="${def.station}" placeholder="例：庄内">
+        </div>
+        <div style="flex:1">
+          <label>路線・距離（任意）</label>
+          <input id="sd-${i}" type="text" value="${def.distance}" placeholder="例：阪急宝塚線 徒歩5分">
+        </div>
+      </div>
+      <div class="status" id="ss-${i}"></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('run-btn').style.display = 'inline-flex';
+}
+
+async function saveAll() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+
+  let ok = 0;
+  for (let i = 0; i < targets.length; i++) {
+    const f = targets[i];
+    const station  = document.getElementById(`st-${i}`).value.trim();
+    const distance = document.getElementById(`sd-${i}`).value.trim();
+    const ss = document.getElementById(`ss-${i}`);
+    try {
+      await db.collection('facilities').doc(f.id).update({ station, stationDistance: distance });
+      ss.textContent = '✅ 保存しました';
+      ss.className = 'status ok';
+      ok++;
+    } catch(e) {
+      ss.textContent = '❌ 保存失敗: ' + e.message;
+      ss.className = 'status err';
+    }
+  }
+
+  btn.textContent = `完了 (${ok}/${targets.length})`;
+  if (ok === targets.length) {
+    document.getElementById('done-msg').style.display = 'block';
+    btn.style.display = 'none';
+  } else {
+    btn.disabled = false;
+  }
+}
+
+load();
+</script>
+</body>
+</html>

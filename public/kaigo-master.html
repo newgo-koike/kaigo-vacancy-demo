@@ -131,13 +131,14 @@
         <th style="width:60px;text-align:center">空室</th>
         <th style="width:80px">最終更新</th>
         <th style="width:60px">プラン</th>
+        <th>共有ページ URL</th>
         <th>更新URL（LINEで送付）</th>
         <th style="width:60px;text-align:center">情報編集</th>
         <th style="width:96px;text-align:center">QRコード</th>
       </tr>
     </thead>
     <tbody id="tbody">
-      <tr class="empty-row"><td colspan="10">読み込み中...</td></tr>
+      <tr class="empty-row"><td colspan="11">読み込み中...</td></tr>
     </tbody>
   </table>
 </div>
@@ -157,7 +158,7 @@ firebase.initializeApp({
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
 });
 const db = firebase.firestore();
-const BASE = 'https://kaigo-link-dev-59bc5.web.app';
+const BASE = 'https://kaigo-meetsmedical.surge.sh';
 
 let DATA = [];
 
@@ -203,7 +204,7 @@ function renderTable() {
 
   const tbody = document.getElementById('tbody');
   if (!list.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">条件に合う施設がありません</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="11">条件に合う施設がありません</td></tr>`;
     return;
   }
 
@@ -213,6 +214,7 @@ function renderTable() {
       ? `<span class="vac-full-txt">満室</span>`
       : `<span class="vac-num">${f.vacancy}</span><span class="vac-unit">室</span>`;
     const manageUrl = `${BASE}/kaigo-manage.html?id=${f.id}`;
+    const viewUrl   = `${BASE}/kaigo-facility-view.html?id=${f.id}`;
 
     return `<tr>
       <td style="color:var(--g400);font-size:12px;text-align:center">${i + 1}</td>
@@ -232,6 +234,13 @@ function renderTable() {
       <td><span class="update-txt ${f.daysAgo > 14 ? 'stale' : ''}">${f.updated}${f.daysAgo > 14 ? ' ⚠️' : ''}</span></td>
       <td>
         <span class="plan-badge ${f.plan === 'free' ? 'plan-free' : 'plan-paid'}">${f.plan === 'free' ? '🔒 無料' : '✅ 有料'}</span>
+      </td>
+      <td>
+        <div class="url-cell">
+          <span class="url-txt" title="${viewUrl}">${viewUrl}</span>
+          <button class="copy-btn" onclick="copyText('${viewUrl}')">コピー</button>
+          <a href="${viewUrl}" target="_blank" style="padding:5px 9px;background:var(--brand);color:white;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0">開く</a>
+        </div>
       </td>
       <td>
         <div class="url-cell">
