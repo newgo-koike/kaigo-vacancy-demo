@@ -183,7 +183,7 @@
     <div class="delivery-meta-item"><strong>納品日</strong>2026年6月3日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
     <div class="delivery-meta-item"><strong>システム名</strong>介護施設空室管理システム</div>
-    <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
+    <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-meetsmedical.surge.sh</div>
   </div>
 </div>
 
@@ -205,9 +205,9 @@
           <div class="tool-desc">5ペインレイアウト（エリア / 種別・条件 / こだわり条件 / 施設一覧 / 詳細）でエリア・施設種別・入居条件・こだわりタグを組み合わせて絞り込める検索ページ。有料プランのみ連絡先を表示。</div>
         </div>
         <div class="tool-card-body">
-          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-search.html</div>
+          <div class="tool-url">https://kaigo-meetsmedical.surge.sh/kaigo-search.html</div>
           <a class="tool-link" href="kaigo-search.html" target="_blank">▶ 開く</a>
-          <div class="tool-note">入居条件（生活保護 / 身元保証 / 介護認定）やこだわりタグで絞り込み可。有料プランのみ連絡先が表示されます。</div>
+          <div class="tool-note">入居条件（生活保護 / 身元保証 / 介護認定）やこだわりタグで絞り込み可。有料プランのみ連絡先が表示されます（無料プランは連絡先がぼかされ施設HPへ誘導）。</div>
           <div class="ss-wrap"><img class="ss-img" src="img/ss-search.png" alt="検索ページ画面"></div>
         </div>
       </div>
@@ -220,7 +220,7 @@
           <div class="tool-desc">施設ごとに発行される専用URLから空室数・備考・写真を更新できる。URLを知る人だけアクセス可能。</div>
         </div>
         <div class="tool-card-body">
-          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-manage.html?id=【施設ID】</div>
+          <div class="tool-url">https://kaigo-meetsmedical.surge.sh/kaigo-manage.html?id=【施設ID】</div>
           <div class="tool-note">施設IDはマスター管理画面でコピー・QRコード確認できます。LINEで施設担当者に送付してください。</div>
           <div class="ss-wrap-mobile"><img class="ss-img-mobile" src="img/ss-manage.png" alt="空室更新ページ画面"></div>
         </div>
@@ -234,7 +234,7 @@
           <div class="tool-desc">新規施設の登録、および既存施設の情報（タグ・入居条件・住所・電話番号など）を更新するページ。マスター管理の「📝 編集」ボタンからも開ける。</div>
         </div>
         <div class="tool-card-body">
-          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-register.html</div>
+          <div class="tool-url">https://kaigo-meetsmedical.surge.sh/kaigo-register.html</div>
           <div style="font-size:11px;color:var(--g500);margin-bottom:8px">新規登録：上記URL / 既存施設の更新：<code>kaigo-register.html?id=【施設ID】</code></div>
           <a class="tool-link" href="kaigo-register.html" target="_blank">▶ 開く（新規登録）</a>
           <div class="tool-note">マスター管理の「📝 編集」ボタンをクリックすると既存施設の編集画面が直接開きます。</div>
@@ -247,12 +247,12 @@
         <div class="tool-card-hd">
           <div class="tool-badge badge-admin">Meets Medical管理者向け</div>
           <div class="tool-title">マスター管理</div>
-          <div class="tool-desc">全施設一覧・空室・最終更新・プランを一覧表示。QRコードのPNG保存、更新URLのコピーが可能。14日以上未更新は赤字警告。</div>
+          <div class="tool-desc">全施設一覧・空室・最終更新・プランを一覧表示。共有ページURL・更新URLのコピーと2種類のQRコード（📢病院共有用 / 🔑施設更新用）をPNG保存可能。プランの無料⇔有料切り替えもワンクリック。14日以上未更新は赤字警告。</div>
         </div>
         <div class="tool-card-body">
-          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-master.html</div>
+          <div class="tool-url">https://kaigo-meetsmedical.surge.sh/kaigo-master.html</div>
           <a class="tool-link" href="kaigo-master.html" target="_blank">▶ 開く</a>
-          <div class="tool-note">「📝 編集」で施設情報更新、QRコードPNG保存・更新URLコピー機能あり。14日以上未更新施設は赤字で警告表示されます。</div>
+          <div class="tool-note">「📝 編集」で施設情報更新、QRコード（共有用・更新用）のPNG保存・URLコピー機能あり。プランの無料⇔有料切り替えボタンも搭載。14日以上未更新施設は赤字で警告表示されます。</div>
           <div class="ss-wrap"><img class="ss-img" src="img/ss-master.png" alt="マスター管理画面"></div>
         </div>
       </div>
@@ -432,7 +432,7 @@
     <div style="margin-top:16px">
       <table class="spec-table">
         <tr><th>項目</th><th>内容</th></tr>
-        <tr><td>ホスティング</td><td>Firebase Hosting（Google）— <code>kaigo-link-dev-59bc5.web.app</code></td></tr>
+        <tr><td>ホスティング</td><td>Surge.sh — <code>kaigo-meetsmedical.surge.sh</code>（Firebase Hosting: <code>kaigo-link-dev-59bc5.web.app</code> も利用可）</td></tr>
         <tr><td>データベース</td><td>Firebase Firestore（NoSQL）— コレクション名: <code>facilities</code></td></tr>
         <tr><td>写真保存</td><td>Firebase Storage — パス: <code>facilities/【施設ID】/photo.jpg</code></td></tr>
         <tr><td>フロントエンド</td><td>HTML + CSS + Vanilla JavaScript（フレームワーク不使用）</td></tr>
@@ -566,13 +566,13 @@
     <!-- プラン変更 -->
     <div class="manual-block">
       <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 担当者</div>
-      <h3>施設のプランを切り替える（無料→有料）</h3>
+      <h3>施設のプランを切り替える（無料⇔有料）</h3>
       <ol class="manual-steps">
-        <li><div class="step-num">1</div><div class="step-txt"><strong>Firebase Console を開く</strong><br><code>console.firebase.google.com</code> → プロジェクト <code>kaigo-link-dev-59bc5</code></div></li>
-        <li><div class="step-num">2</div><div class="step-txt"><strong>Firestore → facilitiesコレクション</strong><br>対象施設のドキュメントIDをクリック</div></li>
-        <li><div class="step-num">3</div><div class="step-txt"><strong><code>plan</code> フィールドを変更</strong><br><code>free</code> → <code>paid</code> に変更して保存。検索ページに即時反映されます。</div></li>
+        <li><div class="step-num">1</div><div class="step-txt"><strong>マスター管理ページを開く</strong><br><code>kaigo-master.html</code> にアクセス</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>対象施設の「プラン」列のボタンをクリック</strong><br>「🔒 無料」と表示されていれば無料プラン、「✅ 有料」と表示されていれば有料プランです</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>確認ダイアログで「OK」をクリック</strong><br>即時切り替わり、検索ページに反映されます。</div></li>
       </ol>
-      <div class="manual-note">有料プランの施設は、検索ページで連絡先（担当者名・電話番号）が表示されます。</div>
+      <div class="manual-note">有料プランの施設は、検索ページおよび共有ページで担当者への直接問い合わせ（電話番号・担当者名）が表示されます。無料プランは連絡先がぼかされ、施設HPへのリンクのみ表示されます。</div>
     </div>
 
     <!-- 空室更新（施設） -->
