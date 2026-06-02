@@ -181,7 +181,7 @@ function render(doc) {
     <div class="hero">
       <img src="${photo}" alt="${d.name}" loading="lazy">
       <div class="hero-grad"></div>
-      <div class="hero-name">${d.name || ''}${isPaid ? '<span style="font-size:11px;padding:3px 9px;border-radius:10px;background:var(--brand);color:white;font-weight:700;vertical-align:middle;margin-left:8px;white-space:nowrap">有料</span>' : ''}</div>
+      <div class="hero-name">${d.name || ''}${isPaid ? '<span title="問合せ可能（有料プラン）" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--brand);color:white;font-size:12px;font-weight:900;vertical-align:middle;margin-left:8px;flex-shrink:0">✓</span>' : ''}</div>
       <div class="hero-type">${d.type || ''}</div>
       ${d.area ? `<div class="hero-area">📍 ${d.area}</div>` : ''}
     </div>
