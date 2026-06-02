@@ -182,6 +182,7 @@
     .d-hp-btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; background:var(--g800); color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; text-decoration:none; width:100%; justify-content:center; }
     .d-hp-btn:hover { background:var(--g900); }
     .plan-badge { font-size:9px; padding:1px 7px; border-radius:10px; background:var(--brand-l); color:var(--brand-d); font-weight:700; border:1px solid rgba(13,148,136,.2); letter-spacing:.02em; }
+    .name-plan-badge { font-size:9px; padding:2px 7px; border-radius:10px; background:var(--brand); color:white; font-weight:700; vertical-align:middle; margin-left:6px; white-space:nowrap; }
     .cont-blur { filter:blur(5px); user-select:none; pointer-events:none; }
     .cont-lock-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; background:rgba(255,255,255,.72); backdrop-filter:blur(2px); }
 
@@ -580,7 +581,7 @@ function renderList(list) {
     return `<div class="fcc${selectedId===f.id?' selected':''}" onclick="selectFac('${f.id}')" id="fcc-${f.id}">
       <div class="fcc-vac ${cls}">${vacH}</div>
       <div class="fcc-body">
-        <div class="fcc-name">${f.name}</div>
+        <div class="fcc-name">${f.name}${f.plan!=='free'?'<span class="name-plan-badge">✅ 問合せ可</span>':''}</div>
         <div class="fcc-row">
           <span class="fcc-type">${typeShort[f.type]||f.type}</span>
           ${f.station ? `<span class="fcc-station">🚉 ${f.station}</span>` : ''}
