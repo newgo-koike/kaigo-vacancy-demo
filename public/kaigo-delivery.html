@@ -41,7 +41,8 @@
     .sec-title { font-size:24px; font-weight:700; color:var(--g900); }
 
     /* TOOL CARDS */
-    .tool-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+    .tool-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:18px; }
+    @media(max-width:1300px){ .tool-grid { grid-template-columns:repeat(3,1fr); } }
     @media(max-width:1100px){ .tool-grid { grid-template-columns:1fr 1fr; } }
     @media(max-width:600px){ .tool-grid { grid-template-columns:1fr; } }
     .tool-card { background:white; border-radius:18px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.07); border-left:4px solid var(--brand); }
@@ -239,6 +240,20 @@
           <a class="tool-link" href="kaigo-register.html" target="_blank">▶ 開く（新規登録）</a>
           <div class="tool-note">マスター管理の「📝 編集」ボタンをクリックすると既存施設の編集画面が直接開きます。</div>
           <div class="ss-wrap"><img class="ss-img" src="img/ss-register.png" alt="施設登録ページ画面"></div>
+        </div>
+      </div>
+
+      <!-- 施設共有ページ -->
+      <div class="tool-card">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-public">病院・ケアマネ向け</div>
+          <div class="tool-title">施設共有ページ</div>
+          <div class="tool-desc">施設ごとの個別ページ。空室数・備考・特徴タグ・入居相談連絡先を表示。有料プランのみ連絡先（担当者名・電話番号）を表示し、無料プランはぼかして施設HPへ誘導。病院・ケアマネへのURL共有・QR配布用。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-meetsmedical.surge.sh/kaigo-facility-view.html?id=【施設ID】</div>
+          <div class="tool-note">施設IDはマスター管理画面の「共有ページ URL」列からコピー、または📢QRコードを保存して配布できます。</div>
+          <div class="ss-wrap-mobile"><img class="ss-img-mobile" src="img/ss-facility-view.png" alt="施設共有ページ画面"></div>
         </div>
       </div>
 
