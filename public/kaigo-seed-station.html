@@ -36,7 +36,7 @@
 <body>
 
 <h1>🚉 最寄り駅 一括補完ツール</h1>
-<p class="sub">駅データが未入力の施設を自動検出し、エリアに基づいて駅名を補完します。<br>各施設の駅名・距離を確認・編集してから「一括保存」を実行してください。</p>
+<p class="sub">駅データが未入力の施設を自動検出し、エリアに基づいて駅名を補完します。<br>駅名を確認・修正して「一括保存」を実行してください。<br><strong>徒歩距離は後から情報編集ページで追加できます。</strong></p>
 
 <div id="summary">読み込み中...</div>
 <div id="list"></div>
@@ -58,15 +58,15 @@ const db = firebase.firestore();
 
 // エリア→最寄り駅のデフォルトマッピング
 const STATION_DEFAULT = {
-  '庄内':   { station:'庄内',      distance:'阪急宝塚線' },
-  '岡町':   { station:'岡町',      distance:'阪急宝塚線' },
-  '曽根':   { station:'曽根',      distance:'阪急宝塚線' },
-  '服部':   { station:'服部天神',  distance:'阪急宝塚線' },
-  '千里':   { station:'千里中央',  distance:'北大阪急行' },
-  '少路':   { station:'少路',      distance:'大阪モノレール' },
-  '蛍池':   { station:'蛍池',      distance:'阪急宝塚線' },
-  '刀根山': { station:'柴原阪大前',distance:'大阪モノレール' },
-  '豊中':   { station:'豊中',      distance:'阪急宝塚線' },
+  '庄内':   '庄内',
+  '岡町':   '岡町',
+  '曽根':   '曽根',
+  '服部':   '服部天神',
+  '千里':   '千里中央',
+  '少路':   '少路',
+  '蛍池':   '蛍池',
+  '刀根山': '柴原阪大前',
+  '豊中':   '豊中',
 };
 
 let targets = [];
@@ -86,22 +86,14 @@ async function load() {
     return;
   }
 
-  sum.textContent = `駅データが未入力の施設が ${targets.length} 件あります。確認・編集して一括保存してください。`;
+  sum.textContent = `駅データが未入力の施設が ${targets.length} 件あります。駅名を確認して一括保存してください。`;
   list.innerHTML = targets.map((f, i) => {
-    const def = STATION_DEFAULT[f.area] || { station:'', distance:'' };
+    const def = STATION_DEFAULT[f.area] || '';
     return `<div class="card">
       <div class="fac-name">${f.name}</div>
       <div class="fac-meta">${f.type}｜${f.area}エリア</div>
-      <div class="inp-row">
-        <div style="flex:1">
-          <label>最寄り駅名</label>
-          <input id="st-${i}" type="text" value="${def.station}" placeholder="例：庄内">
-        </div>
-        <div style="flex:1">
-          <label>路線・距離（任意）</label>
-          <input id="sd-${i}" type="text" value="${def.distance}" placeholder="例：阪急宝塚線 徒歩5分">
-        </div>
-      </div>
+      <label>最寄り駅名</label>
+      <input id="st-${i}" type="text" value="${def}" placeholder="例：庄内">
       <div class="status" id="ss-${i}"></div>
     </div>`;
   }).join('');
@@ -117,11 +109,10 @@ async function saveAll() {
   let ok = 0;
   for (let i = 0; i < targets.length; i++) {
     const f = targets[i];
-    const station  = document.getElementById(`st-${i}`).value.trim();
-    const distance = document.getElementById(`sd-${i}`).value.trim();
+    const station = document.getElementById(`st-${i}`).value.trim();
     const ss = document.getElementById(`ss-${i}`);
     try {
-      await db.collection('facilities').doc(f.id).update({ station, stationDistance: distance });
+      await db.collection('facilities').doc(f.id).update({ station });
       ss.textContent = '✅ 保存しました';
       ss.className = 'status ok';
       ok++;

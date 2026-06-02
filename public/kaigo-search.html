@@ -526,9 +526,9 @@ function applyFilter() {
   const types = getChecked('type');
   const q = (document.getElementById('q')?.value || '').toLowerCase();
 
-  const qStation = q.replace(/駅$/, '');
+  const qNorm = q.replace(/駅$/, '');
   const list = DATA.filter(f => {
-    if (q && !f.name.toLowerCase().includes(q) && !f.station.toLowerCase().includes(qStation) && !f.addr.includes(q)) return false;
+    if (q && !f.name.toLowerCase().includes(q) && !f.station.toLowerCase().includes(qNorm) && !f.area.includes(qNorm) && !f.addr.includes(q)) return false;
     if (areas.length && !areas.includes(f.area)) return false;
     if (types.length && !types.includes(f.type)) return false;
     if (activeVac === 'ok' && f.total === 0) return false;
@@ -543,7 +543,7 @@ function applyFilter() {
 }
 
 function updateCounts(areas, types, q) {
-  const qf = q ? DATA.filter(f => f.name.toLowerCase().includes(q) || f.station.toLowerCase().includes(q.replace(/駅$/,''))) : DATA;
+  const qf = q ? DATA.filter(f => f.name.toLowerCase().includes(q) || f.station.toLowerCase().includes(q.replace(/駅$/,'')) || f.area.includes(q.replace(/駅$/,''))) : DATA;
   const vc = activeVac === 'all' ? ()=>true : f=>f.total>0;
   AREAS.forEach(a => {
     const el = document.getElementById('ac-' + a.key);
