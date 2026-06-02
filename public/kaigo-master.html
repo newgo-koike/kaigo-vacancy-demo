@@ -88,6 +88,10 @@
     .apv-btn { padding:4px 10px; border:1.5px solid var(--g300); border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; background:white; color:var(--g500); white-space:nowrap; transition:all .15s; }
     .apv-btn:hover { border-color:var(--brand); color:var(--brand); }
     .apv-btn.apv-on { background:var(--ok-bg); border-color:var(--ok); color:var(--ok); }
+    /* プラン切替ボタン */
+    .plan-toggle { padding:4px 10px; border:1.5px solid var(--g300); border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; background:white; color:var(--g500); white-space:nowrap; transition:all .15s; }
+    .plan-toggle:hover { border-color:#16a34a; color:#16a34a; }
+    .plan-toggle.paid { background:var(--ok-bg); border-color:var(--ok); color:var(--ok); }
   </style>
 </head>
 <body>
@@ -130,7 +134,7 @@
         <th style="width:70px">エリア</th>
         <th style="width:60px;text-align:center">空室</th>
         <th style="width:80px">最終更新</th>
-        <th style="width:60px">プラン</th>
+        <th style="width:80px;text-align:center">プラン</th>
         <th>共有ページ URL</th>
         <th>更新URL（LINEで送付）</th>
         <th style="width:60px;text-align:center">情報編集</th>
@@ -232,8 +236,8 @@ function renderTable() {
         </div>
       </td>
       <td><span class="update-txt ${f.daysAgo > 14 ? 'stale' : ''}">${f.updated}${f.daysAgo > 14 ? ' ⚠️' : ''}</span></td>
-      <td>
-        <span class="plan-badge ${f.plan === 'free' ? 'plan-free' : 'plan-paid'}">${f.plan === 'free' ? '🔒 無料' : '✅ 有料'}</span>
+      <td style="text-align:center">
+        <button class="plan-toggle ${f.plan!=='free'?'paid':''}" onclick="togglePlan('${f.id}','${f.plan}')">${f.plan!=='free'?'✅ 有料':'🔒 無料'}</button>
       </td>
       <td>
         <div class="url-cell">
@@ -291,6 +295,18 @@ function downloadQR(id, name) {
   a.href = canvas.toDataURL('image/png');
   a.click();
   showToast('📷 QRコードを保存しました');
+}
+
+async function togglePlan(id, currentPlan) {
+  const newPlan = currentPlan === 'free' ? 'paid' : 'free';
+  const label = newPlan === 'paid' ? '有料プラン' : '無料プラン';
+  if (!confirm(`このプランを「${label}」に変更しますか？`)) return;
+  try {
+    await db.collection('facilities').doc(id).update({ plan: newPlan });
+    showToast(newPlan === 'paid' ? '✅ 有料プランに変更しました' : '🔒 無料プランに変更しました');
+  } catch(e) {
+    showToast('⚠️ 更新に失敗: ' + e.message);
+  }
 }
 
 async function toggleApproved(id, val) {
