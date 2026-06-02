@@ -257,10 +257,12 @@ function renderTable() {
         <a href="${BASE}/kaigo-register.html?id=${f.id}" target="_blank" style="display:inline-block;padding:5px 10px;background:var(--g100);color:var(--g700);border:1px solid var(--g200);border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📝 編集</a>
       </td>
       <td class="qr-cell">
+        <div style="font-size:9px;font-weight:700;color:var(--brand);margin-bottom:3px">📢 病院共有用</div>
         <div class="qr-box" id="qr-view-${f.id}"></div>
         <button class="qr-dl-btn" onclick="downloadQR('qr-view-${f.id}','${f.name.replace(/'/g,"\\'")}共有')">💾 保存</button>
       </td>
       <td class="qr-cell">
+        <div style="font-size:9px;font-weight:700;color:var(--g500);margin-bottom:3px">🔑 施設更新用</div>
         <div class="qr-box" id="qr-manage-${f.id}"></div>
         <button class="qr-dl-btn" onclick="downloadQR('qr-manage-${f.id}','${f.name.replace(/'/g,"\\'")}更新')">💾 保存</button>
       </td>
