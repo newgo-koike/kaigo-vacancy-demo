@@ -204,26 +204,14 @@ function render(doc) {
       <div class="camp-text">${d.campaign}</div>
     </div>` : ''}
 
+    ${isPaid ? `
     <div class="contact-card">
       <div class="cont-hd">📞 入居相談・見学申し込み</div>
-      <div class="cont-inner cont-locked">
-        ${isPaid ? `
-          ${d.contactName ? `<div class="cont-name">担当：${d.contactName}</div>` : ''}
-          ${d.contactTel  ? `<div class="cont-tel">${d.contactTel}</div><a class="call-btn" href="tel:${d.contactTel}">📞 電話で問い合わせる</a>` : ''}
-        ` : `
-          <div class="cont-blur">
-            <div class="cont-name">担当：〇〇　〇〇〇〇</div>
-            <div class="cont-tel">000-0000-0000</div>
-            <a class="call-btn" href="#">📞 電話で問い合わせる</a>
-          </div>
-          <div class="cont-lock-overlay">
-            <div style="font-size:22px">🔒</div>
-            <div style="font-size:12px;font-weight:700;color:var(--g700)">直接問い合わせは有料プランのみ</div>
-            ${hp ? `<a href="${hp}" target="_blank" rel="noopener" class="call-btn" style="background:var(--g800);margin-top:2px">🌐 施設HPを見る</a>` : '<div style="font-size:11px;color:var(--g400)">施設HPは未登録です</div>'}
-          </div>
-        `}
+      <div class="cont-inner">
+        ${d.contactName ? `<div class="cont-name">担当：${d.contactName}</div>` : ''}
+        ${d.contactTel  ? `<div class="cont-tel">${d.contactTel}</div><a class="call-btn" href="tel:${d.contactTel}">📞 電話で問い合わせる</a>` : ''}
       </div>
-    </div>
+    </div>` : ''}
 
     <div class="card">
       <div class="card-ttl">🏥 施設基本情報</div>
