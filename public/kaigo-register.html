@@ -187,14 +187,16 @@
       <input class="f-inp" id="r-hp" type="url" placeholder="例）https://example.com">
       <div class="f-hint">無料プランの施設は「HPから入居相談」ボタンのリンク先になります</div>
     </div>
-    <div class="f-grid2">
-      <div class="f-grp">
-        <label class="f-lbl">担当者名</label>
-        <input class="f-inp" id="r-contact-name" type="text" placeholder="例）鈴木 担当">
-      </div>
-      <div class="f-grp">
-        <label class="f-lbl">問い合わせ電話番号</label>
-        <input class="f-inp" id="r-contact-tel" type="tel" placeholder="例）06-0000-0000">
+    <div id="contact-section" style="display:none">
+      <div class="f-grid2">
+        <div class="f-grp">
+          <label class="f-lbl">担当者名</label>
+          <input class="f-inp" id="r-contact-name" type="text" placeholder="例）鈴木 担当">
+        </div>
+        <div class="f-grp">
+          <label class="f-lbl">問い合わせ電話番号</label>
+          <input class="f-inp" id="r-contact-tel" type="tel" placeholder="例）06-0000-0000">
+        </div>
       </div>
     </div>
   </div>
@@ -430,6 +432,7 @@ let editingId = null;
     document.getElementById('r-hp').value             = d.hp || '';
     document.getElementById('r-contact-name').value   = d.contactName || '';
     document.getElementById('r-contact-tel').value    = d.contactTel || '';
+    if (d.plan === 'paid') document.getElementById('contact-section').style.display = 'block';
     document.getElementById('r-seikatsu').value       = d.seikatsuHogo || '';
     document.getElementById('r-mimon').value          = d.mimonHosho || '';
     document.getElementById('r-kaigo').value          = d.kaigoNintei || '';
