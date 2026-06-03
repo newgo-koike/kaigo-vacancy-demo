@@ -283,9 +283,8 @@
         <div class="list-meta">
           <span class="list-count" id="list-count">読み込み中...</span>
           <div class="list-stats">
-            <div class="lst-stat"><div class="lst-dot" style="background:#4ade80"></div><span class="lst-num" id="st-ok">—</span>空室</div>
-            <div class="lst-stat"><div class="lst-dot" style="background:#fb923c"></div><span class="lst-num" id="st-few">—</span>わずか</div>
-            <div class="lst-stat"><div class="lst-dot" style="background:#94a3b8"></div><span class="lst-num" id="st-full">—</span>空きなし</div>
+            <div class="lst-stat"><div class="lst-dot" style="background:#4ade80"></div>空室あり&nbsp;<span class="lst-num" id="st-ok">—</span>施設</div>
+            <div class="lst-stat"><div class="lst-dot" style="background:#94a3b8"></div>満室&nbsp;<span class="lst-num" id="st-full">—</span>施設</div>
           </div>
           <div class="vac-toggle">
             <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
@@ -565,8 +564,7 @@ function updateCounts(areas, types, q) {
 }
 
 function renderList(list) {
-  document.getElementById('st-ok').textContent   = DATA.filter(f => f.total > 2).length;
-  document.getElementById('st-few').textContent  = DATA.filter(f => f.total > 0 && f.total <= 2).length;
+  document.getElementById('st-ok').textContent   = DATA.filter(f => f.total > 0).length;
   document.getElementById('st-full').textContent = DATA.filter(f => f.total === 0).length;
   document.getElementById('list-count').textContent = list.length + ' 件表示中';
 
