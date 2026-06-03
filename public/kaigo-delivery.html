@@ -467,6 +467,29 @@
         <tr><td>認証</td><td>なし（施設URLはID知る人のみアクセス可の運用）</td></tr>
       </table>
     </div>
+
+    <div style="margin-top:16px">
+      <div class="arch-box">
+        <p style="font-size:13px;font-weight:700;color:var(--g700);margin-bottom:12px">🗄️ データ・画像の保存先</p>
+        <div class="arch-list" style="margin-bottom:16px">
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>施設情報（名前・住所・空室数など）：</strong>Firebase Firestore に保存</div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>施設写真：</strong>Firebase Storage に保存（最大10MB推奨）</div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>Webページ本体：</strong>Surge.sh に配置（Firebaseではない）</div></div>
+        </div>
+        <p style="font-size:13px;font-weight:700;color:var(--g700);margin-bottom:10px">💰 Firebase 無料枠（Spark プラン）と費用目安</p>
+        <table class="spec-table" style="margin-bottom:12px">
+          <tr><th>項目</th><th>無料上限</th><th>現状の消費量目安</th></tr>
+          <tr><td>Firestore 読み取り</td><td>5万回 / 日</td><td>検索ページ1回開く = 約154読み取り<br><span style="font-size:11px;color:var(--g500)">→ 1日300アクセス程度まで無料</span></td></tr>
+          <tr><td>Firestore 書き込み</td><td>2万回 / 日</td><td>空室更新1回 = 1書き込み<br><span style="font-size:11px;color:var(--g500)">→ 余裕あり</span></td></tr>
+          <tr><td>Storage 容量</td><td>5 GB</td><td>154施設 × 約2MB = 約300MB<br><span style="font-size:11px;color:var(--g500)">→ 余裕あり</span></td></tr>
+          <tr><td>Storage ダウンロード</td><td>1 GB / 日</td><td>写真表示分<br><span style="font-size:11px;color:var(--g500)">→ 余裕あり</span></td></tr>
+        </table>
+        <div class="manual-note-amber" style="margin-top:0">
+          <strong>現在のフェーズ（病院数社にテスト共有レベル）では無料枠で問題ありません。</strong><br>
+          ケアマネ・MSWが日常的に使い始めて <strong>1日100〜200人規模</strong> になったら、有料プラン（Blaze：従量課金、月$25〜）への移行を検討してください。
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ⑤ データ構造 -->
