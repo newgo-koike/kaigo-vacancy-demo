@@ -175,6 +175,10 @@
       </div>
     </div>
     <div class="f-grp">
+      <label class="f-lbl">総部屋数</label>
+      <input class="f-inp" id="r-totalRooms" type="number" min="0" placeholder="例）18">
+    </div>
+    <div class="f-grp">
       <label class="f-lbl">駐車場</label>
       <input class="f-inp" id="r-parking" type="text" placeholder="例）10台収容可、無料">
     </div>
@@ -421,6 +425,7 @@ let editingId = null;
     document.getElementById('r-area').value           = d.area || '';
     document.getElementById('r-station').value        = d.station || '';
     document.getElementById('r-distance').value       = d.stationDistance || '';
+    document.getElementById('r-totalRooms').value      = d.totalRooms || '';
     document.getElementById('r-parking').value        = d.parking || '';
     document.getElementById('r-hp').value             = d.hp || '';
     document.getElementById('r-contact-name').value   = d.contactName || '';
@@ -492,6 +497,7 @@ function collectFormData() {
     address:         document.getElementById('r-address').value.trim(),
     station:         document.getElementById('r-station').value.trim(),
     stationDistance: document.getElementById('r-distance').value.trim(),
+    totalRooms:      parseInt(document.getElementById('r-totalRooms').value) || null,
     parking:         document.getElementById('r-parking').value.trim(),
     hp:              document.getElementById('r-hp').value.trim(),
     contactName:     document.getElementById('r-contact-name').value.trim(),

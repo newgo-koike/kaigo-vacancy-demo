@@ -285,7 +285,7 @@
           <div class="list-stats">
             <div class="lst-stat"><div class="lst-dot" style="background:#4ade80"></div><span class="lst-num" id="st-ok">—</span>空室</div>
             <div class="lst-stat"><div class="lst-dot" style="background:#fb923c"></div><span class="lst-num" id="st-few">—</span>わずか</div>
-            <div class="lst-stat"><div class="lst-dot" style="background:#94a3b8"></div><span class="lst-num" id="st-full">—</span>満室</div>
+            <div class="lst-stat"><div class="lst-dot" style="background:#94a3b8"></div><span class="lst-num" id="st-full">—</span>空きなし</div>
           </div>
           <div class="vac-toggle">
             <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
@@ -372,6 +372,7 @@ function mapDoc(doc) {
     station: [d.station, d.stationDistance].filter(Boolean).join(' '),
     area: d.area || '',
     parking: d.parking || '',
+    totalRooms: d.totalRooms || '',
     total,
     vacancyNotes: d.vacancyNotes || '',
     features: d.features || [],
@@ -662,9 +663,10 @@ function selectFac(id) {
         <div class="d-sec-hd">施設基本情報 <span class="d-badge">固定情報</span></div>
         <div class="d-rows">
           <div class="d-row"><span class="d-lbl">施設種別</span><span class="d-val">${f.type}</span></div>
-          ${f.addr    ? `<div class="d-row"><span class="d-lbl">住所</span><span class="d-val">${f.addr}</span></div>` : ''}
-          ${f.station ? `<div class="d-row"><span class="d-lbl">最寄り駅</span><span class="d-val">${f.station}</span></div>` : ''}
-          ${f.parking ? `<div class="d-row"><span class="d-lbl">駐車場</span><span class="d-val">${f.parking}</span></div>` : ''}
+          ${f.addr       ? `<div class="d-row"><span class="d-lbl">住所</span><span class="d-val">${f.addr}</span></div>` : ''}
+          ${f.station    ? `<div class="d-row"><span class="d-lbl">最寄り駅</span><span class="d-val">${f.station}</span></div>` : ''}
+          ${f.totalRooms ? `<div class="d-row"><span class="d-lbl">総部屋数</span><span class="d-val">${f.totalRooms}室</span></div>` : ''}
+          ${f.parking    ? `<div class="d-row"><span class="d-lbl">駐車場</span><span class="d-val">${f.parking}</span></div>` : ''}
           ${f.features.length ? `<div class="d-row"><span class="d-lbl">こだわり</span><div class="feat-tags">${f.features.map(t=>`<span class="feat-tag">${t}</span>`).join('')}</div></div>` : ''}
         </div>
       </div>
