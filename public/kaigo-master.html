@@ -17,7 +17,7 @@
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html,body { height:100%; }
-    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; }
+    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; visibility:hidden; }
 
     .hdr { flex-shrink:0; background:var(--g900); height:54px; padding:0 20px; display:flex; align-items:center; gap:10px; }
     .hdr-logo { width:28px; height:28px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
@@ -105,6 +105,7 @@
   <div class="hdr-actions">
     <a class="hdr-btn hdr-btn-ghost" href="kaigo-search.html" target="_blank">検索画面を確認</a>
     <a class="hdr-btn" href="kaigo-register.html">＋ 施設を登録</a>
+    <button class="hdr-btn hdr-btn-ghost" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
 </header>
 
@@ -151,6 +152,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
@@ -163,35 +165,51 @@ firebase.initializeApp({
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
 });
 const db = firebase.firestore();
+const auth = firebase.auth();
 const BASE = 'https://kaigo-meetsmedical.surge.sh';
 
 let DATA = [];
 
-db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
-  snap => {
-    DATA = snap.docs.map(doc => {
-      const d = doc.data();
-      const upd = d.updatedAt ? d.updatedAt.toDate() : new Date();
-      const daysAgo = Math.floor((new Date() - upd) / 86400000);
-      return {
-        id: doc.id,
-        name: d.name || '名称未設定',
-        type: d.type || '',
-        area: d.area || '',
-        vacancy: typeof d.vacancy === 'number' ? d.vacancy : 0,
-        plan: d.plan || 'free',
-        updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
-        daysAgo,
-        approved: d.approved === true,
-      };
-    });
-    updateStats();
-    renderTable();
-  },
-  err => {
-    document.getElementById('tbody').innerHTML = `<tr class="empty-row"><td colspan="12">⚠️ 読み込みエラー: ${err.message}</td></tr>`;
+auth.onAuthStateChanged(async user => {
+  if (!user) { location.href = 'kaigo-login.html'; return; }
+  const uSnap = await db.collection('users').doc(user.uid).get();
+  const role = uSnap.data()?.role;
+  if (role !== 'admin') {
+    await auth.signOut();
+    location.href = 'kaigo-login.html';
+    return;
   }
-);
+  document.body.style.visibility = 'visible';
+  startApp();
+});
+
+function startApp() {
+  db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
+    snap => {
+      DATA = snap.docs.map(doc => {
+        const d = doc.data();
+        const upd = d.updatedAt ? d.updatedAt.toDate() : new Date();
+        const daysAgo = Math.floor((new Date() - upd) / 86400000);
+        return {
+          id: doc.id,
+          name: d.name || '名称未設定',
+          type: d.type || '',
+          area: d.area || '',
+          vacancy: typeof d.vacancy === 'number' ? d.vacancy : 0,
+          plan: d.plan || 'free',
+          updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
+          daysAgo,
+          approved: d.approved === true,
+        };
+      });
+      updateStats();
+      renderTable();
+    },
+    err => {
+      document.getElementById('tbody').innerHTML = `<tr class="empty-row"><td colspan="12">⚠️ 読み込みエラー: ${err.message}</td></tr>`;
+    }
+  );
+}
 
 function updateStats() {
   document.getElementById('st-total').textContent = DATA.length;

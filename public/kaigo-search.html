@@ -21,7 +21,7 @@
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html,body { height:100%; overflow:hidden; }
-    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; }
+    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; visibility:hidden; }
 
     /* HEADER */
     .hdr { flex-shrink:0; background:var(--g900); height:var(--hdr-h); padding:0 20px; display:flex; align-items:center; gap:10px; z-index:100; }
@@ -198,6 +198,10 @@
     <div class="hdr-title">介護施設 空き状況検索</div>
     <div class="hdr-sub">豊中エリア 介護施設情報プラットフォーム</div>
   </div>
+  <div style="margin-left:auto">
+    <button id="logout-btn" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')"
+      style="background:transparent;border:1px solid var(--g600);color:var(--g400);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">ログアウト</button>
+  </div>
 </header>
 
 <div class="search-layout">
@@ -313,6 +317,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp({
@@ -324,6 +329,20 @@ firebase.initializeApp({
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
 });
 const db = firebase.firestore();
+const auth = firebase.auth();
+
+auth.onAuthStateChanged(async user => {
+  if (!user) { location.href = 'kaigo-login.html'; return; }
+  const uSnap = await db.collection('users').doc(user.uid).get();
+  const role = uSnap.data()?.role;
+  if (!['hospital', 'admin'].includes(role)) {
+    await auth.signOut();
+    location.href = 'kaigo-login.html';
+    return;
+  }
+  document.body.style.visibility = 'visible';
+  startApp();
+});
 
 const TAGS_FEATURE = [
   '看取り・ターミナルケア','個室あり',
@@ -388,10 +407,12 @@ function mapDoc(doc) {
   };
 }
 
-db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
-  snap => { DATA = snap.docs.map(mapDoc); initPanes(); applyFilter(); },
-  () => { document.getElementById('fac-list').innerHTML = '<div class="list-empty">⚠️ 読み込みに失敗しました</div>'; }
-);
+function startApp() {
+  db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
+    snap => { DATA = snap.docs.map(mapDoc); initPanes(); applyFilter(); },
+    () => { document.getElementById('fac-list').innerHTML = '<div class="list-empty">⚠️ 読み込みに失敗しました</div>'; }
+  );
+}
 
 const AREA_META = {
   '庄内':{label:'庄内エリア',sub:'阪急庄内駅周辺'},

@@ -17,7 +17,7 @@
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html { min-height:100%; }
-    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; }
+    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; visibility:hidden; }
 
     .hdr { background:var(--g900); padding:0 20px; height:58px; display:flex; align-items:center; gap:10px; }
     .hdr-logo { width:30px; height:30px; background:var(--brand); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
@@ -124,7 +124,11 @@
     <div class="hdr-title">Meets Medical</div>
     <div class="hdr-sub">施設登録（管理者専用）</div>
   </div>
-  <div class="hdr-nav"><a href="kaigo-master.html">← マスター管理</a></div>
+  <div class="hdr-nav" style="display:flex;gap:8px;align-items:center">
+    <a href="kaigo-master.html">← マスター管理</a>
+    <button onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')"
+      style="background:transparent;border:1px solid var(--g700);color:var(--g400);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">ログアウト</button>
+  </div>
 </header>
 
 <!-- 登録フォーム -->
@@ -321,6 +325,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -334,7 +339,21 @@ firebase.initializeApp({
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
 });
 const db = firebase.firestore();
+const auth = firebase.auth();
 const storage = firebase.storage();
+
+auth.onAuthStateChanged(async user => {
+  if (!user) { location.href = 'kaigo-login.html'; return; }
+  const uSnap = await db.collection('users').doc(user.uid).get();
+  const role = uSnap.data()?.role;
+  if (role !== 'admin') {
+    await auth.signOut();
+    location.href = 'kaigo-login.html';
+    return;
+  }
+  document.body.style.visibility = 'visible';
+  initEditMode();
+});
 
 const TAGS_FEATURE = [
   '看取り・ターミナルケア','個室あり',
@@ -410,7 +429,7 @@ async function checkDuplicate() {
 
 // 更新モード：URLに ?id= がある場合は既存施設を編集
 let editingId = null;
-(function initEditMode() {
+function initEditMode() {
   const id = new URLSearchParams(location.search).get('id');
   if (!id) return;
   editingId = id;
@@ -453,7 +472,7 @@ let editingId = null;
       });
     }, 100);
   }).catch(e => showToast('⚠️ 読み込みエラー: ' + e.message));
-})();
+}
 
 // 短いID生成（7文字、紛らわしい文字を除く）
 const SAFE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';

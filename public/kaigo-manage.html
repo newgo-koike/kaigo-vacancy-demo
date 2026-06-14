@@ -18,7 +18,7 @@
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html { min-height:100%; }
-    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; }
+    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; visibility:hidden; }
 
     .hdr { background:var(--g900); padding:16px 20px; display:flex; align-items:center; gap:10px; }
     .hdr-logo { width:30px; height:30px; background:var(--brand); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
@@ -116,6 +116,10 @@
     <div class="hdr-title">施設 空室情報更新</div>
     <div class="hdr-sub">施設担当者専用ページ</div>
   </div>
+  <div style="margin-left:auto">
+    <button onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')"
+      style="background:transparent;border:1px solid var(--g600);color:var(--g400);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">ログアウト</button>
+  </div>
 </header>
 
 <div id="main" class="page">
@@ -125,6 +129,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -138,6 +143,7 @@ firebase.initializeApp({
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
 });
 const db = firebase.firestore();
+const auth = firebase.auth();
 const storage = firebase.storage();
 
 const params = new URLSearchParams(location.search);
@@ -148,11 +154,22 @@ let currentPhotoUrl = null;
 let pendingPhotoFile = null;
 let currentDocData = null;
 
-if (!facilityId) {
-  showError();
-} else {
-  loadFacility(facilityId);
-}
+auth.onAuthStateChanged(async user => {
+  if (!user) { location.href = 'kaigo-login.html'; return; }
+  const uSnap = await db.collection('users').doc(user.uid).get();
+  const role = uSnap.data()?.role;
+  if (!['facility', 'admin'].includes(role)) {
+    await auth.signOut();
+    location.href = 'kaigo-login.html';
+    return;
+  }
+  document.body.style.visibility = 'visible';
+  if (!facilityId) {
+    showError();
+  } else {
+    loadFacility(facilityId);
+  }
+});
 
 function showError() {
   main.innerHTML = `
