@@ -134,10 +134,10 @@
         <th style="width:70px">エリア</th>
         <th style="width:60px;text-align:center">空室</th>
         <th style="width:80px">最終更新</th>
-        <th style="width:80px;text-align:center">プラン</th>
         <th>共有ページ URL</th>
-        <th>更新URL（LINEで送付）</th>
         <th style="width:60px;text-align:center">情報編集</th>
+        <th style="width:80px;text-align:center">プラン</th>
+        <th>更新URL（LINEで送付）</th>
         <th style="width:96px;text-align:center">共有QR</th>
         <th style="width:96px;text-align:center">更新QR</th>
       </tr>
@@ -189,7 +189,7 @@ db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
     renderTable();
   },
   err => {
-    document.getElementById('tbody').innerHTML = `<tr class="empty-row"><td colspan="9">⚠️ 読み込みエラー: ${err.message}</td></tr>`;
+    document.getElementById('tbody').innerHTML = `<tr class="empty-row"><td colspan="12">⚠️ 読み込みエラー: ${err.message}</td></tr>`;
   }
 );
 
@@ -237,9 +237,6 @@ function renderTable() {
         </div>
       </td>
       <td><span class="update-txt ${f.daysAgo > 14 ? 'stale' : ''}">${f.updated}${f.daysAgo > 14 ? ' ⚠️' : ''}</span></td>
-      <td style="text-align:center">
-        <button class="plan-toggle ${f.plan!=='free'?'paid':''}" onclick="togglePlan('${f.id}','${f.plan}')">${f.plan!=='free'?'✅ 有料':'🔒 無料'}</button>
-      </td>
       <td>
         <div class="url-cell">
           <span class="url-txt" title="${viewUrl}">${viewUrl}</span>
@@ -247,14 +244,21 @@ function renderTable() {
           <a href="${viewUrl}" target="_blank" style="padding:5px 9px;background:var(--brand);color:white;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0">開く</a>
         </div>
       </td>
+      <td style="text-align:center">
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+          <a href="${BASE}/kaigo-register.html?id=${f.id}" target="_blank" style="display:inline-block;padding:5px 10px;background:var(--g100);color:var(--g700);border:1px solid var(--g200);border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📝 編集</a>
+          <a href="${BASE}/kaigo-hearing-sheet.html?id=${f.id}" target="_blank" style="display:inline-block;padding:5px 10px;background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📋 ヒアリング</a>
+        </div>
+      </td>
+      <td style="text-align:center">
+        <button class="plan-toggle ${f.plan!=='free'?'paid':''}" onclick="togglePlan('${f.id}','${f.plan}')">${f.plan!=='free'?'✅ 有料':'🔒 無料'}</button>
+      </td>
       <td>
         <div class="url-cell">
           <span class="url-txt" title="${manageUrl}">${manageUrl}</span>
           <button class="copy-btn" onclick="copyText('${manageUrl}')">コピー</button>
+          <a href="${manageUrl}" target="_blank" style="padding:5px 9px;background:var(--brand);color:white;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0">開く</a>
         </div>
-      </td>
-      <td style="text-align:center">
-        <a href="${BASE}/kaigo-register.html?id=${f.id}" target="_blank" style="display:inline-block;padding:5px 10px;background:var(--g100);color:var(--g700);border:1px solid var(--g200);border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📝 編集</a>
       </td>
       <td class="qr-cell">
         <div style="font-size:9px;font-weight:700;color:var(--brand);margin-bottom:3px">📢 病院共有用</div>

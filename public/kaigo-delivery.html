@@ -41,8 +41,8 @@
     .sec-title { font-size:24px; font-weight:700; color:var(--g900); }
 
     /* TOOL CARDS */
-    .tool-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:18px; }
-    @media(max-width:1300px){ .tool-grid { grid-template-columns:repeat(3,1fr); } }
+    .tool-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    @media(max-width:1100px){ .tool-grid { grid-template-columns:repeat(2,1fr); } }
     @media(max-width:1100px){ .tool-grid { grid-template-columns:1fr 1fr; } }
     @media(max-width:600px){ .tool-grid { grid-template-columns:1fr; } }
     .tool-card { background:white; border-radius:18px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.07); border-left:4px solid var(--brand); }
@@ -179,10 +179,10 @@
   </div>
   <h1>介護施設 空室管理システム</h1>
   <p style="font-size:18px;color:white;font-weight:600;margin-bottom:6px">【豊中エリア】</p>
-  <p>納品書・仕様書・操作マニュアル　v1.2</p>
+  <p>納品書・仕様書・操作マニュアル　v1.3</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
-    <div class="delivery-meta-item"><strong>納品日</strong>2026年6月3日</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月8日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
     <div class="delivery-meta-item"><strong>システム名</strong>介護施設空室管理システム</div>
     <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-meetsmedical.surge.sh</div>
@@ -249,7 +249,7 @@
         <div class="tool-card-hd">
           <div class="tool-badge badge-public">病院・ケアマネ向け</div>
           <div class="tool-title">施設共有ページ</div>
-          <div class="tool-desc">施設ごとの個別ページ。空室数・備考・特徴タグ・入居相談連絡先を表示。有料プランのみ連絡先（担当者名・電話番号）を表示し、無料プランはぼかして施設HPへ誘導。病院・ケアマネへのURL共有・QR配布用。</div>
+          <div class="tool-desc">施設ごとの個別ページ。空室数・備考・特徴タグ・入居相談連絡先を表示。<strong>駐車場・総部屋数も表示（未入力の場合は「未入力」と表示）。</strong>有料プランのみ連絡先（担当者名・電話番号）を表示し、無料プランはぼかして施設HPへ誘導。病院・ケアマネへのURL共有・QR配布用。</div>
         </div>
         <div class="tool-card-body">
           <div class="tool-url">https://kaigo-meetsmedical.surge.sh/kaigo-facility-view.html?id=【施設ID】</div>
@@ -272,13 +272,28 @@
         <div class="tool-card-hd">
           <div class="tool-badge badge-admin">Meets Medical管理者向け</div>
           <div class="tool-title">マスター管理</div>
-          <div class="tool-desc">全施設一覧・空室・最終更新・プランを一覧表示。共有ページURL・更新URLのコピーと2種類のQRコード（📢病院共有用 / 🔑施設更新用）をPNG保存可能。プランの無料⇔有料切り替えもワンクリック。14日以上未更新は赤字警告。</div>
+          <div class="tool-desc">全施設一覧・空室・最終更新・プランを一覧表示。共有ページURL・更新URLのコピーと2種類のQRコード（📢病院共有用 / 🔑施設更新用）をPNG保存可能。プランの無料⇔有料切り替えもワンクリック。14日以上未更新は赤字警告。<strong>「📋 ヒアリング」ボタンで施設訪問用シートを即印刷できる。</strong></div>
         </div>
         <div class="tool-card-body">
           <div class="tool-url">https://kaigo-meetsmedical.surge.sh/kaigo-master.html</div>
           <a class="tool-link" href="kaigo-master.html" target="_blank">▶ 開く</a>
-          <div class="tool-note">「📝 編集」で施設情報更新、QRコード（共有用・更新用）のPNG保存・URLコピー機能あり。プランの無料⇔有料切り替えボタンも搭載。14日以上未更新施設は赤字で警告表示されます。</div>
+          <div class="tool-note">「📝 編集」で施設情報更新、「📋 ヒアリング」で訪問用シートを開いて印刷。QRコード（共有用・更新用）のPNG保存・URLコピー機能あり。プランの無料⇔有料切り替えボタンも搭載。14日以上未更新施設は赤字で警告表示されます。</div>
           <div class="ss-wrap"><img class="ss-img" src="img/ss-master.png" alt="マスター管理画面"></div>
+        </div>
+      </div>
+
+      <!-- ヒアリングシート -->
+      <div class="tool-card">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-admin">Meets Medical管理者向け</div>
+          <div class="tool-title">施設ヒアリングシート <span style="font-size:10px;background:#f3e8ff;color:#7c3aed;padding:2px 7px;border-radius:4px;font-weight:700;margin-left:4px">NEW</span></div>
+          <div class="tool-desc">施設訪問時に使うA4印刷用シート。マスター管理の「📋 ヒアリング」ボタンから開くと、Firestoreに登録済みの施設名・住所・電話番号・駐車場・入居条件・タグが自動入力された状態で表示される。施設スタッフに渡して記入してもらう想定で設計。登録内容を変更すれば次回開いたときに自動反映。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-meetsmedical.surge.sh/kaigo-hearing-sheet.html?id=【施設ID】</div>
+          <div style="font-size:11px;color:var(--g500);margin-bottom:8px">マスター管理の「📋 ヒアリング」ボタンから直接開けます。施設IDなしで開くと空白の汎用シートになります。</div>
+          <a class="tool-link" href="kaigo-hearing-sheet.html" target="_blank">▶ 開く（汎用）</a>
+          <div class="tool-note">① 施設基本情報 / ② 入居条件（チェック式）/ ③ こだわり・特徴タグ44種 / ④ 看護・医療体制タグ31種 / ⑤ 備考欄。登録済みデータは緑色でプリント済み状態になる。</div>
         </div>
       </div>
 

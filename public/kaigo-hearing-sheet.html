@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>介護施設ヒアリングシート</title>
+  <style>
+    :root {
+      --navy:#1c3461; --navy-mid:#254080; --navy-l:#eef2fa; --navy-b:#c5d0e8;
+      --teal:#0d9488; --teal-l:#f0fdfa;
+      --g100:#f1f5f9; --g200:#e2e8f0; --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g900:#0f172a;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#c8cdd6;font-size:10px;color:var(--g900);-webkit-font-smoothing:antialiased;}
+
+    .no-print{padding:12px 20px;background:#0f172a;display:flex;align-items:center;gap:14px;}
+    .print-btn{padding:8px 28px;background:var(--teal);color:white;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.02em;}
+    .print-btn:hover{background:#0f766e;}
+    #fac-label{color:#94a3b8;font-size:12px;}
+
+    /* ページ */
+    .page{width:210mm;min-height:297mm;margin:10px auto;background:white;padding:8mm 10mm 7mm;border-radius:2px;}
+
+    /* タイトルバー */
+    .title-bar{
+      background:var(--navy);
+      color:white; border-radius:2px;
+      text-align:center;
+      padding:10px 16px; margin-bottom:9px;
+    }
+    .title-main{font-size:19px;font-weight:900;letter-spacing:.18em;}
+    .title-sub{font-size:8.5px;color:rgba(255,255,255,.55);margin-top:3px;letter-spacing:.06em;}
+
+    /* 基本情報フィールド */
+    .info-section{margin-bottom:8px;}
+    .info-grid{display:grid;gap:5px 12px;}
+    .info-grid-1{grid-template-columns:1fr;}
+    .info-grid-2{grid-template-columns:1fr 1fr;}
+    .info-grid-3{grid-template-columns:1fr 1fr 1fr;}
+    .info-grid-4{grid-template-columns:1fr 1fr 1fr 1fr;}
+
+    .field{display:flex;flex-direction:column;gap:1px;}
+    .field-lbl{font-size:7px;font-weight:800;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1px;}
+    .field-val{
+      border-bottom:1.5px solid var(--navy);
+      min-height:17px; padding:1px 3px;
+      font-size:10px; font-weight:600; color:var(--navy);
+      display:flex; align-items:center;
+    }
+    .field-val.empty{border-bottom-color:var(--g400);}
+    .field-val.pre-filled{background:var(--navy-l);border-bottom-color:var(--navy);border-radius:2px 2px 0 0;padding:1px 5px;}
+
+    /* セクションヘッダー */
+    .sec-hdr{
+      background:var(--navy); color:white;
+      padding:3px 10px; margin:7px 0 4px;
+      font-size:9.5px; font-weight:800; letter-spacing:.04em;
+    }
+    .sec-hdr-dot{display:none;}
+
+    /* 入居条件テーブル */
+    .ct{width:100%;border-collapse:collapse;font-size:9.5px;}
+    .ct th{
+      background:var(--navy-l);border:1px solid var(--navy-b);
+      padding:3px 6px;font-size:8px;font-weight:800;color:var(--navy);
+      text-align:center;letter-spacing:.04em;
+    }
+    .ct th:first-child{text-align:left;}
+    .ct td{border:1px solid var(--navy-b);padding:5px 8px;vertical-align:middle;}
+    .ct td:first-child{font-weight:600;color:var(--g500);font-size:9px;width:155px;}
+    .ct td.chk-cell{text-align:center;width:66px;}
+    .ct td.note-cell{padding:4px 8px;}
+
+    /* チェックボックス */
+    .bx{
+      width:13px;height:13px;border:1.5px solid #8899bb;border-radius:2px;
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:10px;font-weight:900;color:var(--navy);
+      vertical-align:middle;flex-shrink:0;
+    }
+    .bx.chk{border-color:var(--navy);background:var(--navy-l);}
+    .chk-label{display:inline-flex;align-items:center;gap:4px;font-size:9px;}
+
+    /* タググリッド */
+    .tag-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px 5px;}
+    .tag-item{display:flex;align-items:flex-start;gap:4px;padding:1px 0;font-size:8.5px;line-height:1.35;color:var(--g600);}
+    .tag-item .bx{margin-top:1px;flex-shrink:0;width:11px;height:11px;border-width:1.2px;font-size:9px;}
+    .tag-item .bx.chk{color:var(--navy);}
+
+    /* 備考 */
+    .note-wrap{padding:2px 0;}
+    .note-line{height:16px;border-bottom:1px solid var(--g200);margin:0;}
+
+    /* フッター */
+    .foot{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-top:6px;padding-top:5px;border-top:1.5px solid var(--navy-l);
+      font-size:9px;color:var(--g500);
+    }
+    .foot-brand{font-size:9px;font-weight:700;color:var(--navy);letter-spacing:.04em;}
+    .foot-right{display:flex;align-items:center;gap:20px;}
+    .foot-field{display:flex;align-items:center;gap:4px;}
+    .foot-line{display:inline-block;border-bottom:1px solid var(--g500);}
+
+    /* 区切り */
+    .divider{height:1px;background:var(--g200);margin:6px 0;}
+
+    @media print{
+      body{background:white;}
+      .no-print{display:none;}
+      .page{margin:0;width:100%;padding:8mm 10mm 7mm;box-shadow:none;}
+      @page{size:A4;margin:0;}
+      *{
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+        color-adjust:exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print">
+  <button class="print-btn" onclick="window.print()">🖨️ 印刷（A4）</button>
+  <span id="fac-label"></span>
+</div>
+
+<div id="root"><div style="text-align:center;padding:80px;color:#94a3b8;font-size:14px">読み込み中...</div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+
+const pid = new URLSearchParams(location.search).get('id');
+if (pid) {
+  db.collection('facilities').doc(pid).get()
+    .then(doc => init(doc.exists ? doc.data() : null))
+    .catch(() => init(null));
+} else {
+  init(null);
+}
+
+function init(d) {
+  if (d && d.name) {
+    document.title = `ヒアリング - ${d.name}`;
+    document.getElementById('fac-label').textContent = d.name;
+  }
+  document.getElementById('root').innerHTML = buildPage(d);
+}
+
+/* ヘルパー */
+function fv(val) {
+  if (val) return `<div class="field-val pre-filled">${val}</div>`;
+  return `<div class="field-val empty"></div>`;
+}
+
+function bx(chk) {
+  return `<span class="bx${chk?' chk':''}">${chk?'✓':''}</span>`;
+}
+
+function condRow(label, stored) {
+  return `<tr>
+    <td>${label}</td>
+    <td class="chk-cell"><label class="chk-label">${bx(stored==='可')} 可</label></td>
+    <td class="chk-cell"><label class="chk-label">${bx(stored==='相談可')} 相談可</label></td>
+    <td class="chk-cell"><label class="chk-label">${bx(stored==='不可')} 不可</label></td>
+    <td class="note-cell"><div style="border-bottom:1px solid #cbd5e1;width:100%;height:16px"></div></td>
+  </tr>`;
+}
+
+function tag(label, features) {
+  const chk = features && features.includes(label);
+  return `<div class="tag-item">${bx(chk)}<span>${label}</span></div>`;
+}
+
+const FEATURES = [
+  '看取り・ターミナルケア','個室あり','入居一時金0円','訪問看護可',
+  '日中看護師常駐','作業療法士（OT）','機械浴・特殊浴あり','キッチン付き居室',
+  'ナースコールあり','理美容サービスあり','家具付き居室','レクリエーション充実',
+  '将棋・囲碁あり','禁煙','駅近・交通アクセス良好','大手が運営',
+  '夫婦入居可・2人部屋あり','終身利用可','体験入居可','病院・クリニック併設',
+  '24時間看護師常駐','夜間有人','言語聴覚士（ST）','風呂付き居室',
+  '介護ベッド付居室','ゲストルームあり','入浴週3回以上','カラオケあり',
+  '園芸・庭園あり','アルコール可','外出自由','安い・低価格',
+  'ペット・犬・猫可','ショートステイ可','デイサービス併設','24時間介護士常駐',
+  '理学療法士（PT）','手厚い人員体制','トイレ付き居室','ネット利用可',
+  '口腔ケア・訪問歯科あり','施設内手作りの食事','麻雀あり','喫煙可'
+];
+const MEDICAL = [
+  'リハビリ','胃ろう','人工呼吸器','たん吸引',
+  '気管切開','褥瘡・床ずれ','脳血管性認知症','パーキンソン病',
+  '脳梗塞・クモ膜下出血','リウマチ・関節症','誤嚥性肺炎','介護食',
+  '糖尿病・インスリン','ペースメーカー','鼻腔・経管栄養','ストーマ・人工肛門',
+  'ALS','心筋梗塞・狭心症','肝炎','統合失調症',
+  '流動食・嚥下食','人工透析','中心静脈栄養（IVH）','在宅酸素療法',
+  'カテーテル・尿バルーン','アルツハイマー','レビー小体型認知症','がん・末期癌',
+  '骨折・骨粗しょう症','喘息・気管支炎','うつ・鬱病',''
+];
+
+function buildPage(d) {
+  const f = d || {};
+  const features = f.features || [];
+  const station = [f.station, f.stationDistance].filter(Boolean).join(' / ');
+
+  return `<div class="page">
+
+    <!-- タイトル -->
+    <div class="title-bar">
+      <div style="text-align:center">
+        <div class="title-main">介護施設　ヒアリングシート</div>
+        <div class="title-sub">Meets Medical 介護施設空室管理サービス　／　緑色は登録済みデータです。修正・追記をお願いします</div>
+      </div>
+    </div>
+
+    <!-- 基本情報 -->
+    <div class="sec-hdr">■ 施設の基本情報</div>
+    <div class="info-section">
+      <div class="info-grid info-grid-1" style="margin-bottom:5px">
+        <div class="field"><div class="field-lbl">施設名</div>${fv(f.name)}</div>
+      </div>
+      <div class="info-grid info-grid-1" style="margin-bottom:5px">
+        <div class="field"><div class="field-lbl">住所</div>${fv(f.address)}</div>
+      </div>
+      <div class="info-grid info-grid-4" style="margin-bottom:5px">
+        <div class="field"><div class="field-lbl">代表電話番号</div>${fv(f.contactTel)}</div>
+        <div class="field"><div class="field-lbl">最寄り駅・距離</div>${fv(station)}</div>
+        <div class="field"><div class="field-lbl">総部屋数</div>${fv(f.totalRooms ? f.totalRooms + ' 室' : '')}</div>
+        <div class="field"><div class="field-lbl">駐車台数</div>${fv(f.parking)}</div>
+      </div>
+      <div class="info-grid info-grid-3">
+        <div class="field"><div class="field-lbl">入居相談 担当者名</div>${fv(f.contactName)}</div>
+        <div class="field"><div class="field-lbl">担当者 直通電話</div><div class="field-val empty"></div></div>
+        <div class="field"><div class="field-lbl">施設HP・URL（任意）</div>${fv(f.hp)}</div>
+      </div>
+    </div>
+
+    <!-- 入居条件 -->
+    <div class="sec-hdr">■ 入居条件</div>
+    <table class="ct">
+      <thead>
+        <tr>
+          <th></th>
+          <th>可</th>
+          <th>相談可</th>
+          <th>不可</th>
+          <th style="text-align:left;padding-left:8px">備考・詳細</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${condRow('生活保護', f.seikatsuHogo)}
+        ${condRow('身元保証なし', f.mimonHosho)}
+        ${condRow('介護認定なし（障がい認定のみ）', f.kaigoNintei)}
+      </tbody>
+    </table>
+
+    <!-- こだわり・特徴 -->
+    <div class="sec-hdr">■ こだわり・特徴</div>
+    <div class="tag-grid">
+      ${FEATURES.map(t => tag(t, features)).join('')}
+    </div>
+
+    <!-- 看護・医療体制 -->
+    <div class="sec-hdr">■ 看護・医療体制</div>
+    <div class="tag-grid">
+      ${MEDICAL.map(t => t ? tag(t, features) : '<div></div>').join('')}
+    </div>
+
+    <!-- 備考 -->
+    <div class="sec-hdr">■ 備考</div>
+    <div class="note-wrap">
+      ${'<div class="note-line"></div>'.repeat(6)}
+    </div>
+
+    <!-- フッター -->
+    <div class="foot">
+      <div class="foot-brand">Meets Medical</div>
+      <div class="foot-right">
+        <div class="foot-field">
+          記入日：
+          <span class="foot-line" style="width:24px"></span>年
+          <span class="foot-line" style="width:16px"></span>月
+          <span class="foot-line" style="width:16px"></span>日
+        </div>
+        <div class="foot-field">担当者名：<span class="foot-line" style="width:110px"></span></div>
+      </div>
+    </div>
+
+  </div>`;
+}
+</script>
+</body>
+</html>

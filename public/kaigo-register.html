@@ -519,7 +519,7 @@ async function uploadPhotoIfSelected(id, btn) {
   if (!selectedPhotoFile) return;
   btn.textContent = '写真をアップロード中...';
   try {
-    const ext = selectedPhotoFile.type.includes('png') ? 'png' : 'jpg';
+    const ext = selectedPhotoFile.type.split('/')[1]?.replace('jpeg','jpg') || 'jpg';
     const ref = storage.ref(`facilities/${id}/photo.${ext}`);
     await ref.put(selectedPhotoFile, { contentType: selectedPhotoFile.type });
     const url = await ref.getDownloadURL();

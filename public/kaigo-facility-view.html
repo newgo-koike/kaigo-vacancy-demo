@@ -170,7 +170,7 @@ function render(doc) {
   const updStr = upd.toISOString().slice(0, 10);
   const vacCls = total === 0 ? 'vac-full' : total <= 2 ? 'vac-few' : 'vac-ok';
   const status = total === 0 ? '現在満室です' : total <= 2 ? `残り${total}室 — お早めにご相談ください` : `${total}室 空きあり`;
-  const photo  = `https://picsum.photos/seed/${doc.id.slice(0,10)}/700/400`;
+  const photo  = d.photoUrl || `https://picsum.photos/seed/${doc.id.slice(0,10)}/700/400`;
   const station  = [d.station, d.stationDistance].filter(Boolean).join(' ');
   const hp       = d.hp || '';
   const isPaid   = d.plan === 'paid';
@@ -219,7 +219,8 @@ function render(doc) {
         <div class="d-row"><span class="d-lbl">施設種別</span><span class="d-val">${d.type || '─'}</span></div>
         ${d.address  ? `<div class="d-row"><span class="d-lbl">住所</span><span class="d-val">${d.address}</span></div>` : ''}
         ${station      ? `<div class="d-row"><span class="d-lbl">最寄り駅</span><span class="d-val">🚉 ${station}</span></div>` : ''}
-        ${d.totalRooms ? `<div class="d-row"><span class="d-lbl">総部屋数</span><span class="d-val">${d.totalRooms}室</span></div>` : ''}
+        <div class="d-row"><span class="d-lbl">駐車場</span><span class="d-val">${d.parking ? '🅿️ ' + d.parking : '<span style="color:var(--g400);font-size:11px">未入力</span>'}</span></div>
+        <div class="d-row"><span class="d-lbl">総部屋数</span><span class="d-val">${d.totalRooms ? d.totalRooms + '室' : '<span style="color:var(--g400);font-size:11px">未入力</span>'}</span></div>
         ${d.features && d.features.length ? `<div class="d-row"><span class="d-lbl">特徴</span><div class="feat-tags">${d.features.map(t=>`<span class="feat-tag">${t}</span>`).join('')}</div></div>` : ''}
       </div>
     </div>

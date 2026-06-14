@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>担当者・電話番号 一括クリア</title>
+  <style>
+    body { font-family:-apple-system,'Hiragino Sans',sans-serif; background:#f1f5f9; color:#1e293b; padding:40px 20px; max-width:600px; margin:0 auto; }
+    h1 { font-size:20px; font-weight:800; margin-bottom:8px; }
+    .desc { font-size:13px; color:#64748b; margin-bottom:32px; line-height:1.6; background:#fef3c7; border:1px solid #fcd34d; border-radius:10px; padding:14px 16px; }
+    .btn { display:block; width:100%; padding:16px; background:#dc2626; color:white; border:none; border-radius:10px; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s; }
+    .btn:hover:not(:disabled) { background:#b91c1c; }
+    .btn:disabled { background:#94a3b8; cursor:not-allowed; }
+    .log { margin-top:24px; background:white; border-radius:10px; padding:16px; border:1px solid #e2e8f0; font-size:12px; font-family:monospace; max-height:400px; overflow-y:auto; white-space:pre-wrap; line-height:1.7; }
+    .ok { color:#16a34a; }
+    .err { color:#dc2626; }
+    .done { margin-top:16px; background:#dcfce7; border:1px solid #86efac; border-radius:10px; padding:14px 16px; font-size:14px; font-weight:700; color:#15803d; display:none; }
+  </style>
+</head>
+<body>
+<h1>🗑️ 担当者・電話番号 一括クリア</h1>
+<div class="desc">
+  全施設の <strong>contactName（担当者名）</strong> と <strong>contactTel（電話番号）</strong> を空文字に一括更新します。<br>
+  ※ 施設名・住所・タグなど他のデータは一切変更されません。<br>
+  ※ 実行後は元に戻せません。準備ができたらボタンを押してください。
+</div>
+<button class="btn" id="runBtn" onclick="run()">⚠️ 全施設の担当者・電話番号を削除する</button>
+<div class="done" id="done">✅ 完了しました！全施設の担当者・電話番号がクリアされました。</div>
+<div class="log" id="log"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+const logEl = document.getElementById('log');
+
+function log(msg, cls) {
+  const span = document.createElement('span');
+  if(cls) span.className = cls;
+  span.textContent = msg + '\n';
+  logEl.appendChild(span);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+async function run() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = '実行中...';
+  logEl.innerHTML = '';
+  log('Firestore から全施設を取得中...');
+
+  try {
+    const snap = await db.collection('facilities').get();
+    log(`${snap.size} 件の施設が見つかりました。更新を開始します。\n`);
+
+    const BATCH_SIZE = 400;
+    let processed = 0;
+    let batch = db.batch();
+    let batchCount = 0;
+
+    for (const doc of snap.docs) {
+      batch.update(doc.ref, { contactName: '', contactTel: '' });
+      batchCount++;
+      processed++;
+
+      if (batchCount === BATCH_SIZE) {
+        await batch.commit();
+        log(`  [${processed}/${snap.size}] バッチコミット完了`, 'ok');
+        batch = db.batch();
+        batchCount = 0;
+      }
+    }
+
+    if (batchCount > 0) {
+      await batch.commit();
+      log(`  [${processed}/${snap.size}] バッチコミット完了`, 'ok');
+    }
+
+    log(`\n✅ 全 ${snap.size} 件のクリアが完了しました！`, 'ok');
+    document.getElementById('done').style.display = 'block';
+    btn.textContent = '完了';
+  } catch(e) {
+    log('エラーが発生しました: ' + e.message, 'err');
+    btn.disabled = false;
+    btn.textContent = '⚠️ 全施設の担当者・電話番号を削除する';
+  }
+}
+</script>
+</body>
+</html>

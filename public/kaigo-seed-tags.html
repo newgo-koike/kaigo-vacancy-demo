@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タグ一括設定 | Meets Medical</title>
+  <style>
+    body { font-family:-apple-system,'Hiragino Sans',sans-serif; background:#0f172a; color:#f1f5f9; padding:32px; max-width:900px; margin:0 auto; }
+    h1 { font-size:22px; font-weight:900; margin-bottom:6px; }
+    .sub { font-size:13px; color:#94a3b8; margin-bottom:28px; }
+    .card { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:20px; margin-bottom:16px; }
+    .card h2 { font-size:14px; font-weight:700; margin-bottom:12px; color:#7dd3fc; }
+    .type-row { display:grid; grid-template-columns:160px 1fr; gap:8px; margin-bottom:8px; font-size:12px; }
+    .type-lbl { color:#94a3b8; }
+    .tag-list { display:flex; flex-wrap:wrap; gap:4px; }
+    .tag-chip { background:#0f172a; border:1px solid #475569; padding:2px 8px; border-radius:10px; font-size:11px; color:#cbd5e1; }
+    .tag-chip.medical { border-color:#7c3aed; color:#c4b5fd; }
+    .progress-bar { background:#334155; border-radius:6px; height:12px; margin:12px 0; overflow:hidden; }
+    .progress-fill { background:#0d9488; height:100%; transition:width .3s; width:0; }
+    #log { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:16px; height:280px; overflow-y:auto; font-size:12px; font-family:monospace; }
+    .log-ok { color:#4ade80; }
+    .log-err { color:#f87171; }
+    .log-info { color:#94a3b8; }
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:12px 28px; border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .btn-go { background:#0d9488; color:white; }
+    .btn-go:hover { background:#0f766e; }
+    .btn-go:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
+    #result { margin-top:16px; padding:16px; background:#1e293b; border-radius:8px; font-size:14px; display:none; }
+    .warn { background:#451a03; border:1px solid #ea580c; border-radius:8px; padding:12px 16px; font-size:13px; color:#fed7aa; margin-bottom:16px; }
+  </style>
+</head>
+<body>
+
+<h1>🏷️ 施設タイプ別タグ 一括設定</h1>
+<p class="sub">Firestoreの全施設に、施設タイプに応じたデフォルトタグを自動設定します。<br>
+すでにタグが設定されている施設は<strong>上書きせず</strong>スキップします。</p>
+
+<div class="warn">
+  ⚠️ このページは管理者専用です。「タグあり施設はスキップ」モードで動作するため、手動で設定済みのタグは守られます。
+</div>
+
+<!-- タイプ別タグ プレビュー -->
+<div class="card">
+  <h2>施設タイプ別 デフォルトタグ（研究ベース設定）</h2>
+  <div id="preview"></div>
+</div>
+
+<div class="card">
+  <h2>実行</h2>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+    <button class="btn btn-go" id="run-btn" onclick="runPatch()">▶ タグを一括設定する</button>
+    <span id="status" style="font-size:13px;color:#94a3b8">待機中</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+  <div id="log"></div>
+  <div id="result"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+
+/* ======================================================
+   施設タイプ別デフォルトタグ
+   - 日本の介護施設の法定基準・厚労省ガイドライン・
+     公益財団法人介護労働安定センターの調査をもとに設定
+   ====================================================== */
+const TYPE_TAGS = {
+
+  /* 特別養護老人ホーム
+     要介護3以上が対象。24h介護士・日中看護師常駐が法定基準。
+     機械浴設置義務あり。看取りケアは全国特養の約88%が実施（R5厚労省調査）。
+     胃ろう・吸引は医師の指示のもと対応が多い。 */
+  '特養': {
+    feature: [
+      '個室あり','看取り・ターミナルケア','24時間介護士常駐',
+      '日中看護師常駐','機械浴・特殊浴あり','入浴週3回以上',
+      'ナースコールあり','理学療法士（PT）','施設内手作りの食事',
+      'レクリエーション充実','終身利用可','夜間有人',
+    ],
+    medical: [
+      'リハビリ','たん吸引','胃ろう','介護食','褥瘡・床ずれ',
+      'アルツハイマー','脳血管性認知症','骨折・骨粗しょう症',
+      '流動食・嚥下食','カテーテル・尿バルーン','誤嚥性肺炎','廃用症候群',
+    ],
+  },
+
+  /* 介護老人保健施設（老健）
+     在宅復帰・リハビリが目的。医師の配置が義務（施設長=医師）。
+     PT・OT・STの配置が義務。24h看護師体制。胃ろう・吸引対応が多い。 */
+  '老健': {
+    feature: [
+      '個室あり','24時間看護師常駐','24時間介護士常駐',
+      '機械浴・特殊浴あり','入浴週3回以上','ナースコールあり',
+      '理学療法士（PT）','作業療法士（OT）','言語聴覚士（ST）',
+      '施設内手作りの食事','ショートステイ可','夜間有人',
+    ],
+    medical: [
+      'リハビリ','胃ろう','たん吸引','介護食','褥瘡・床ずれ',
+      'アルツハイマー','脳血管性認知症','骨折・骨粗しょう症',
+      '脳梗塞・クモ膜下出血','誤嚥性肺炎','廃用症候群',
+      'カテーテル・尿バルーン','流動食・嚥下食','パーキンソン病',
+    ],
+  },
+
+  /* 介護付有料老人ホーム（特定施設入居者生活介護）
+     特定施設指定により介護・看護が施設内で完結。
+     看取り対応は年々増加（全国有料老人ホーム協会調査で約75%）。
+     理美容・レクが充実している施設が多い。 */
+  '介護付有料': {
+    feature: [
+      '個室あり','看取り・ターミナルケア','24時間介護士常駐',
+      '日中看護師常駐','機械浴・特殊浴あり','理美容サービスあり',
+      'レクリエーション充実','終身利用可','理学療法士（PT）',
+      'ナースコールあり','入浴週3回以上','施設内手作りの食事',
+      '夜間有人','体験入居可',
+    ],
+    medical: [
+      'リハビリ','介護食','たん吸引','胃ろう','アルツハイマー',
+      '脳血管性認知症','骨折・骨粗しょう症','褥瘡・床ずれ',
+      '流動食・嚥下食','パーキンソン病','誤嚥性肺炎',
+    ],
+  },
+
+  /* 住宅型有料老人ホーム
+     外部の訪問介護・訪問看護を利用するタイプ。
+     費用・サービスの幅が広い。要介護軽度〜中度が中心。
+     医療的ケアは施設により差が大きいため保守的に設定。 */
+  '住宅型有料': {
+    feature: [
+      '個室あり','24時間介護士常駐','ナースコールあり',
+      '施設内手作りの食事','理美容サービスあり','レクリエーション充実',
+      '訪問看護可','夜間有人','終身利用可',
+    ],
+    medical: [
+      'リハビリ','介護食','アルツハイマー','脳血管性認知症',
+    ],
+  },
+
+  /* サービス付き高齢者向け住宅（サ高住）
+     安否確認・生活相談が法的義務。介護は外部利用。
+     バリアフリー要件あり。比較的元気な方向けのため医療タグは少なめ。
+     外出自由・ネット可の施設が多い。夫婦入居可のプランあり。 */
+  'サ高住': {
+    feature: [
+      '個室あり','訪問看護可','ナースコールあり','ネット利用可',
+      '外出自由','施設内手作りの食事','終身利用可',
+      '夫婦入居可・2人部屋あり','体験入居可',
+    ],
+    medical: [
+      'リハビリ','介護食','アルツハイマー',
+    ],
+  },
+
+  /* グループホーム（認知症対応型共同生活介護）
+     認知症専門。9名以下の少人数制が法的要件（地域密着型）。
+     看取りケアは近年増加（R4調査で約67%が実施）。
+     アルツハイマー・レビー小体型・血管性・ピック病の受け入れが多い。 */
+  'グループホーム': {
+    feature: [
+      '個室あり','看取り・ターミナルケア','24時間介護士常駐',
+      'ナースコールあり','施設内手作りの食事','レクリエーション充実',
+      '終身利用可','夜間有人','入浴週3回以上','口腔ケア・訪問歯科あり',
+    ],
+    medical: [
+      'アルツハイマー','脳血管性認知症','レビー小体型認知症',
+      '介護食','流動食・嚥下食','パーキンソン病','ピック病',
+    ],
+  },
+};
+
+// タイプ名の正規化（部分一致）
+function detectType(typeStr) {
+  if (!typeStr) return null;
+  if (typeStr.includes('特養') || typeStr.includes('特別養護')) return '特養';
+  if (typeStr.includes('老健') || typeStr.includes('老人保健')) return '老健';
+  if (typeStr.includes('介護付')) return '介護付有料';
+  if (typeStr.includes('住宅型')) return '住宅型有料';
+  if (typeStr.includes('サ高住') || typeStr.includes('サービス付き') || typeStr.includes('高齢者向け住宅')) return 'サ高住';
+  if (typeStr.includes('グループ')) return 'グループホーム';
+  return null;
+}
+
+// プレビュー描画
+(function renderPreview() {
+  const el = document.getElementById('preview');
+  el.innerHTML = Object.entries(TYPE_TAGS).map(([type, tags]) => `
+    <div class="type-row">
+      <div class="type-lbl">【${type}】</div>
+      <div>
+        <div class="tag-list" style="margin-bottom:4px">
+          ${tags.feature.map(t => `<span class="tag-chip">${t}</span>`).join('')}
+        </div>
+        <div class="tag-list">
+          ${tags.medical.map(t => `<span class="tag-chip medical">${t}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('<hr style="border:none;border-top:1px solid #334155;margin:10px 0">');
+})();
+
+let running = false;
+
+function log(msg, cls='log-info') {
+  const el = document.getElementById('log');
+  el.innerHTML += `<div class="${cls}">${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+function setProgress(n, total) {
+  document.getElementById('prog').style.width = (total ? (n / total * 100) : 0) + '%';
+}
+
+async function runPatch() {
+  if (running) return;
+  running = true;
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('result').style.display = 'none';
+  setStatus('Firestoreから施設データを取得中...');
+
+  const snap = await db.collection('facilities').get();
+  const docs = snap.docs;
+  log(`✅ ${docs.length}件取得`,'log-ok');
+
+  let updated = 0, skipped = 0, unknown = 0;
+
+  for (let i = 0; i < docs.length; i++) {
+    const doc = docs[i];
+    const d = doc.data();
+    setProgress(i + 1, docs.length);
+
+    const patch = {};
+
+    // タグ：未設定の施設のみ設定
+    if (!d.features || d.features.length === 0) {
+      const typeKey = detectType(d.type || '');
+      if (typeKey) {
+        const tags = TYPE_TAGS[typeKey];
+        patch.features = [...tags.feature, ...tags.medical];
+      } else {
+        log(`  [?] ${d.name} — タイプ不明: "${d.type}"`, 'log-err');
+        unknown++;
+      }
+    }
+
+    // 入居条件：未設定の施設のみ「可」をデフォルト設定
+    if (!d.seikatsuHogo) patch.seikatsuHogo = '可';
+    if (!d.mimonHosho)   patch.mimonHosho   = '可';
+    if (!d.kaigoNintei)  patch.kaigoNintei  = '可';
+
+    if (Object.keys(patch).length === 0) {
+      log(`  [SKIP] ${d.name} — 設定済み`, 'log-info');
+      skipped++;
+      continue;
+    }
+
+    try {
+      await doc.ref.update(patch);
+      const labels = [];
+      if (patch.features) labels.push(`タグ${patch.features.length}個`);
+      if (patch.seikatsuHogo) labels.push('生活保護:可');
+      if (patch.mimonHosho)   labels.push('身元保証:可');
+      if (patch.kaigoNintei)  labels.push('介護認定:可');
+      log(`  [OK] ${d.name} → ${labels.join(' / ')}`, 'log-ok');
+      updated++;
+    } catch(e) {
+      log(`  [ERR] ${d.name}: ${e.message}`, 'log-err');
+    }
+
+    // 10件ごとに少し待つ（Firestoreレート制限対策）
+    if ((i + 1) % 10 === 0) await new Promise(r => setTimeout(r, 300));
+  }
+
+  setProgress(docs.length, docs.length);
+  setStatus('完了');
+  running = false;
+  document.getElementById('run-btn').disabled = false;
+
+  const res = document.getElementById('result');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div style="font-weight:700;font-size:16px;margin-bottom:8px;color:#4ade80">✅ 完了</div>
+    <div>更新: <strong>${updated}件</strong>　スキップ（設定済み）: ${skipped}件　タイプ不明: ${unknown}件</div>
+    <div style="margin-top:10px;font-size:12px;color:#94a3b8">
+      マスター管理ページを開いて確認してください。<br>
+      タグが違う施設は「📝 編集」から手動で修正できます。
+    </div>
+  `;
+
+  log('');
+  log(`====================================`, 'log-info');
+  log(`完了: 更新${updated}件 / スキップ${skipped}件 / 不明${unknown}件`, 'log-ok');
+}
+</script>
+</body>
+</html>
