@@ -159,8 +159,26 @@
         <option value="老健">介護老人保健施設（老健）</option>
       </select>
     </div>
+    <div class="f-grid2">
+      <div class="f-grp">
+        <label class="f-lbl">都道府県</label>
+        <select class="f-sel" id="r-prefecture" onchange="updateRegCityOptions()">
+          <option value="">─ 選択 ─</option>
+          <option value="大阪府">大阪府</option>
+          <option value="兵庫県">兵庫県</option>
+          <option value="京都府">京都府</option>
+          <option value="奈良県">奈良県</option>
+        </select>
+      </div>
+      <div class="f-grp">
+        <label class="f-lbl">市区町村</label>
+        <select class="f-sel" id="r-city">
+          <option value="">─ 選択 ─</option>
+        </select>
+      </div>
+    </div>
     <div class="f-grp">
-      <label class="f-lbl">住所</label>
+      <label class="f-lbl">住所（番地まで）</label>
       <input class="f-inp" id="r-address" type="text" placeholder="例）大阪府豊中市庄内西町1-2-3" oninput="autoDetectArea()">
     </div>
     <div class="f-grp">
@@ -235,6 +253,44 @@
           <option>不可</option>
         </select>
       </div>
+    </div>
+  </div>
+
+  <div class="s-card">
+    <div class="sc-ttl">💰 費用</div>
+    <div class="f-grp">
+      <label class="f-lbl">初期費用（入居一時金）</label>
+      <select class="f-sel" id="r-init-fee">
+        <option value="false">なし（入居一時金0円）</option>
+        <option value="true">あり</option>
+      </select>
+    </div>
+    <div class="f-grp" id="init-fee-amount-wrap" style="display:none">
+      <label class="f-lbl">初期費用の金額（万円）</label>
+      <input class="f-inp" id="r-init-fee-amount" type="number" min="0" placeholder="例）240">
+      <div class="f-hint">複数プランある場合は最低額を入力</div>
+    </div>
+    <div class="f-grp">
+      <label class="f-lbl">月額内訳（万円）</label>
+      <div class="f-grid2">
+        <div>
+          <label class="f-lbl" style="font-weight:400">家賃</label>
+          <input class="f-inp" id="r-rent" type="number" min="0" step="0.1" placeholder="例）9">
+        </div>
+        <div>
+          <label class="f-lbl" style="font-weight:400">管理費</label>
+          <input class="f-inp" id="r-mgmt" type="number" min="0" step="0.1" placeholder="例）3">
+        </div>
+        <div>
+          <label class="f-lbl" style="font-weight:400">食費</label>
+          <input class="f-inp" id="r-meal" type="number" min="0" step="0.1" placeholder="例）4.5">
+        </div>
+        <div>
+          <label class="f-lbl" style="font-weight:400;color:var(--brand)">月額合計（自動計算）</label>
+          <input class="f-inp" id="r-fee-total" type="text" readonly placeholder="─" style="background:var(--g50);color:var(--brand);font-weight:700">
+        </div>
+      </div>
+      <div class="f-hint">家賃・管理費・食費の合算が月額目安として検索画面に表示されます（介護保険分は別途）</div>
     </div>
   </div>
 
@@ -394,6 +450,38 @@ function renderTagGrid(elId, tags) {
 renderTagGrid('tag-list-feature', TAGS_FEATURE);
 renderTagGrid('tag-list-medical', TAGS_MEDICAL);
 
+// 都道府県→市区町村 連動
+const REG_CITY_MAP = {
+  '大阪府': ['豊中市','吹田市','茨木市','池田市','箕面市','摂津市','高槻市','枚方市','大阪市'],
+  '兵庫県': ['尼崎市','西宮市','芦屋市','神戸市','宝塚市','川西市'],
+  '京都府': ['京都市','向日市','長岡京市'],
+  '奈良県': ['奈良市','大和郡山市','天理市'],
+};
+function updateRegCityOptions() {
+  const pref = document.getElementById('r-prefecture').value;
+  const cities = REG_CITY_MAP[pref] || [];
+  const sel = document.getElementById('r-city');
+  sel.innerHTML = '<option value="">─ 選択 ─</option>' +
+    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+// 初期費用トグル
+document.getElementById('r-init-fee').addEventListener('change', function() {
+  document.getElementById('init-fee-amount-wrap').style.display = this.value === 'true' ? 'block' : 'none';
+});
+
+// 月額合計リアルタイム計算
+function updateFeeTotal() {
+  const r = parseFloat(document.getElementById('r-rent').value) || 0;
+  const m = parseFloat(document.getElementById('r-mgmt').value) || 0;
+  const f = parseFloat(document.getElementById('r-meal').value) || 0;
+  const total = r + m + f;
+  document.getElementById('r-fee-total').value = total > 0 ? total.toFixed(1) + ' 万円' : '';
+}
+['r-rent','r-mgmt','r-meal'].forEach(id =>
+  document.getElementById(id).addEventListener('input', updateFeeTotal)
+);
+
 // エリア自動判定
 const AREA_MAP = [
   ['千里',   ['千里','緑丘','北緑丘','西緑丘','箕輪']],
@@ -452,9 +540,19 @@ function initEditMode() {
     document.getElementById('r-contact-name').value   = d.contactName || '';
     document.getElementById('r-contact-tel').value    = d.contactTel || '';
     if (d.plan === 'paid') document.getElementById('contact-section').style.display = 'block';
+    document.getElementById('r-prefecture').value     = d.prefecture || '';
+    updateRegCityOptions();
+    document.getElementById('r-city').value           = d.city || '';
     document.getElementById('r-seikatsu').value       = d.seikatsuHogo || '';
     document.getElementById('r-mimon').value          = d.mimonHosho || '';
     document.getElementById('r-kaigo').value          = d.kaigoNintei || '';
+    document.getElementById('r-init-fee').value       = d.initialFee ? 'true' : 'false';
+    if (d.initialFee) document.getElementById('init-fee-amount-wrap').style.display = 'block';
+    document.getElementById('r-init-fee-amount').value = d.initialFeeAmount || '';
+    document.getElementById('r-rent').value           = d.rent || '';
+    document.getElementById('r-mgmt').value           = d.managementFee || '';
+    document.getElementById('r-meal').value           = d.mealFee || '';
+    updateFeeTotal();
     document.getElementById('r-vacancy').value        = d.vacancy || 0;
     document.getElementById('r-notes').value          = d.vacancyNotes || '';
     document.getElementById('r-campaign').value       = d.campaign || '';
@@ -512,25 +610,36 @@ function removePhoto() {
 }
 
 function collectFormData() {
+  const rent = parseFloat(document.getElementById('r-rent').value) || null;
+  const mgmt = parseFloat(document.getElementById('r-mgmt').value) || null;
+  const meal = parseFloat(document.getElementById('r-meal').value) || null;
+  const monthlyTotal = (rent || mgmt || meal)
+    ? Math.round(((rent||0) + (mgmt||0) + (meal||0)) * 10) / 10
+    : null;
   return {
-    name:            document.getElementById('r-name').value.trim(),
-    type:            document.getElementById('r-type').value,
-    area:            document.getElementById('r-area').value.trim(),
-    address:         document.getElementById('r-address').value.trim(),
-    station:         document.getElementById('r-station').value.trim(),
-    stationDistance: document.getElementById('r-distance').value.trim(),
-    totalRooms:      parseInt(document.getElementById('r-totalRooms').value) || null,
-    parking:         document.getElementById('r-parking').value.trim(),
-    hp:              document.getElementById('r-hp').value.trim(),
-    contactName:     document.getElementById('r-contact-name').value.trim(),
-    contactTel:      document.getElementById('r-contact-tel').value.trim(),
-    seikatsuHogo:    document.getElementById('r-seikatsu').value,
-    mimonHosho:      document.getElementById('r-mimon').value,
-    kaigoNintei:     document.getElementById('r-kaigo').value,
-    features:        Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(cb => cb.value),
-    vacancy:         Math.max(0, parseInt(document.getElementById('r-vacancy').value) || 0),
-    vacancyNotes:    document.getElementById('r-notes').value.trim(),
-    campaign:        document.getElementById('r-campaign').value.trim(),
+    name:              document.getElementById('r-name').value.trim(),
+    type:              document.getElementById('r-type').value,
+    prefecture:        document.getElementById('r-prefecture').value,
+    city:              document.getElementById('r-city').value,
+    area:              document.getElementById('r-area').value.trim(),
+    address:           document.getElementById('r-address').value.trim(),
+    station:           document.getElementById('r-station').value.trim(),
+    stationDistance:   document.getElementById('r-distance').value.trim(),
+    totalRooms:        parseInt(document.getElementById('r-totalRooms').value) || null,
+    parking:           document.getElementById('r-parking').value.trim(),
+    hp:                document.getElementById('r-hp').value.trim(),
+    contactName:       document.getElementById('r-contact-name').value.trim(),
+    contactTel:        document.getElementById('r-contact-tel').value.trim(),
+    seikatsuHogo:      document.getElementById('r-seikatsu').value,
+    mimonHosho:        document.getElementById('r-mimon').value,
+    kaigoNintei:       document.getElementById('r-kaigo').value,
+    features:          Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(cb => cb.value),
+    vacancy:           Math.max(0, parseInt(document.getElementById('r-vacancy').value) || 0),
+    vacancyNotes:      document.getElementById('r-notes').value.trim(),
+    campaign:          document.getElementById('r-campaign').value.trim(),
+    initialFee:        document.getElementById('r-init-fee').value === 'true',
+    initialFeeAmount:  parseFloat(document.getElementById('r-init-fee-amount').value) || null,
+    rent, managementFee: mgmt, mealFee: meal, monthlyTotal,
   };
 }
 
