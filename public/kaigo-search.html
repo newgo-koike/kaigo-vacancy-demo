@@ -10,179 +10,127 @@
       --ok:#16a34a; --ok-bg:#dcfce7;
       --few:#ea580c; --few-bg:#ffedd5;
       --full-c:#64748b; --full-bg:#f1f5f9;
-      --purple:#7c3aed; --purple-bg:#f5f3ff;
       --amber:#d97706; --amber-bg:#fef3c7;
       --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0; --g300:#cbd5e1;
       --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
       --g800:#1e293b; --g900:#0f172a;
-      --r:10px;
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html,body { height:100%; }
     body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; visibility:hidden; }
 
-    /* HEADER */
-    .hdr { flex-shrink:0; background:var(--g900); height:54px; padding:0 16px; display:flex; align-items:center; gap:10px; z-index:100; }
+    /* ── HEADER ── */
+    .hdr { flex-shrink:0; background:var(--g900); height:52px; padding:0 16px; display:flex; align-items:center; gap:10px; z-index:200; }
     .hdr-logo { width:28px; height:28px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
     .hdr-title { font-size:14px; font-weight:800; color:white; }
     .hdr-sub { font-size:10px; color:var(--g400); }
-    .hdr-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
-    .hdr-user { font-size:11px; color:var(--g400); }
-    .hdr-logout { background:transparent; border:1px solid var(--g600); color:var(--g400); font-size:11px; padding:4px 10px; border-radius:6px; cursor:pointer; font-family:inherit; transition:color .15s,border-color .15s; }
+    .hdr-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
+    .hdr-logout { background:transparent; border:1px solid var(--g600); color:var(--g400); font-size:11px; padding:4px 10px; border-radius:6px; cursor:pointer; font-family:inherit; }
     .hdr-logout:hover { color:white; border-color:var(--g400); }
 
-    /* SEARCH PANEL */
-    .search-panel { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); padding:14px 16px; }
-    .sp-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; }
-    .sp-row:last-child { margin-bottom:0; }
-    .sp-label { font-size:10px; font-weight:800; color:var(--g400); letter-spacing:.06em; text-transform:uppercase; width:56px; flex-shrink:0; padding-top:5px; }
-    .sp-chips { display:flex; flex-wrap:wrap; gap:5px; flex:1; }
-    .sp-chip { padding:4px 11px; border-radius:20px; font-size:12px; font-weight:600; border:1.5px solid var(--g200); background:white; color:var(--g600); cursor:pointer; font-family:inherit; transition:all .12s; white-space:nowrap; user-select:none; }
-    .sp-chip:hover { border-color:var(--brand); color:var(--brand); }
-    .sp-chip.on { border-color:var(--brand); background:var(--brand); color:white; }
-
-    .sp-bottom-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-    .sp-text-wrap { position:relative; flex:1; min-width:160px; }
-    .sp-text-ico { position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--g400); pointer-events:none; }
-    .sp-text { width:100%; padding:8px 10px 8px 30px; border:1.5px solid var(--g200); border-radius:9px; font-size:13px; outline:none; font-family:inherit; transition:border-color .15s; }
-    .sp-text:focus { border-color:var(--brand); }
+    /* ── TOP SEARCH BAR ── */
+    .top-bar { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); padding:10px 16px; display:flex; align-items:center; gap:8px; }
+    .tb-text-wrap { position:relative; flex:1; max-width:340px; }
+    .tb-ico { position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--g400); pointer-events:none; }
+    .tb-text { width:100%; padding:8px 10px 8px 30px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; outline:none; font-family:inherit; transition:border-color .15s; }
+    .tb-text:focus { border-color:var(--brand); }
     .vac-toggle { display:flex; border:1.5px solid var(--g200); border-radius:7px; overflow:hidden; }
     .vac-tab { padding:6px 13px; font-size:11px; font-weight:600; background:white; border:none; cursor:pointer; font-family:inherit; color:var(--g500); transition:all .12s; white-space:nowrap; }
     .vac-tab.on { background:var(--brand); color:white; }
-    .adv-toggle { display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--g500); background:none; border:1.5px solid var(--g200); border-radius:7px; padding:6px 11px; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all .12s; }
-    .adv-toggle:hover { border-color:var(--brand); color:var(--brand); }
-    .adv-toggle.open { background:var(--g100); border-color:var(--g300); }
-    .search-btn { display:flex; align-items:center; gap:6px; padding:8px 20px; background:var(--brand); color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .12s; white-space:nowrap; }
+    .search-btn { display:flex; align-items:center; gap:5px; padding:8px 18px; background:var(--brand); color:white; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .12s; white-space:nowrap; }
     .search-btn:hover:not(:disabled) { background:var(--brand-d); }
     .search-btn:disabled { background:var(--g400); cursor:not-allowed; }
+    .result-count-bar { margin-left:auto; font-size:12px; color:var(--g500); white-space:nowrap; }
+    .spinner { display:inline-block; width:12px; height:12px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* 詳細フィルター（折りたたみ） */
-    .adv-panel { display:none; border-top:1px solid var(--g100); margin-top:12px; padding-top:12px; }
-    .adv-panel.open { display:block; }
-    .adv-section { margin-bottom:12px; }
-    .adv-section:last-child { margin-bottom:0; }
-    .adv-sec-label { font-size:9px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
-    .cond-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; align-items:center; }
-    .cond-lbl { font-size:11px; color:var(--g600); font-weight:700; width:88px; flex-shrink:0; }
-    .cond-btn { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; border:1.5px solid var(--g200); background:white; color:var(--g600); cursor:pointer; font-family:inherit; transition:all .12s; white-space:nowrap; }
-    .cond-btn:hover { border-color:var(--brand); color:var(--brand); }
-    .cond-btn.on { border-color:var(--brand); background:var(--brand); color:white; }
-    .tag-sec-lbl { font-size:9px; font-weight:800; color:var(--g500); letter-spacing:.06em; text-transform:uppercase; padding:5px 0 4px; border-top:1px solid var(--g100); margin-top:4px; }
-    .tag-bar { display:flex; flex-wrap:wrap; gap:4px; padding:5px 0 6px; }
-    .tag-chip { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; border:1.5px solid var(--g200); background:white; color:var(--g600); cursor:pointer; font-family:inherit; transition:all .12s; white-space:nowrap; }
+    /* ── BODY LAYOUT ── */
+    .body-wrap { flex:1; display:flex; overflow:hidden; }
+
+    /* ── LEFT SIDEBAR ── */
+    .sidebar { width:220px; min-width:220px; background:white; border-right:1px solid var(--g200); overflow-y:auto; flex-shrink:0; }
+    .sb-sec { border-bottom:1px solid var(--g100); padding:14px 14px 12px; }
+    .sb-sec-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .sb-sec-title { font-size:11px; font-weight:800; color:var(--g600); letter-spacing:.04em; }
+    .sb-clear { font-size:10px; color:var(--brand); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; }
+    .cb-item { display:flex; align-items:center; gap:7px; padding:5px 0; cursor:pointer; user-select:none; }
+    .cb-item input { width:14px; height:14px; accent-color:var(--brand); cursor:pointer; flex-shrink:0; }
+    .cb-label { font-size:12px; color:var(--g700); }
+    .cb-count { font-size:10px; color:var(--g400); margin-left:auto; }
+
+    /* 入居条件セレクト */
+    .cond-grp { margin-bottom:8px; }
+    .cond-grp:last-child { margin-bottom:0; }
+    .cond-lbl { font-size:11px; color:var(--g600); font-weight:600; margin-bottom:4px; display:block; }
+    .cond-sel { width:100%; padding:6px 8px; border:1.5px solid var(--g200); border-radius:7px; font-size:12px; outline:none; font-family:inherit; background:white; color:var(--g800); transition:border-color .15s; }
+    .cond-sel:focus { border-color:var(--brand); }
+
+    /* タグ */
+    .tag-bar { display:flex; flex-wrap:wrap; gap:4px; }
+    .tag-chip { padding:3px 9px; border-radius:20px; font-size:10px; font-weight:500; border:1.5px solid var(--g200); background:white; color:var(--g600); cursor:pointer; font-family:inherit; transition:all .12s; white-space:nowrap; line-height:1.4; }
     .tag-chip:hover { border-color:var(--brand); color:var(--brand); }
     .tag-chip.on { border-color:var(--brand); background:var(--brand); color:white; }
-    .adv-clear-btn { font-size:11px; color:var(--brand); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; margin-left:auto; }
+    .tag-sec-lbl { font-size:9px; font-weight:700; color:var(--g400); letter-spacing:.06em; text-transform:uppercase; margin:8px 0 4px; }
 
-    /* RESULTS LAYOUT */
-    .results-layout { flex:1; display:flex; overflow:hidden; }
+    /* ── MAIN CONTENT ── */
+    .main { flex:1; overflow-y:auto; padding:16px; }
 
-    /* LIST */
-    .results-list { width:320px; min-width:320px; border-right:1px solid var(--g200); display:flex; flex-direction:column; overflow:hidden; background:white; }
-    .results-meta { flex-shrink:0; padding:9px 12px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--g100); background:var(--g50); }
-    .results-count { font-size:11px; color:var(--g500); }
-    .results-stats { display:flex; gap:10px; }
-    .rs-item { display:flex; align-items:center; gap:4px; font-size:10px; color:var(--g500); }
-    .rs-dot { width:6px; height:6px; border-radius:50%; }
-    .rs-num { font-weight:700; color:var(--g700); }
-    .results-scroll { flex:1; overflow-y:auto; }
+    /* 統計バー */
+    .stats-bar { display:flex; align-items:center; gap:14px; margin-bottom:14px; padding:10px 14px; background:white; border-radius:10px; border:1px solid var(--g200); }
+    .stat-item { display:flex; align-items:center; gap:5px; font-size:12px; }
+    .stat-dot { width:8px; height:8px; border-radius:50%; }
+    .stat-num { font-weight:800; font-size:14px; }
 
-    /* INITIAL / EMPTY STATE */
-    .state-box { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; text-align:center; color:var(--g400); height:100%; }
-    .state-ico { font-size:40px; margin-bottom:12px; }
-    .state-ttl { font-size:14px; font-weight:700; color:var(--g500); margin-bottom:6px; }
-    .state-sub { font-size:12px; line-height:1.7; }
+    /* 施設カードグリッド */
+    .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:12px; }
 
-    /* FACILITY CARD */
-    .fcc { display:flex; align-items:center; gap:10px; padding:11px 12px; border-bottom:1px solid var(--g100); cursor:pointer; background:white; transition:background .1s; }
-    .fcc:hover { background:var(--g50); }
-    .fcc.selected { background:var(--brand-l); border-left:3px solid var(--brand); padding-left:9px; }
-    .fcc-vac { width:42px; height:42px; min-width:42px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.18); }
-    .fcc-vac.vc-ok { background:var(--ok); }
-    .fcc-vac.vc-few { background:var(--few); }
-    .fcc-vac.vc-full { background:var(--g400); }
-    .fcc-vnum { font-size:17px; font-weight:900; color:white; line-height:1; letter-spacing:-1px; }
-    .fcc-vunit { font-size:8px; font-weight:700; color:rgba(255,255,255,.9); }
-    .fcc-full { font-size:10px; font-weight:800; color:white; }
-    .fcc-body { flex:1; min-width:0; }
-    .fcc-name { font-size:13px; font-weight:700; color:var(--g800); margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .fcc-row { display:flex; align-items:center; gap:5px; margin-bottom:2px; flex-wrap:wrap; }
-    .fcc-type { font-size:10px; padding:1px 6px; border-radius:4px; font-weight:700; background:var(--g100); color:var(--g500); white-space:nowrap; }
-    .fcc-station { font-size:11px; color:var(--g500); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .fcc-foot { font-size:10px; color:var(--g400); }
-    .fcc-stale { color:#ef4444; font-weight:600; }
-    .name-plan-badge { display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:var(--brand); color:white; font-size:9px; font-weight:900; vertical-align:middle; margin-left:4px; }
+    /* 施設カード */
+    .fcard { background:white; border-radius:12px; border:1px solid var(--g200); overflow:hidden; cursor:pointer; transition:box-shadow .15s, transform .12s; }
+    .fcard:hover { box-shadow:0 4px 16px rgba(0,0,0,.1); transform:translateY(-2px); }
 
-    /* DETAIL PANEL */
-    .detail-panel { flex:1; overflow-y:auto; background:white; display:flex; flex-direction:column; }
-    .detail-placeholder { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; text-align:center; color:var(--g300); }
-    .dp-ico { font-size:40px; margin-bottom:12px; }
-    .dp-title { font-size:14px; font-weight:700; color:var(--g400); margin-bottom:6px; }
-    .dp-sub { font-size:12px; color:var(--g300); line-height:1.6; }
-    .detail-content { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+    .fc-photo { height:120px; background:linear-gradient(135deg,var(--g700),var(--g900)); position:relative; overflow:hidden; flex-shrink:0; }
+    .fc-photo img { width:100%; height:100%; object-fit:cover; }
+    .fc-photo-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,20,40,.7) 0%,transparent 55%); }
+    .fc-photo-type { position:absolute; top:8px; left:10px; background:rgba(10,20,40,.6); backdrop-filter:blur(6px); color:white; font-size:9px; padding:2px 8px; border-radius:20px; font-weight:700; }
+    .fc-photo-plan { position:absolute; top:8px; right:10px; background:var(--brand); color:white; font-size:9px; padding:2px 8px; border-radius:20px; font-weight:700; }
+    .fc-photo-name { position:absolute; bottom:8px; left:10px; right:10px; color:white; font-size:14px; font-weight:800; line-height:1.3; }
 
-    .dp-photo { position:relative; height:170px; overflow:hidden; background:linear-gradient(135deg,var(--g700),var(--g900)); flex-shrink:0; display:flex; align-items:flex-end; padding:12px 16px; }
-    .dp-photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-    .dp-photo-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,20,40,.85) 0%,transparent 60%); }
-    .dp-photo-name { position:relative; color:white; font-size:17px; font-weight:800; line-height:1.25; z-index:1; }
-    .dp-photo-type { position:absolute; top:11px; left:12px; background:rgba(10,20,40,.55); backdrop-filter:blur(8px); color:white; font-size:10px; padding:3px 9px; border-radius:20px; font-weight:600; z-index:1; }
+    .fc-body { padding:12px; }
+    .fc-meta { display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+    .fc-area { font-size:11px; color:var(--g500); }
+    .fc-station { font-size:11px; color:var(--g400); }
 
-    .dv-block { display:flex; align-items:stretch; overflow:hidden; flex-shrink:0; }
-    .dv-num-side { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:14px 18px; min-width:80px; }
-    .dv-ok  .dv-num-side { background:var(--ok-bg); }
-    .dv-few .dv-num-side { background:var(--few-bg); }
-    .dv-full .dv-num-side { background:var(--full-bg); }
-    .dv-big { font-size:40px; font-weight:900; line-height:1; letter-spacing:-2px; }
-    .dv-ok  .dv-big  { color:var(--ok); }
-    .dv-few .dv-big  { color:var(--few); }
-    .dv-full .dv-big { color:var(--full-c); }
-    .dv-unit { font-size:11px; font-weight:700; }
-    .dv-ok  .dv-unit  { color:var(--ok); }
-    .dv-few .dv-unit  { color:var(--few); }
-    .dv-full .dv-unit { color:var(--full-c); }
-    .dv-info-side { flex:1; padding:12px 14px; }
-    .dv-ok  .dv-info-side { background:color-mix(in srgb,var(--ok-bg) 35%,white); }
-    .dv-few .dv-info-side { background:color-mix(in srgb,var(--few-bg) 35%,white); }
-    .dv-full .dv-info-side { background:color-mix(in srgb,var(--full-bg) 50%,white); }
-    .dv-status { font-size:14px; font-weight:800; margin-bottom:3px; }
-    .dv-ok  .dv-status { color:var(--ok); }
-    .dv-few .dv-status { color:var(--few); }
-    .dv-full .dv-status { color:var(--full-c); }
-    .dv-notes { font-size:12px; color:var(--g600); margin-top:4px; padding:4px 8px; background:var(--amber-bg); border-radius:5px; border-left:3px solid var(--amber); }
-    .dv-updated { font-size:10px; color:var(--g400); margin-top:5px; }
+    /* 空室バー */
+    .fc-vac { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; margin-bottom:8px; }
+    .fc-vac.ok   { background:var(--ok-bg); }
+    .fc-vac.few  { background:var(--few-bg); }
+    .fc-vac.full { background:var(--full-bg); }
+    .fc-vnum { font-size:24px; font-weight:900; line-height:1; letter-spacing:-1px; }
+    .fc-vac.ok   .fc-vnum { color:var(--ok); }
+    .fc-vac.few  .fc-vnum { color:var(--few); }
+    .fc-vac.full .fc-vnum { color:var(--full-c); }
+    .fc-vinfo { flex:1; }
+    .fc-vstatus { font-size:12px; font-weight:700; }
+    .fc-vac.ok   .fc-vstatus { color:var(--ok); }
+    .fc-vac.few  .fc-vstatus { color:var(--few); }
+    .fc-vac.full .fc-vstatus { color:var(--full-c); }
+    .fc-vnotes { font-size:10px; color:var(--g600); margin-top:2px; }
+    .fc-vupdated { font-size:10px; color:var(--g400); margin-top:1px; }
+    .fc-stale { color:#ef4444; font-weight:600; }
 
-    .d-body { padding:14px 16px 28px; flex:1; }
-    .d-sec { margin-bottom:14px; }
-    .d-sec-hd { display:flex; align-items:center; gap:6px; font-size:9px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--g100); }
-    .d-badge { font-size:8px; padding:2px 5px; border-radius:4px; font-weight:700; background:var(--g100); color:var(--g500); }
-    .d-rows { display:flex; flex-direction:column; gap:6px; }
-    .d-row { display:flex; gap:8px; font-size:12px; }
-    .d-lbl { color:var(--g400); width:80px; flex-shrink:0; }
-    .d-val { color:var(--g700); font-weight:500; flex:1; }
-    .cond-badges { display:flex; flex-wrap:wrap; gap:4px; }
-    .cond-badge { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:600; }
-    .cond-ok { background:var(--ok-bg); color:var(--ok); }
+    /* 入居条件バッジ */
+    .fc-conds { display:flex; flex-wrap:wrap; gap:4px; }
+    .fc-cond { font-size:10px; padding:2px 7px; border-radius:4px; font-weight:600; }
+    .cond-ok  { background:var(--ok-bg);   color:var(--ok); }
     .cond-sou { background:var(--amber-bg); color:var(--amber); }
-    .cond-ng { background:var(--full-bg); color:var(--full-c); }
-    .feat-tags { display:flex; flex-wrap:wrap; gap:4px; }
-    .feat-tag { font-size:10px; padding:3px 8px; background:var(--g100); border-radius:5px; color:var(--g600); font-weight:500; }
-    .d-campaign { background:var(--purple-bg); border-radius:9px; padding:11px 13px; }
-    .d-camp-label { font-size:10px; color:var(--purple); font-weight:700; margin-bottom:4px; }
-    .d-camp-text { font-size:13px; color:var(--g700); line-height:1.5; }
-    .d-contact { border-radius:12px; border:1px solid var(--g200); overflow:hidden; }
-    .d-cont-hd { background:var(--g50); padding:9px 14px; font-size:10px; font-weight:700; color:var(--g500); border-bottom:1px solid var(--g200); }
-    .d-cont-inner { padding:14px 16px; position:relative; min-height:80px; }
-    .d-cont-name { font-size:13px; font-weight:600; color:var(--g700); margin-bottom:2px; }
-    .d-cont-tel { font-size:22px; font-weight:900; color:var(--brand-d); letter-spacing:-.5px; margin-bottom:10px; }
-    .d-call-btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; background:var(--brand); color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; width:100%; justify-content:center; }
-    .d-call-btn:hover { background:var(--brand-d); }
-    .d-hp-btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; background:var(--g800); color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; text-decoration:none; width:100%; justify-content:center; }
-    .d-hp-btn:hover { background:var(--g900); }
-    .cont-blur { filter:blur(5px); user-select:none; pointer-events:none; }
-    .cont-lock-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; background:rgba(255,255,255,.72); backdrop-filter:blur(2px); }
+    .cond-ng  { background:var(--full-bg);  color:var(--full-c); }
+    .cond-na  { background:var(--g100);     color:var(--g400); }
 
-    .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
+    /* 初期・空状態 */
+    .state-box { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; text-align:center; color:var(--g400); }
+    .state-ico { font-size:44px; margin-bottom:14px; }
+    .state-ttl { font-size:15px; font-weight:700; color:var(--g500); margin-bottom:6px; }
+    .state-sub { font-size:13px; line-height:1.7; }
 
     .toast { position:fixed; bottom:24px; right:24px; background:var(--g900); color:white; padding:12px 20px; border-radius:11px; font-size:13px; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,.25); opacity:0; transform:translateY(12px); transition:all .22s; z-index:999; pointer-events:none; }
     .toast.on { opacity:1; transform:translateY(0); }
@@ -190,6 +138,7 @@
 </head>
 <body>
 
+<!-- HEADER -->
 <header class="hdr">
   <div class="hdr-logo">🏥</div>
   <div>
@@ -201,100 +150,99 @@
   </div>
 </header>
 
-<!-- 検索フォーム -->
-<div class="search-panel">
-  <!-- エリア -->
-  <div class="sp-row">
-    <div class="sp-label">エリア</div>
-    <div class="sp-chips" id="area-chips"></div>
+<!-- TOP SEARCH BAR -->
+<div class="top-bar">
+  <div class="tb-text-wrap">
+    <span class="tb-ico">🔍</span>
+    <input class="tb-text" id="q" type="text" placeholder="施設名・駅名で検索" onkeydown="if(event.key==='Enter')doSearch()">
   </div>
-  <!-- 施設種別 -->
-  <div class="sp-row">
-    <div class="sp-label">種別</div>
-    <div class="sp-chips" id="type-chips"></div>
+  <div class="vac-toggle">
+    <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
+    <button class="vac-tab" onclick="setVac('ok',this)">空きあり</button>
   </div>
-  <!-- 下段：テキスト・空室・詳細・検索ボタン -->
-  <div class="sp-bottom-row">
-    <div class="sp-text-wrap">
-      <span class="sp-text-ico">🔍</span>
-      <input class="sp-text" id="q" type="text" placeholder="施設名・駅名で絞り込み" onkeydown="if(event.key==='Enter')doSearch()">
-    </div>
-    <div class="vac-toggle">
-      <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
-      <button class="vac-tab" onclick="setVac('ok',this)">空きあり</button>
-    </div>
-    <button class="adv-toggle" id="adv-btn" onclick="toggleAdv()">詳細 ▾</button>
-    <button class="search-btn" id="search-btn" onclick="doSearch()">検索</button>
-  </div>
+  <button class="search-btn" id="search-btn" onclick="doSearch()">🔍 検索</button>
+  <div class="result-count-bar" id="count-bar"></div>
+</div>
 
-  <!-- 詳細フィルター（折りたたみ） -->
-  <div class="adv-panel" id="adv-panel">
-    <div class="adv-section">
-      <div class="adv-sec-label">入居条件</div>
-      <div class="cond-row">
+<!-- BODY -->
+<div class="body-wrap">
+
+  <!-- 左サイドバー -->
+  <div class="sidebar">
+
+    <!-- エリア -->
+    <div class="sb-sec">
+      <div class="sb-sec-hd">
+        <span class="sb-sec-title">エリア</span>
+        <button class="sb-clear" onclick="toggleAll('area',true)">全選択</button>
+      </div>
+      <div id="area-list"></div>
+    </div>
+
+    <!-- 施設種別 -->
+    <div class="sb-sec">
+      <div class="sb-sec-hd">
+        <span class="sb-sec-title">施設種別</span>
+        <button class="sb-clear" onclick="toggleAll('type',true)">全選択</button>
+      </div>
+      <div id="type-list"></div>
+    </div>
+
+    <!-- 入居条件 -->
+    <div class="sb-sec">
+      <div class="sb-sec-hd">
+        <span class="sb-sec-title">入居条件</span>
+      </div>
+      <div class="cond-grp">
         <span class="cond-lbl">生活保護</span>
-        <button class="cond-btn on" data-key="seikatsu" data-val="" onclick="toggleCond('seikatsu','',this)">指定なし</button>
-        <button class="cond-btn" data-key="seikatsu" data-val="可" onclick="toggleCond('seikatsu','可',this)">可</button>
-        <button class="cond-btn" data-key="seikatsu" data-val="相談可" onclick="toggleCond('seikatsu','相談可',this)">相談可</button>
-        <button class="cond-btn" data-key="seikatsu" data-val="不可" onclick="toggleCond('seikatsu','不可',this)">不可</button>
+        <select class="cond-sel" id="cond-seikatsu">
+          <option value="">指定なし</option>
+          <option value="可">可</option>
+          <option value="相談可">相談可</option>
+          <option value="不可">不可</option>
+        </select>
       </div>
-      <div class="cond-row">
+      <div class="cond-grp">
         <span class="cond-lbl">身元保証なし</span>
-        <button class="cond-btn on" data-key="mimon" data-val="" onclick="toggleCond('mimon','',this)">指定なし</button>
-        <button class="cond-btn" data-key="mimon" data-val="可" onclick="toggleCond('mimon','可',this)">可</button>
-        <button class="cond-btn" data-key="mimon" data-val="相談可" onclick="toggleCond('mimon','相談可',this)">相談可</button>
-        <button class="cond-btn" data-key="mimon" data-val="不可" onclick="toggleCond('mimon','不可',this)">不可</button>
+        <select class="cond-sel" id="cond-mimon">
+          <option value="">指定なし</option>
+          <option value="可">可</option>
+          <option value="相談可">相談可</option>
+          <option value="不可">不可</option>
+        </select>
       </div>
-      <div class="cond-row">
+      <div class="cond-grp">
         <span class="cond-lbl">介護認定なし</span>
-        <button class="cond-btn on" data-key="kaigo" data-val="" onclick="toggleCond('kaigo','',this)">指定なし</button>
-        <button class="cond-btn" data-key="kaigo" data-val="なし" onclick="toggleCond('kaigo','なし',this)">なし</button>
-        <button class="cond-btn" data-key="kaigo" data-val="相談可" onclick="toggleCond('kaigo','相談可',this)">相談可</button>
-        <button class="cond-btn" data-key="kaigo" data-val="不可" onclick="toggleCond('kaigo','不可',this)">不可</button>
+        <select class="cond-sel" id="cond-kaigo">
+          <option value="">指定なし</option>
+          <option value="なし">なし</option>
+          <option value="相談可">相談可</option>
+          <option value="不可">不可</option>
+        </select>
       </div>
     </div>
-    <div class="adv-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div class="adv-sec-label" style="margin-bottom:0">こだわり・特徴タグ</div>
-        <button class="adv-clear-btn" onclick="clearTags()">クリア</button>
+
+    <!-- タグ -->
+    <div class="sb-sec">
+      <div class="sb-sec-hd">
+        <span class="sb-sec-title">こだわり・タグ</span>
+        <button class="sb-clear" onclick="clearTags()">クリア</button>
       </div>
       <div class="tag-sec-lbl">こだわり・特徴</div>
       <div class="tag-bar" id="tag-bar-feature"></div>
       <div class="tag-sec-lbl">看護・医療体制</div>
       <div class="tag-bar" id="tag-bar-medical"></div>
     </div>
-  </div>
-</div>
 
-<!-- 結果エリア -->
-<div class="results-layout">
-
-  <!-- 一覧パネル -->
-  <div class="results-list">
-    <div class="results-meta" id="results-meta" style="display:none">
-      <span class="results-count" id="results-count"></span>
-      <div class="results-stats">
-        <span class="rs-item"><span class="rs-dot" style="background:var(--ok)"></span><span class="rs-num" id="st-ok">0</span> 空きあり</span>
-        <span class="rs-item"><span class="rs-dot" style="background:var(--g400)"></span><span class="rs-num" id="st-full">0</span> 満室</span>
-      </div>
-    </div>
-    <div class="results-scroll" id="results-scroll">
-      <div class="state-box">
-        <div class="state-ico">🔍</div>
-        <div class="state-ttl">施設を検索してください</div>
-        <div class="state-sub">エリア・種別・条件を選んで<br>「検索」ボタンを押してください</div>
-      </div>
-    </div>
   </div>
 
-  <!-- 詳細パネル -->
-  <div class="detail-panel">
-    <div class="detail-placeholder" id="detail-placeholder">
-      <div class="dp-ico">🏠</div>
-      <div class="dp-title">施設を選んで詳細を表示</div>
-      <div class="dp-sub">左のリストから施設をクリックすると<br>空室状況・基本情報・連絡先が確認できます</div>
+  <!-- メインコンテンツ -->
+  <div class="main" id="main">
+    <div class="state-box">
+      <div class="state-ico">🔍</div>
+      <div class="state-ttl">条件を選んで検索してください</div>
+      <div class="state-sub">左のフィルターで絞り込み後<br>上部の「検索」ボタンを押してください</div>
     </div>
-    <div class="detail-content" id="detail-content" style="display:none;"></div>
   </div>
 
 </div>
@@ -321,18 +269,22 @@ auth.onAuthStateChanged(async user => {
   const uSnap = await db.collection('users').doc(user.uid).get();
   const role = uSnap.data()?.role;
   if (!['hospital', 'admin'].includes(role)) {
-    await auth.signOut();
-    location.href = 'kaigo-login.html';
-    return;
+    await auth.signOut(); location.href = 'kaigo-login.html'; return;
   }
   document.body.style.visibility = 'visible';
-  initChips();
-  initTags();
+  initSidebar();
 });
 
-// ─── 定数 ───────────────────────────────────────────
+// ─── 定数 ────────────────────────────────────────────
 const AREA_ORDER = ['庄内','服部','曽根','岡町','蛍池','刀根山','千里','少路','豊中'];
-const TYPES = ['特養','老健','グループホーム','サ高住','介護付有料','住宅型有料'];
+const TYPES = [
+  {key:'特養',    sub:'特別養護老人ホーム'},
+  {key:'老健',    sub:'介護老人保健施設'},
+  {key:'グループホーム', sub:'認知症対応型共同生活'},
+  {key:'サ高住',  sub:'サービス付高齢者向け住宅'},
+  {key:'介護付有料', sub:'介護付有料老人ホーム'},
+  {key:'住宅型有料', sub:'住宅型有料老人ホーム'},
+];
 const TAGS_FEATURE = [
   '看取り・ターミナルケア','個室あり','入居一時金0円','訪問看護可','日中看護師常駐','作業療法士（OT）',
   'キッチン付き居室','家具付き居室','ナースコールあり','機械浴・特殊浴あり',
@@ -358,81 +310,89 @@ const TAGS_MEDICAL = [
 // ─── 状態 ────────────────────────────────────────────
 let DATA = [];
 let activeVac = 'all';
-let selectedId = null;
-const condState = { seikatsu:'', mimon:'', kaigo:'' };
 const selectedTags = new Set();
 
-// ─── チップ初期化 ─────────────────────────────────────
-function initChips() {
-  const ac = document.getElementById('area-chips');
-  ac.innerHTML = AREA_ORDER.map(a =>
-    `<button class="sp-chip on" data-val="${a}" onclick="toggleChip(this,'area-chips')">${a}</button>`
+// ─── サイドバー初期化 ─────────────────────────────────
+function initSidebar() {
+  // エリアチェックボックス
+  document.getElementById('area-list').innerHTML = AREA_ORDER.map(a =>
+    `<label class="cb-item">
+      <input type="checkbox" name="area" value="${a}" checked onchange="liveFilter()">
+      <span class="cb-label">${a}</span>
+    </label>`
   ).join('');
 
-  const tc = document.getElementById('type-chips');
-  tc.innerHTML = TYPES.map(t =>
-    `<button class="sp-chip on" data-val="${t}" onclick="toggleChip(this,'type-chips')">${t}</button>`
+  // 種別チェックボックス
+  document.getElementById('type-list').innerHTML = TYPES.map(t =>
+    `<label class="cb-item">
+      <input type="checkbox" name="type" value="${t.key}" checked onchange="liveFilter()">
+      <span class="cb-label">${t.key}<span style="font-size:9px;color:var(--g400);margin-left:3px">${t.sub}</span></span>
+    </label>`
   ).join('');
-}
 
-function initTags() {
+  // タグ
   document.getElementById('tag-bar-feature').innerHTML = TAGS_FEATURE.map(t =>
     `<button class="tag-chip" onclick="toggleTag('${t}',this)">${t}</button>`
   ).join('');
   document.getElementById('tag-bar-medical').innerHTML = TAGS_MEDICAL.map(t =>
     `<button class="tag-chip" onclick="toggleTag('${t}',this)">${t}</button>`
   ).join('');
+
+  // 入居条件変更でライブフィルタ
+  ['cond-seikatsu','cond-mimon','cond-kaigo'].forEach(id =>
+    document.getElementById(id).addEventListener('change', liveFilter)
+  );
 }
 
-function toggleChip(btn, groupId) {
-  btn.classList.toggle('on');
-}
-
-// ─── 検索実行 ─────────────────────────────────────────
+// ─── 検索実行（Firestore取得） ─────────────────────────
 async function doSearch() {
   const btn = document.getElementById('search-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> 検索中';
 
-  const areas    = getChipValues('area-chips');
-  const types    = getChipValues('type-chips');
-  const q        = document.getElementById('q').value.trim().toLowerCase();
-  const qNorm    = q.replace(/駅$/, '');
+  const areas = getChecked('area');
 
   try {
     let query = db.collection('facilities');
-    // エリアが1〜10件なら Firestore 側でフィルタ（件数削減）
     if (areas.length > 0 && areas.length <= 10) {
       query = query.where('area', 'in', areas);
     }
     const snap = await query.orderBy('updatedAt','desc').get();
     DATA = snap.docs.map(mapDoc);
-
-    // クライアント側フィルタ
-    const list = DATA.filter(f => {
-      if (areas.length > 0 && areas.length > 10 && !areas.includes(f.area)) return false;
-      if (types.length > 0 && !types.includes(f.type)) return false;
-      if (activeVac === 'ok' && f.total === 0) return false;
-      if (q && !f.name.toLowerCase().includes(q) && !f.station.toLowerCase().includes(qNorm) && !f.addr.includes(q)) return false;
-      if (selectedTags.size > 0 && ![...selectedTags].every(t => f.features.includes(t))) return false;
-      if (condState.seikatsu && f.seikatsuHogo !== condState.seikatsu) return false;
-      if (condState.mimon    && f.mimonHosho   !== condState.mimon)    return false;
-      if (condState.kaigo    && f.kaigoNintei  !== condState.kaigo)    return false;
-      return true;
-    });
-
-    renderList(list);
+    liveFilter();
   } catch(e) {
-    document.getElementById('results-scroll').innerHTML =
+    document.getElementById('main').innerHTML =
       `<div class="state-box"><div class="state-ico">⚠️</div><div class="state-ttl">読み込みエラー</div><div class="state-sub">${e.message}</div></div>`;
   }
 
   btn.disabled = false;
-  btn.textContent = '検索';
+  btn.textContent = '🔍 検索';
 }
 
-function getChipValues(groupId) {
-  return Array.from(document.querySelectorAll(`#${groupId} .sp-chip.on`)).map(b => b.dataset.val);
+// ─── サイドバー操作でリアルタイム絞り込み ────────────────
+function liveFilter() {
+  if (!DATA.length) return;
+  const areas   = getChecked('area');
+  const types   = getChecked('type');
+  const q       = document.getElementById('q').value.trim().toLowerCase();
+  const qNorm   = q.replace(/駅$/, '');
+  const seikatsu = document.getElementById('cond-seikatsu').value;
+  const mimon    = document.getElementById('cond-mimon').value;
+  const kaigo    = document.getElementById('cond-kaigo').value;
+
+  const list = DATA.filter(f => {
+    if (areas.length && !areas.includes(f.area)) return false;
+    if (types.length && !types.includes(f.type)) return false;
+    if (activeVac === 'ok' && f.total === 0) return false;
+    if (q && !f.name.toLowerCase().includes(q) && !f.station.toLowerCase().includes(qNorm) && !f.addr.includes(q)) return false;
+    if (selectedTags.size && ![...selectedTags].every(t => f.features.includes(t))) return false;
+    if (seikatsu && f.seikatsuHogo !== seikatsu) return false;
+    if (mimon    && f.mimonHosho   !== mimon)    return false;
+    if (kaigo    && f.kaigoNintei  !== kaigo)    return false;
+    return true;
+  });
+
+  renderCards(list);
 }
 
 // ─── データ変換 ──────────────────────────────────────
@@ -440,7 +400,6 @@ function mapDoc(doc) {
   const d = doc.data();
   const upd = d.updatedAt ? d.updatedAt.toDate() : new Date();
   const daysAgo = Math.floor((new Date() - upd) / 86400000);
-  const total = typeof d.vacancy === 'number' ? d.vacancy : 0;
   return {
     id: doc.id,
     name: d.name || '',
@@ -448,185 +407,106 @@ function mapDoc(doc) {
     addr: d.address || '',
     station: [d.station, d.stationDistance].filter(Boolean).join(' '),
     area: d.area || '',
-    parking: d.parking || '',
-    totalRooms: d.totalRooms || '',
-    total,
+    total: typeof d.vacancy === 'number' ? d.vacancy : 0,
     vacancyNotes: d.vacancyNotes || '',
     features: d.features || [],
     seikatsuHogo: d.seikatsuHogo || '',
     mimonHosho: d.mimonHosho || '',
     kaigoNintei: d.kaigoNintei || '',
-    campaign: d.campaign || null,
-    hp: d.hp || '',
-    contact: { name: d.contactName || '', tel: d.contactTel || '' },
     plan: d.plan || 'free',
-    updated: upd.toISOString().slice(0, 10),
+    updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
     daysAgo,
     photoUrl: d.photoUrl || null,
   };
 }
 
-// ─── 一覧描画 ────────────────────────────────────────
-function renderList(list) {
-  const metaEl  = document.getElementById('results-meta');
-  const countEl = document.getElementById('results-count');
-  const scroll  = document.getElementById('results-scroll');
+// ─── カード描画 ──────────────────────────────────────
+function renderCards(list) {
+  const main = document.getElementById('main');
+  const bar  = document.getElementById('count-bar');
+  const okCnt   = list.filter(f => f.total > 0).length;
+  const fullCnt = list.filter(f => f.total === 0).length;
 
-  metaEl.style.display = 'flex';
-  document.getElementById('st-ok').textContent   = list.filter(f => f.total > 0).length;
-  document.getElementById('st-full').textContent = list.filter(f => f.total === 0).length;
-  countEl.textContent = `${list.length} 件`;
+  bar.innerHTML = `<span style="font-weight:700;color:var(--ok)">${okCnt}件空きあり</span> / 満室 ${fullCnt}件 / 計 ${list.length}件`;
 
   if (!list.length) {
-    scroll.innerHTML = '<div class="state-box"><div class="state-ico">🔍</div><div class="state-ttl">条件に合う施設が見つかりません</div><div class="state-sub">条件を変えて再検索してください</div></div>';
+    main.innerHTML = '<div class="state-box"><div class="state-ico">🔍</div><div class="state-ttl">条件に合う施設が見つかりません</div><div class="state-sub">絞り込み条件を変えてみてください</div></div>';
     return;
   }
 
-  const typeShort = {'特養':'特養','老健':'老健','グループホーム':'GH','サ高住':'サ高住','介護付有料':'介護付有料'};
-  scroll.innerHTML = list.map(f => {
-    const cls = f.total === 0 ? 'vc-full' : f.total <= 2 ? 'vc-few' : 'vc-ok';
-    const vacH = f.total === 0
-      ? `<span class="fcc-full">満室</span>`
-      : `<span class="fcc-vnum">${f.total}</span><span class="fcc-vunit">室空き</span>`;
-    return `<div class="fcc${selectedId===f.id?' selected':''}" onclick="selectFac('${f.id}')" id="fcc-${f.id}">
-      <div class="fcc-vac ${cls}">${vacH}</div>
-      <div class="fcc-body">
-        <div class="fcc-name">${f.name}${f.plan!=='free'?'<span class="name-plan-badge" title="問合せ可">✓</span>':''}</div>
-        <div class="fcc-row">
-          <span class="fcc-type">${typeShort[f.type]||f.type}</span>
-          ${f.station ? `<span class="fcc-station">🚉 ${f.station}</span>` : ''}
-        </div>
-        <div class="fcc-foot"><span class="${f.daysAgo>14?'fcc-stale':''}">${f.daysAgo===0?'本日更新':f.daysAgo+'日前更新'}${f.daysAgo>14?' ⚠️':''}</span></div>
-      </div>
-    </div>`;
-  }).join('');
+  main.innerHTML = `<div class="cards-grid">${list.map(cardHTML).join('')}</div>`;
 }
 
-// ─── 施設詳細 ────────────────────────────────────────
-function selectFac(id) {
-  selectedId = id;
-  document.querySelectorAll('.fcc').forEach(el => el.classList.remove('selected'));
-  const card = document.getElementById('fcc-' + id);
-  if (card) { card.classList.add('selected'); card.scrollIntoView({block:'nearest'}); }
+function condBadge(label, val, okVal) {
+  if (!val) return '';
+  const cls = val === okVal ? 'cond-ok' : val === '相談可' ? 'cond-sou' : 'cond-ng';
+  return `<span class="fc-cond ${cls}">${label}:${val}</span>`;
+}
 
-  const f = DATA.find(x => x.id === id);
-  if (!f) return;
+function cardHTML(f) {
+  const vacCls = f.total === 0 ? 'full' : f.total <= 2 ? 'few' : 'ok';
+  const vacLabel = f.total === 0 ? '満室' : f.total <= 2 ? `残り${f.total}室` : `${f.total}室空き`;
+  const staleClass = f.daysAgo > 14 ? 'fc-stale' : '';
 
-  document.getElementById('detail-placeholder').style.display = 'none';
-  const dc = document.getElementById('detail-content');
-  dc.style.display = 'flex';
+  const condBadges = [
+    condBadge('生活保護', f.seikatsuHogo, '可'),
+    condBadge('身元保証', f.mimonHosho,   '可'),
+    condBadge('介護認定', f.kaigoNintei,  'なし'),
+  ].filter(Boolean).join('');
 
-  const vacCls = f.total===0 ? 'dv-full' : f.total<=2 ? 'dv-few' : 'dv-ok';
-  const status = f.total===0 ? '現在満室です' : f.total<=2 ? `残り${f.total}室 — お早めに` : `${f.total}室 空きあり`;
-
-  const photoH = `<div class="dp-photo">
-    ${f.photoUrl ? `<img src="${f.photoUrl}" alt="${f.name}" loading="lazy">` : ''}
-    <div class="dp-photo-grad"></div>
-    <div class="dp-photo-type">${f.type}</div>
-    <div class="dp-photo-name">${f.name}</div>
+  return `<div class="fcard" onclick="location.href='kaigo-facility-view.html?id=${f.id}'">
+    <div class="fc-photo">
+      ${f.photoUrl ? `<img src="${f.photoUrl}" alt="${f.name}" loading="lazy">` : ''}
+      <div class="fc-photo-grad"></div>
+      <div class="fc-photo-type">${f.type}</div>
+      ${f.plan !== 'free' ? '<div class="fc-photo-plan">✓ 問合せ可</div>' : ''}
+      <div class="fc-photo-name">${f.name}</div>
+    </div>
+    <div class="fc-body">
+      <div class="fc-meta">
+        <span class="fc-area">📍 ${f.area}エリア</span>
+        ${f.station ? `<span class="fc-station">🚉 ${f.station}</span>` : ''}
+      </div>
+      <div class="fc-vac ${vacCls}">
+        <div class="fc-vnum">${f.total === 0 ? '─' : f.total}</div>
+        <div class="fc-vinfo">
+          <div class="fc-vstatus">${vacLabel}</div>
+          ${f.vacancyNotes ? `<div class="fc-vnotes">📝 ${f.vacancyNotes}</div>` : ''}
+          <div class="fc-vupdated ${staleClass}">更新：${f.updated}${f.daysAgo > 14 ? ' ⚠️' : ''}</div>
+        </div>
+      </div>
+      ${condBadges ? `<div class="fc-conds">${condBadges}</div>` : ''}
+    </div>
   </div>`;
-
-  const notesH = f.vacancyNotes ? `<div class="dv-notes">📝 ${f.vacancyNotes}</div>` : '';
-
-  const condH = (f.seikatsuHogo || f.mimonHosho || f.kaigoNintei) ? `
-    <div class="d-sec">
-      <div class="d-sec-hd">入居条件</div>
-      <div class="d-rows">
-        ${f.seikatsuHogo ? `<div class="d-row"><span class="d-lbl">生活保護</span><div class="cond-badges">${condBadge(f.seikatsuHogo,'可')}</div></div>` : ''}
-        ${f.mimonHosho  ? `<div class="d-row"><span class="d-lbl">身元保証なし</span><div class="cond-badges">${condBadge(f.mimonHosho,'可')}</div></div>` : ''}
-        ${f.kaigoNintei ? `<div class="d-row"><span class="d-lbl">介護認定なし</span><div class="cond-badges">${condBadge(f.kaigoNintei,'なし')}</div></div>` : ''}
-      </div>
-    </div>` : '';
-
-  const inquiryH = f.plan !== 'free'
-    ? `<div class="d-contact">
-         <div class="d-cont-hd">今すぐ問い合わせ</div>
-         <div class="d-cont-inner">
-           ${f.contact.name ? `<div class="d-cont-name">担当：${f.contact.name}</div>` : ''}
-           ${f.contact.tel
-             ? `<div class="d-cont-tel">${f.contact.tel}</div><button class="d-call-btn" onclick="window.location.href='tel:${f.contact.tel}'">📞 電話で問い合わせる</button>`
-             : '<div style="font-size:12px;color:var(--g400);margin-top:4px">電話番号未登録</div>'}
-         </div>
-       </div>`
-    : `<div class="d-contact">
-         <div class="d-cont-hd">施設への問い合わせ</div>
-         <div class="d-cont-inner">
-           ${f.hp
-             ? `<a class="d-hp-btn" href="${f.hp}" target="_blank">🌐 施設ホームページへ</a>`
-             : '<div style="font-size:12px;color:var(--g400)">HPなし / 有料プランで連絡先を表示できます</div>'}
-         </div>
-       </div>`;
-
-  dc.innerHTML = `
-    ${photoH}
-    <div class="dv-block ${vacCls}">
-      <div class="dv-num-side"><div class="dv-big">${f.total}</div><div class="dv-unit">室空き</div></div>
-      <div class="dv-info-side">
-        <div class="dv-status">${status}</div>
-        ${notesH}
-        <div class="dv-updated">更新：${f.updated}${f.daysAgo>14?' ⚠️ 古い情報の可能性あり':''}</div>
-      </div>
-    </div>
-    <div class="d-body">
-      <div class="d-sec">
-        <div class="d-sec-hd">施設基本情報 <span class="d-badge">固定情報</span></div>
-        <div class="d-rows">
-          <div class="d-row"><span class="d-lbl">施設種別</span><span class="d-val">${f.type}</span></div>
-          ${f.addr       ? `<div class="d-row"><span class="d-lbl">住所</span><span class="d-val">${f.addr}</span></div>` : ''}
-          ${f.station    ? `<div class="d-row"><span class="d-lbl">最寄り駅</span><span class="d-val">${f.station}</span></div>` : ''}
-          ${f.totalRooms ? `<div class="d-row"><span class="d-lbl">総部屋数</span><span class="d-val">${f.totalRooms}室</span></div>` : ''}
-          ${f.parking    ? `<div class="d-row"><span class="d-lbl">駐車場</span><span class="d-val">${f.parking}</span></div>` : ''}
-          ${f.features.length ? `<div class="d-row"><span class="d-lbl">こだわり</span><div class="feat-tags">${f.features.map(t=>`<span class="feat-tag">${t}</span>`).join('')}</div></div>` : ''}
-        </div>
-      </div>
-      ${condH}
-      ${f.campaign ? `<div class="d-sec"><div class="d-sec-hd">キャンペーン</div><div class="d-campaign"><div class="d-camp-label">🎁 お知らせ</div><div class="d-camp-text">${f.campaign}</div></div></div>` : ''}
-      <div class="d-sec">${inquiryH}</div>
-    </div>
-  `;
-  dc.scrollTop = 0;
 }
 
-// ─── UI操作ヘルパー ──────────────────────────────────
+// ─── UI ヘルパー ─────────────────────────────────────
+function getChecked(name) {
+  return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+}
+
+function toggleAll(name, checked) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(cb => cb.checked = checked);
+  liveFilter();
+}
+
 function setVac(v, btn) {
   activeVac = v;
   document.querySelectorAll('.vac-tab').forEach(t => t.classList.remove('on'));
   btn.classList.add('on');
-}
-
-function toggleAdv() {
-  const panel = document.getElementById('adv-panel');
-  const btn   = document.getElementById('adv-btn');
-  const open  = panel.classList.toggle('open');
-  btn.classList.toggle('open', open);
-  btn.textContent = open ? '詳細 ▴' : '詳細 ▾';
-}
-
-function toggleCond(key, val, btn) {
-  condState[key] = condState[key] === val ? '' : val;
-  document.querySelectorAll(`.cond-btn[data-key="${key}"]`).forEach(b => {
-    b.classList.toggle('on', b.dataset.val === condState[key]);
-  });
-  if (!condState[key]) {
-    const noneBtn = document.querySelector(`.cond-btn[data-key="${key}"][data-val=""]`);
-    if (noneBtn) noneBtn.classList.add('on');
-  }
+  liveFilter();
 }
 
 function toggleTag(tag, btn) {
   if (selectedTags.has(tag)) { selectedTags.delete(tag); btn.classList.remove('on'); }
   else { selectedTags.add(tag); btn.classList.add('on'); }
+  liveFilter();
 }
 
 function clearTags() {
   selectedTags.clear();
   document.querySelectorAll('.tag-chip').forEach(b => b.classList.remove('on'));
-}
-
-function condBadge(val, okVal) {
-  if (!val) return '<span style="color:var(--g400);font-size:11px">未設定</span>';
-  const cls = val === okVal ? 'cond-ok' : val === '相談可' ? 'cond-sou' : 'cond-ng';
-  return `<span class="cond-badge ${cls}">${val}</span>`;
+  liveFilter();
 }
 
 function showToast(msg) {
