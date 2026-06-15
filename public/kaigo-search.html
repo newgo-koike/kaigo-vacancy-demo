@@ -401,8 +401,6 @@ function liveFilter() {
   if (!DATA.length) return;
   const areas   = getChecked('area');
   const types   = getChecked('type');
-  const q       = document.getElementById('q').value.trim().toLowerCase();
-  const qNorm   = q.replace(/駅$/, '');
   const seikatsu = document.getElementById('cond-seikatsu').value;
   const mimon    = document.getElementById('cond-mimon').value;
   const kaigo    = document.getElementById('cond-kaigo').value;
@@ -413,7 +411,6 @@ function liveFilter() {
     if (areas.length && !areas.includes(f.area)) return false;
     if (types.length && !types.includes(f.type)) return false;
     if (activeVac === 'ok' && f.total === 0) return false;
-    if (q && !f.name.toLowerCase().includes(q) && !f.station.toLowerCase().includes(qNorm) && !f.addr.includes(q)) return false;
     if (selectedTags.size && ![...selectedTags].every(t => f.features.includes(t))) return false;
     if (seikatsu && f.seikatsuHogo !== seikatsu) return false;
     if (mimon    && f.mimonHosho   !== mimon)    return false;
