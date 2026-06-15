@@ -119,16 +119,23 @@
     .fc-tag { font-size:10px; color:var(--g500); }
     .fc-station { font-size:10px; color:var(--g400); }
 
-    /* 費用表示 */
-    .fc-fee { background:var(--g50); border-radius:8px; padding:8px 10px; margin-bottom:8px; border:1px solid var(--g100); }
-    .fc-fee-main { display:flex; align-items:baseline; gap:4px; margin-bottom:2px; }
-    .fc-fee-total { font-size:20px; font-weight:900; color:var(--g900); letter-spacing:-0.5px; }
-    .fc-fee-unit { font-size:11px; color:var(--g500); }
-    .fc-fee-break { font-size:10px; color:var(--g400); margin-top:2px; }
-    .fc-fee-ins { font-size:10px; color:var(--g500); margin-top:3px; padding-top:3px; border-top:1px dashed var(--g200); }
-    .fc-init { display:inline-flex; align-items:center; font-size:10px; font-weight:600; padding:2px 7px; border-radius:4px; margin-top:4px; }
-    .fc-init.has  { background:#fef3c7; color:#b45309; }
-    .fc-init.none { background:var(--ok-bg); color:var(--ok); }
+    /* 費用表示（2パネル：入居時費用 | 月額費用） */
+    .fc-fee { background:#f0fdf9; border:1px solid #b2f5e8; border-radius:8px; padding:8px; margin-bottom:8px; }
+    .fc-fee-panels { display:flex; gap:5px; margin-bottom:5px; }
+    .fc-fee-init { flex:0 0 80px; background:white; border-radius:6px; padding:7px 6px; text-align:center; border:1px solid #d1fae5; }
+    .fc-fee-monthly { flex:1; background:white; border-radius:6px; padding:7px 8px; border:1px solid #d1fae5; }
+    .fc-fee-panel-lbl { font-size:9px; color:var(--g500); margin-bottom:3px; }
+    .fc-fee-amt { font-size:18px; font-weight:900; color:var(--amber); line-height:1.1; }
+    .fc-fee-amt-mn { font-size:10px; font-weight:400; color:var(--g500); }
+    .fc-fee-monthly-ttl { display:flex; align-items:baseline; gap:3px; margin-bottom:4px; }
+    .fc-fee-monthly-lbl { font-size:9px; color:var(--g500); }
+    .fc-fee-monthly-val { font-size:16px; font-weight:900; color:var(--amber); }
+    .fc-fee-items { display:flex; gap:3px; }
+    .fc-fee-item { flex:1; background:var(--g50); border-radius:4px; padding:3px 2px; text-align:center; }
+    .fc-fee-item-lbl { font-size:8px; color:var(--g400); line-height:1.3; }
+    .fc-fee-item-val { font-size:11px; font-weight:700; color:var(--ok); }
+    .fc-fee-item-mn { font-size:8px; color:var(--g400); }
+    .fc-fee-extra { font-size:9px; color:var(--g400); line-height:1.4; }
 
     /* 空室バー */
     .fc-vac { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; margin-bottom:8px; }
@@ -196,7 +203,7 @@
         <label class="f-lbl">都道府県</label>
         <select class="f-sel" id="q-pref" onchange="updateCityOptions()">
           <option value="">すべて</option>
-          <option value="大阪府" selected>大阪府</option>
+          <option value="大阪府">大阪府</option>
           <option value="兵庫県">兵庫県</option>
           <option value="京都府">京都府</option>
           <option value="奈良県">奈良県</option>
@@ -529,12 +536,13 @@ function mapDoc(doc) {
   const upd = d.updatedAt ? d.updatedAt.toDate() : new Date();
   const daysAgo = Math.floor((new Date() - upd) / 86400000);
 
-  const rent = d.rent      ?? null;
-  const mgmt = d.managementFee ?? null;
-  const meal = d.mealFee   ?? null;
+  const rent  = d.rent          ?? null;
+  const mgmt  = d.managementFee ?? null;
+  const meal  = d.mealFee       ?? null;
+  const other = d.otherFee      ?? null;
   const hasBreakdown = rent !== null || mgmt !== null || meal !== null;
   const monthlyTotal = hasBreakdown
-    ? (rent || 0) + (mgmt || 0) + (meal || 0)
+    ? Math.round(((rent||0) + (mgmt||0) + (meal||0) + (other||0)) * 10) / 10
     : (d.monthlyFee ?? null);
 
   return {
@@ -556,7 +564,7 @@ function mapDoc(doc) {
     photoUrl: d.photoUrl || null,
     initialFee: d.initialFee ?? false,
     initialFeeAmount: d.initialFeeAmount ?? null,
-    rent, mgmt, meal, hasBreakdown,
+    rent, mgmt, meal, other, hasBreakdown,
     monthlyTotal,
     updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
     daysAgo,
@@ -582,24 +590,44 @@ function renderCards(list) {
 }
 
 function feeHTML(f) {
-  if (f.monthlyTotal == null) return '';
+  if (f.monthlyTotal == null && !f.initialFee && f.initialFeeAmount == null) return '';
 
-  const breakLine = f.hasBreakdown
-    ? `<div class="fc-fee-break">家賃${f.rent ?? '─'}万 ＋ 管理費${f.mgmt ?? '─'}万 ＋ 食費${f.meal ?? '─'}万</div>`
-    : `<div class="fc-fee-break">月額合計（家賃・管理費・食費込み）</div>`;
+  // 入居時費用パネル
+  const initAmt = f.initialFee
+    ? (f.initialFeeAmount != null ? f.initialFeeAmount : '要確認')
+    : '0';
+  const initPanel = `<div class="fc-fee-init">
+    <div class="fc-fee-panel-lbl">入居時費用</div>
+    <div class="fc-fee-amt">${initAmt}<span class="fc-fee-amt-mn">万円</span></div>
+  </div>`;
 
-  const initTag = f.initialFee
-    ? `<span class="fc-init has">初期費用あり${f.initialFeeAmount ? '（' + f.initialFeeAmount + '万円）' : ''}</span>`
-    : `<span class="fc-init none">初期費用なし</span>`;
+  // 月額費用パネル
+  const items = [
+    {lbl:'賃料',   val:f.rent},
+    {lbl:'管理費', val:f.mgmt},
+    {lbl:'食費',   val:f.meal},
+    {lbl:'その他', val:f.other},
+  ].filter(i => i.val != null);
+
+  const itemsHTML = items.map(i =>
+    `<div class="fc-fee-item">
+      <div class="fc-fee-item-lbl">${i.lbl}</div>
+      <div class="fc-fee-item-val">${i.val}<span class="fc-fee-item-mn">万</span></div>
+    </div>`
+  ).join('');
+
+  const monthlyPanel = f.monthlyTotal != null ? `<div class="fc-fee-monthly">
+    <div class="fc-fee-monthly-ttl">
+      <span class="fc-fee-monthly-lbl">月額費用</span>
+      <span class="fc-fee-monthly-val">${f.monthlyTotal}</span>
+      <span class="fc-fee-amt-mn">万円</span>
+    </div>
+    ${itemsHTML ? `<div class="fc-fee-items">${itemsHTML}</div>` : ''}
+  </div>` : '';
 
   return `<div class="fc-fee">
-    <div class="fc-fee-main">
-      <span class="fc-fee-total">${f.monthlyTotal}</span>
-      <span class="fc-fee-unit">万円／月</span>
-    </div>
-    ${breakLine}
-    <div class="fc-fee-ins">＋介護保険（1割負担 約1〜2万）別途</div>
-    ${initTag}
+    <div class="fc-fee-panels">${initPanel}${monthlyPanel}</div>
+    <div class="fc-fee-extra">【別途】介護保険自己負担分・おむつ代・消耗品代など</div>
   </div>`;
 }
 
