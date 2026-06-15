@@ -28,21 +28,43 @@
     .hdr-logout { background:transparent; border:1px solid var(--g600); color:var(--g400); font-size:11px; padding:4px 10px; border-radius:6px; cursor:pointer; font-family:inherit; }
     .hdr-logout:hover { color:white; border-color:var(--g400); }
 
-    /* ── TOP SEARCH BAR ── */
-    .top-bar { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); padding:10px 16px; display:flex; align-items:center; gap:8px; }
-    .tb-text-wrap { position:relative; flex:1; max-width:340px; }
-    .tb-ico { position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--g400); pointer-events:none; }
-    .tb-text { width:100%; padding:8px 10px 8px 30px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; outline:none; font-family:inherit; transition:border-color .15s; }
-    .tb-text:focus { border-color:var(--brand); }
-    .vac-toggle { display:flex; border:1.5px solid var(--g200); border-radius:7px; overflow:hidden; }
-    .vac-tab { padding:6px 13px; font-size:11px; font-weight:600; background:white; border:none; cursor:pointer; font-family:inherit; color:var(--g500); transition:all .12s; white-space:nowrap; }
+    /* ── SEARCH FORM ── */
+    .search-form { flex-shrink:0; background:white; border-bottom:2px solid var(--g200); padding:14px 20px; }
+    .sf-row { display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap; }
+    .sf-group { display:flex; flex-direction:column; gap:5px; }
+    .sf-label { font-size:10px; font-weight:800; color:var(--g500); letter-spacing:.06em; text-transform:uppercase; }
+
+    /* ドロップダウン式チェックボックス */
+    .dropdown-wrap { position:relative; }
+    .dropdown-btn { display:flex; align-items:center; gap:6px; padding:8px 12px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; font-family:inherit; background:white; color:var(--g700); cursor:pointer; white-space:nowrap; min-width:130px; transition:border-color .15s; }
+    .dropdown-btn:hover, .dropdown-btn.open { border-color:var(--brand); }
+    .dropdown-btn .arrow { margin-left:auto; font-size:10px; color:var(--g400); transition:transform .15s; }
+    .dropdown-btn.open .arrow { transform:rotate(180deg); }
+    .dropdown-badge { background:var(--brand); color:white; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; }
+    .dropdown-panel { display:none; position:absolute; top:calc(100% + 4px); left:0; background:white; border:1.5px solid var(--g200); border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,.12); z-index:300; min-width:180px; padding:8px 0; }
+    .dropdown-panel.open { display:block; }
+    .dp-item { display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; transition:background .1s; }
+    .dp-item:hover { background:var(--g50); }
+    .dp-item input { width:14px; height:14px; accent-color:var(--brand); cursor:pointer; flex-shrink:0; }
+    .dp-item label { font-size:13px; color:var(--g700); cursor:pointer; }
+    .dp-divider { border:none; border-top:1px solid var(--g100); margin:4px 0; }
+    .dp-all-btn { display:block; width:100%; padding:6px 14px; font-size:11px; color:var(--brand); background:none; border:none; cursor:pointer; font-family:inherit; text-align:left; font-weight:600; }
+
+    /* 金額レンジ */
+    .price-range { display:flex; align-items:center; gap:6px; }
+    .price-sel { padding:8px 10px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; outline:none; font-family:inherit; color:var(--g700); background:white; cursor:pointer; transition:border-color .15s; }
+    .price-sel:focus { border-color:var(--brand); }
+    .price-sep { font-size:12px; color:var(--g400); }
+
+    /* 空室・検索ボタン */
+    .vac-toggle { display:flex; border:1.5px solid var(--g200); border-radius:8px; overflow:hidden; }
+    .vac-tab { padding:8px 14px; font-size:12px; font-weight:600; background:white; border:none; cursor:pointer; font-family:inherit; color:var(--g500); transition:all .12s; white-space:nowrap; }
     .vac-tab.on { background:var(--brand); color:white; }
-    .search-btn { display:flex; align-items:center; gap:5px; padding:8px 18px; background:var(--brand); color:white; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .12s; white-space:nowrap; }
+    .search-btn { display:flex; align-items:center; gap:6px; padding:9px 24px; background:var(--brand); color:white; border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .12s; white-space:nowrap; }
     .search-btn:hover:not(:disabled) { background:var(--brand-d); }
     .search-btn:disabled { background:var(--g400); cursor:not-allowed; }
-    .result-count-bar { margin-left:auto; font-size:12px; color:var(--g500); white-space:nowrap; }
-    .tb-sel { padding:7px 10px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; outline:none; font-family:inherit; color:var(--g700); background:white; cursor:pointer; transition:border-color .15s; }
-    .tb-sel:focus { border-color:var(--brand); }
+    .result-count-bar { font-size:12px; color:var(--g500); white-space:nowrap; padding:8px 0; }
+
     .spinner { display:inline-block; width:12px; height:12px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
@@ -152,33 +174,98 @@
   </div>
 </header>
 
-<!-- TOP SEARCH BAR -->
-<div class="top-bar">
-  <select class="tb-sel" id="q-area-main">
-    <option value="">エリアを選択</option>
-    <option value="庄内">庄内</option>
-    <option value="服部">服部</option>
-    <option value="曽根">曽根</option>
-    <option value="岡町">岡町</option>
-    <option value="蛍池">蛍池</option>
-    <option value="刀根山">刀根山</option>
-    <option value="千里">千里</option>
-    <option value="少路">少路</option>
-    <option value="豊中">豊中</option>
-  </select>
-  <select class="tb-sel" id="q-price">
-    <option value="">月額利用料（上限）</option>
-    <option value="10">〜10万円</option>
-    <option value="15">〜15万円</option>
-    <option value="20">〜20万円</option>
-    <option value="25">〜25万円</option>
-    <option value="30">〜30万円</option>
-  </select>
-  <div class="vac-toggle">
-    <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
-    <button class="vac-tab" onclick="setVac('ok',this)">空きあり</button>
+<!-- SEARCH FORM -->
+<div class="search-form">
+  <div class="sf-row">
+
+    <!-- 都道府県 -->
+    <div class="sf-group">
+      <span class="sf-label">都道府県</span>
+      <div class="dropdown-wrap" id="dw-pref">
+        <button class="dropdown-btn" id="db-pref" onclick="toggleDropdown('pref');event.stopPropagation()">
+          <span id="dl-pref">大阪府</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="dropdown-panel" id="dp-pref">
+          <button class="dp-all-btn" onclick="toggleAllDp('pref',true);event.stopPropagation()">全選択</button>
+          <button class="dp-all-btn" onclick="toggleAllDp('pref',false);event.stopPropagation()">全解除</button>
+          <hr class="dp-divider">
+          <label class="dp-item"><input type="checkbox" name="pref" value="大阪府" checked onchange="updateDropdownLabel('pref','dl-pref','都道府県')"><span>大阪府</span></label>
+          <label class="dp-item"><input type="checkbox" name="pref" value="兵庫県" onchange="updateDropdownLabel('pref','dl-pref','都道府県')"><span>兵庫県</span></label>
+          <label class="dp-item"><input type="checkbox" name="pref" value="京都府" onchange="updateDropdownLabel('pref','dl-pref','都道府県')"><span>京都府</span></label>
+          <label class="dp-item"><input type="checkbox" name="pref" value="奈良県" onchange="updateDropdownLabel('pref','dl-pref','都道府県')"><span>奈良県</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 市町村 -->
+    <div class="sf-group">
+      <span class="sf-label">市町村</span>
+      <input class="price-sel" id="q-city" type="text" placeholder="例：豊中市" style="min-width:130px">
+    </div>
+
+    <!-- エリア -->
+    <div class="sf-group">
+      <span class="sf-label">エリア</span>
+      <div class="dropdown-wrap" id="dw-area-dp">
+        <button class="dropdown-btn" id="db-area-dp" onclick="toggleDropdown('area-dp');event.stopPropagation()">
+          <span id="dl-area-dp">すべて</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="dropdown-panel" id="dp-area-dp">
+          <button class="dp-all-btn" onclick="toggleAllDp('area-dp',true);event.stopPropagation()">全選択</button>
+          <button class="dp-all-btn" onclick="toggleAllDp('area-dp',false);event.stopPropagation()">全解除</button>
+          <hr class="dp-divider">
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="庄内" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>庄内</span></label>
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="服部" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>服部</span></label>
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="曽根" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>曽根</span></label>
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="岡町" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>岡町</span></label>
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="蛍池" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>蛍池</span></label>
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="刀根山" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>刀根山</span></label>
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="千里" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>千里</span></label>
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="少路" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>少路</span></label>
+          <label class="dp-item"><input type="checkbox" name="area-dp" value="豊中" onchange="updateDropdownLabel('area-dp','dl-area-dp','エリア')"><span>豊中</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 月額 -->
+    <div class="sf-group">
+      <span class="sf-label">月額（万円）</span>
+      <div class="price-range">
+        <select class="price-sel" id="q-price-min">
+          <option value="">下限なし</option>
+          <option value="5">5万〜</option>
+          <option value="10">10万〜</option>
+          <option value="15">15万〜</option>
+          <option value="20">20万〜</option>
+          <option value="25">25万〜</option>
+        </select>
+        <span class="price-sep">〜</span>
+        <select class="price-sel" id="q-price-max">
+          <option value="">上限なし</option>
+          <option value="10">10万以下</option>
+          <option value="15">15万以下</option>
+          <option value="20">20万以下</option>
+          <option value="25">25万以下</option>
+          <option value="30">30万以下</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 空室 -->
+    <div class="sf-group">
+      <span class="sf-label">空室状況</span>
+      <div class="vac-toggle">
+        <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
+        <button class="vac-tab" onclick="setVac('ok',this)">空きあり</button>
+      </div>
+    </div>
+
+    <!-- 検索ボタン -->
+    <button class="search-btn" id="search-btn" onclick="doSearch()">🔍 検索</button>
+
   </div>
-  <button class="search-btn" id="search-btn" onclick="doSearch()">🔍 検索</button>
   <div class="result-count-bar" id="count-bar"></div>
 </div>
 
@@ -368,24 +455,16 @@ async function doSearch() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> 検索中';
 
-  // 上部エリア選択 → サイドバーのチェックと統合
-  const areaMain = document.getElementById('q-area-main').value;
-  if (areaMain) {
-    document.querySelectorAll('input[name="area"]').forEach(cb => {
-      cb.checked = cb.value === areaMain;
-    });
-  }
-  const areas = getChecked('area');
+  const areas = getChecked('area-dp');
 
   try {
     let query = db.collection('facilities');
     if (areas.length > 0 && areas.length <= 10) {
       query = query.where('area', 'in', areas);
     }
-    // orderByはクライアント側でソート（複合インデックス不要）
     const snap = await query.get();
     DATA = snap.docs.map(mapDoc);
-    DATA.sort((a, b) => a.daysAgo - b.daysAgo); // 更新が新しい順
+    DATA.sort((a, b) => a.daysAgo - b.daysAgo);
     liveFilter();
   } catch(e) {
     document.getElementById('main').innerHTML =
@@ -399,13 +478,15 @@ async function doSearch() {
 // ─── サイドバー操作でリアルタイム絞り込み ────────────────
 function liveFilter() {
   if (!DATA.length) return;
-  const areas   = getChecked('area');
-  const types   = getChecked('type');
+  const areas    = getChecked('area');
+  const types    = getChecked('type');
+  const prefs    = getChecked('pref');
   const seikatsu = document.getElementById('cond-seikatsu').value;
   const mimon    = document.getElementById('cond-mimon').value;
   const kaigo    = document.getElementById('cond-kaigo').value;
-
-  const priceMax = parseInt(document.getElementById('q-price').value || '0');
+  const city     = document.getElementById('q-city').value.trim().toLowerCase();
+  const priceMin = parseInt(document.getElementById('q-price-min').value || '0');
+  const priceMax = parseInt(document.getElementById('q-price-max').value || '0');
 
   const list = DATA.filter(f => {
     if (areas.length && !areas.includes(f.area)) return false;
@@ -415,6 +496,9 @@ function liveFilter() {
     if (seikatsu && f.seikatsuHogo !== seikatsu) return false;
     if (mimon    && f.mimonHosho   !== mimon)    return false;
     if (kaigo    && f.kaigoNintei  !== kaigo)    return false;
+    if (city && !f.addr.toLowerCase().includes(city)) return false;
+    if (prefs.length && !prefs.some(p => f.addr.includes(p))) return false;
+    if (priceMin && f.monthlyFee && f.monthlyFee < priceMin) return false;
     if (priceMax && f.monthlyFee && f.monthlyFee > priceMax) return false;
     return true;
   });
@@ -542,6 +626,43 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('on');
   setTimeout(() => t.classList.remove('on'), 3000);
 }
+
+// ─── ドロップダウン操作 ───────────────────────────────────
+const DP_LABEL_MAP = {
+  'pref':    ['dl-pref',    '都道府県'],
+  'area-dp': ['dl-area-dp', 'エリア'],
+};
+
+function toggleDropdown(id) {
+  const panel  = document.getElementById('dp-' + id);
+  const btn    = document.getElementById('db-' + id);
+  const isOpen = panel.classList.contains('open');
+  document.querySelectorAll('.dropdown-panel.open').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.dropdown-btn.open').forEach(b => b.classList.remove('open'));
+  if (!isOpen) { panel.classList.add('open'); btn.classList.add('open'); }
+}
+
+function updateDropdownLabel(name, labelId, placeholder) {
+  const checked = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+  const el = document.getElementById(labelId);
+  if (!el) return;
+  if (checked.length === 0)      el.textContent = placeholder + 'を選択';
+  else if (checked.length === 1) el.textContent = checked[0];
+  else el.innerHTML = `${checked[0]} <span class="dropdown-badge">+${checked.length - 1}</span>`;
+}
+
+function toggleAllDp(name, checked) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(cb => cb.checked = checked);
+  const info = DP_LABEL_MAP[name];
+  if (info) updateDropdownLabel(name, info[0], info[1]);
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown-wrap')) {
+    document.querySelectorAll('.dropdown-panel.open').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.dropdown-btn.open').forEach(b => b.classList.remove('open'));
+  }
+});
 </script>
 </body>
 </html>
