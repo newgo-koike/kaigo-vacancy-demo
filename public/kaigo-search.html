@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>介護施設 空き状況検索</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
@@ -17,13 +20,13 @@
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html,body { height:100%; }
-    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; visibility:hidden; }
+    body { font-family:'Noto Sans JP',-apple-system,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; visibility:hidden; }
 
     /* HEADER */
     .hdr { flex-shrink:0; background:var(--g900); height:52px; padding:0 16px; display:flex; align-items:center; gap:10px; z-index:200; }
     .hdr-logo { width:28px; height:28px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
-    .hdr-title { font-size:14px; font-weight:800; color:white; }
-    .hdr-sub { font-size:10px; color:var(--g400); }
+    .hdr-title { font-size:14px; font-weight:700; color:white; letter-spacing:.04em; }
+    .hdr-sub { font-size:10px; color:var(--g400); letter-spacing:.06em; }
     .hdr-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
     .hdr-user { font-size:11px; color:var(--g400); }
     .hdr-logout { background:transparent; border:1px solid var(--g600); color:var(--g400); font-size:11px; padding:4px 10px; border-radius:6px; cursor:pointer; font-family:inherit; }
@@ -35,13 +38,16 @@
     /* LEFT SIDEBAR */
     .sidebar { width:240px; min-width:240px; background:white; border-right:1px solid var(--g200); overflow-y:auto; flex-shrink:0; }
 
+    /* TAG SIDEBAR（2列目） */
+    .tag-sidebar { width:210px; min-width:210px; background:var(--g50); border-right:1px solid var(--g200); overflow-y:auto; flex-shrink:0; padding:12px; }
+
     .sb-search-btn { margin:14px 14px 0; width:calc(100% - 28px); padding:11px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .12s; box-shadow:0 3px 10px rgba(13,148,136,.25); display:flex; align-items:center; justify-content:center; gap:6px; }
     .sb-search-btn:hover:not(:disabled) { background:var(--brand-d); }
     .sb-search-btn:disabled { background:var(--g400); cursor:not-allowed; box-shadow:none; }
 
     .sb-sec { border-bottom:1px solid var(--g100); padding:14px 14px 12px; }
     .sb-sec-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-    .sb-sec-title { font-size:11px; font-weight:800; color:var(--g600); letter-spacing:.04em; }
+    .sb-sec-title { font-size:11px; font-weight:700; color:var(--g500); letter-spacing:.08em; text-transform:none; }
     .sb-clear { font-size:10px; color:var(--brand); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; }
 
     /* フォームコントロール */
@@ -93,73 +99,71 @@
 
     /* ソートバー */
     .sort-bar { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); padding:10px 16px; display:flex; align-items:center; gap:10px; }
-    .result-count { font-size:13px; color:var(--g600); }
-    .result-count strong { color:var(--ok); font-weight:800; }
+    .result-count { font-size:13px; color:var(--g600); font-weight:400; }
+    .result-count strong { color:var(--ok); font-weight:700; }
     .sort-label { font-size:12px; color:var(--g500); margin-left:auto; white-space:nowrap; }
     .sort-sel { padding:5px 8px; border:1.5px solid var(--g200); border-radius:7px; font-size:12px; outline:none; font-family:inherit; color:var(--g700); background:white; cursor:pointer; }
     .sort-sel:focus { border-color:var(--brand); }
 
-    /* カードグリッド */
+    /* カードリスト */
     .cards-area { flex:1; padding:14px; }
-    .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:12px; }
+    .cards-grid { display:flex; flex-direction:column; gap:8px; }
 
-    /* 施設カード */
-    .fcard { background:white; border-radius:12px; border:1px solid var(--g200); overflow:hidden; cursor:pointer; transition:box-shadow .15s, transform .12s; }
-    .fcard:hover { box-shadow:0 4px 16px rgba(0,0,0,.1); transform:translateY(-2px); }
+    /* 施設カード（横長リスト） */
+    .fcard { background:white; border-radius:12px; border:1px solid var(--g200); overflow:hidden; cursor:pointer; transition:box-shadow .15s; display:flex; min-height:110px; }
+    .fcard:hover { box-shadow:0 6px 20px rgba(0,0,0,.1); }
 
-    .fc-photo { height:100px; background:linear-gradient(135deg,var(--g700),var(--g900)); position:relative; overflow:hidden; }
+    /* 写真 */
+    .fc-photo { width:130px; min-width:130px; background:linear-gradient(135deg,var(--g700),var(--g900)); position:relative; overflow:hidden; flex-shrink:0; }
     .fc-photo img { width:100%; height:100%; object-fit:cover; }
-    .fc-photo-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,20,40,.75) 0%,transparent 55%); }
-    .fc-photo-type { position:absolute; top:8px; left:10px; background:rgba(10,20,40,.6); backdrop-filter:blur(6px); color:white; font-size:9px; padding:2px 8px; border-radius:20px; font-weight:700; }
-    .fc-photo-plan { position:absolute; top:8px; right:10px; background:var(--brand); color:white; font-size:9px; padding:2px 8px; border-radius:20px; font-weight:700; }
-    .fc-photo-name { position:absolute; bottom:8px; left:10px; right:10px; color:white; font-size:14px; font-weight:800; line-height:1.3; }
+    .fc-photo-plan { position:absolute; bottom:6px; left:6px; background:var(--brand); color:white; font-size:9px; padding:2px 6px; border-radius:10px; font-weight:700; }
 
-    .fc-body { padding:11px; }
-    .fc-meta { display:flex; align-items:center; gap:5px; margin-bottom:8px; flex-wrap:wrap; }
-    .fc-tag { font-size:10px; color:var(--g500); }
-    .fc-station { font-size:10px; color:var(--g400); }
-
-    /* 費用表示（2パネル：入居時費用 | 月額費用） */
-    .fc-fee { background:#f0fdf9; border:1px solid #b2f5e8; border-radius:8px; padding:8px; margin-bottom:8px; }
-    .fc-fee-panels { display:flex; gap:5px; margin-bottom:5px; }
-    .fc-fee-init { flex:0 0 80px; background:white; border-radius:6px; padding:7px 6px; text-align:center; border:1px solid #d1fae5; }
-    .fc-fee-monthly { flex:1; background:white; border-radius:6px; padding:7px 8px; border:1px solid #d1fae5; }
-    .fc-fee-panel-lbl { font-size:9px; color:var(--g500); margin-bottom:3px; }
-    .fc-fee-amt { font-size:18px; font-weight:900; color:var(--amber); line-height:1.1; }
-    .fc-fee-amt-mn { font-size:10px; font-weight:400; color:var(--g500); }
-    .fc-fee-monthly-ttl { display:flex; align-items:baseline; gap:3px; margin-bottom:4px; }
-    .fc-fee-monthly-lbl { font-size:9px; color:var(--g500); }
-    .fc-fee-monthly-val { font-size:16px; font-weight:900; color:var(--amber); }
-    .fc-fee-items { display:flex; gap:3px; }
-    .fc-fee-item { flex:1; background:var(--g50); border-radius:4px; padding:3px 2px; text-align:center; }
-    .fc-fee-item-lbl { font-size:8px; color:var(--g400); line-height:1.3; }
-    .fc-fee-item-val { font-size:11px; font-weight:700; color:var(--ok); }
-    .fc-fee-item-mn { font-size:8px; color:var(--g400); }
-    .fc-fee-extra { font-size:9px; color:var(--g400); line-height:1.4; }
-
-    /* 空室バー */
-    .fc-vac { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; margin-bottom:8px; }
-    .fc-vac.ok   { background:var(--ok-bg); }
-    .fc-vac.few  { background:var(--few-bg); }
-    .fc-vac.full { background:var(--full-bg); }
-    .fc-vnum { font-size:22px; font-weight:900; line-height:1; letter-spacing:-1px; }
-    .fc-vac.ok   .fc-vnum { color:var(--ok); }
-    .fc-vac.few  .fc-vnum { color:var(--few); }
-    .fc-vac.full .fc-vnum { color:var(--full-c); }
-    .fc-vinfo { flex:1; }
-    .fc-vstatus { font-size:12px; font-weight:700; }
-    .fc-vac.ok   .fc-vstatus { color:var(--ok); }
-    .fc-vac.few  .fc-vstatus { color:var(--few); }
-    .fc-vac.full .fc-vstatus { color:var(--full-c); }
-    .fc-vupdated { font-size:10px; color:var(--g400); margin-top:1px; }
-    .fc-stale { color:#ef4444; font-weight:600; }
-
-    /* 入居条件バッジ */
+    /* 施設情報 */
+    .fc-info { flex:1; padding:12px 14px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+    .fc-name-row { display:flex; align-items:center; gap:7px; margin-bottom:5px; flex-wrap:wrap; }
+    .fc-type-badge { font-size:10px; background:var(--g100); color:var(--g600); padding:2px 7px; border-radius:4px; font-weight:700; white-space:nowrap; flex-shrink:0; }
+    .fc-name { font-size:15px; font-weight:700; color:var(--g900); letter-spacing:.01em; }
+    .fc-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+    .fc-tag { font-size:11px; color:var(--g500); }
     .fc-conds { display:flex; flex-wrap:wrap; gap:4px; }
     .fc-cond { font-size:10px; padding:2px 7px; border-radius:4px; font-weight:600; }
     .cond-ok  { background:var(--ok-bg);   color:var(--ok); }
     .cond-sou { background:var(--amber-bg); color:var(--amber); }
     .cond-ng  { background:var(--full-bg);  color:var(--full-c); }
+
+    /* 費用カラム */
+    .fc-fee-col { width:230px; min-width:230px; border-left:1px solid var(--g100); padding:10px 12px; display:flex; flex-direction:column; justify-content:center; background:#f9fffe; }
+    .fc-fee-panels { display:flex; gap:5px; margin-bottom:5px; }
+    .fc-fee-init { flex:0 0 76px; background:white; border-radius:6px; padding:6px; text-align:center; border:1px solid #d1fae5; }
+    .fc-fee-monthly { flex:1; background:white; border-radius:6px; padding:6px 8px; border:1px solid #d1fae5; }
+    .fc-fee-panel-lbl { font-size:9px; color:var(--g500); margin-bottom:2px; }
+    .fc-fee-amt { font-size:16px; font-weight:700; color:var(--amber); line-height:1.1; letter-spacing:-.3px; }
+    .fc-fee-amt-mn { font-size:9px; font-weight:400; color:var(--g500); }
+    .fc-fee-monthly-ttl { display:flex; align-items:baseline; gap:3px; margin-bottom:4px; }
+    .fc-fee-monthly-lbl { font-size:9px; color:var(--g500); letter-spacing:.04em; }
+    .fc-fee-monthly-val { font-size:15px; font-weight:700; color:var(--amber); letter-spacing:-.3px; }
+    .fc-fee-items { display:flex; gap:3px; }
+    .fc-fee-item { flex:1; background:var(--g50); border-radius:4px; padding:3px 2px; text-align:center; }
+    .fc-fee-item-lbl { font-size:8px; color:var(--g400); line-height:1.3; }
+    .fc-fee-item-val { font-size:11px; font-weight:700; color:var(--ok); }
+    .fc-fee-item-mn { font-size:8px; color:var(--g400); }
+    .fc-fee-extra { font-size:9px; color:var(--g400); }
+
+    /* 空室カラム */
+    .fc-vac-col { width:88px; min-width:88px; border-left:1px solid var(--g100); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 8px; text-align:center; }
+    .fc-vac-col.ok   { background:var(--ok-bg); }
+    .fc-vac-col.few  { background:var(--few-bg); }
+    .fc-vac-col.full { background:var(--full-bg); }
+    .fc-vnum { font-size:28px; font-weight:900; line-height:1; letter-spacing:-.5px; }
+    .fc-vac-col.ok   .fc-vnum { color:var(--ok); }
+    .fc-vac-col.few  .fc-vnum { color:var(--few); }
+    .fc-vac-col.full .fc-vnum { color:var(--full-c); }
+    .fc-vstatus { font-size:10px; font-weight:500; margin-top:4px; letter-spacing:.03em; }
+    .fc-vac-col.ok   .fc-vstatus { color:var(--ok); }
+    .fc-vac-col.few  .fc-vstatus { color:var(--few); }
+    .fc-vac-col.full .fc-vstatus { color:var(--full-c); }
+    .fc-vupdated { font-size:9px; color:var(--g400); margin-top:5px; line-height:1.4; }
+    .fc-stale { color:#ef4444; font-weight:600; }
 
     /* 初期・空状態 */
     .state-box { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; text-align:center; color:var(--g400); }
@@ -181,7 +185,6 @@
   <div class="hdr-logo">🏥</div>
   <div>
     <div class="hdr-title">介護施設 空き状況検索</div>
-    <div class="hdr-sub">ソーシャルワーカー・ケアマネ専用</div>
   </div>
   <div class="hdr-right">
     <button class="hdr-logout" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
@@ -314,18 +317,18 @@
       </div>
     </div>
 
-    <!-- タグ -->
-    <div class="sb-sec">
-      <div class="sb-sec-hd">
-        <span class="sb-sec-title">こだわり・タグ</span>
-        <button class="sb-clear" onclick="clearTags()">クリア</button>
-      </div>
-      <div class="tag-sec-lbl">こだわり・特徴</div>
-      <div class="tag-bar" id="tag-bar-feature"></div>
-      <div class="tag-sec-lbl">看護・医療体制</div>
-      <div class="tag-bar" id="tag-bar-medical"></div>
-    </div>
+  </div>
 
+  <!-- タグ 2列目 -->
+  <div class="tag-sidebar">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span class="sb-sec-title">こだわり・タグ</span>
+      <button class="sb-clear" onclick="clearTags()">クリア</button>
+    </div>
+    <div class="tag-sec-lbl">こだわり・特徴</div>
+    <div class="tag-bar" id="tag-bar-feature"></div>
+    <div class="tag-sec-lbl" style="margin-top:12px">看護・医療体制</div>
+    <div class="tag-bar" id="tag-bar-medical"></div>
   </div>
 
   <!-- メインコンテンツ -->
@@ -589,48 +592,6 @@ function renderCards(list) {
   area.innerHTML = `<div class="cards-grid">${list.map(cardHTML).join('')}</div>`;
 }
 
-function feeHTML(f) {
-  if (f.monthlyTotal == null && !f.initialFee && f.initialFeeAmount == null) return '';
-
-  // 入居時費用パネル
-  const initAmt = f.initialFee
-    ? (f.initialFeeAmount != null ? f.initialFeeAmount : '要確認')
-    : '0';
-  const initPanel = `<div class="fc-fee-init">
-    <div class="fc-fee-panel-lbl">入居時費用</div>
-    <div class="fc-fee-amt">${initAmt}<span class="fc-fee-amt-mn">万円</span></div>
-  </div>`;
-
-  // 月額費用パネル
-  const items = [
-    {lbl:'賃料',   val:f.rent},
-    {lbl:'管理費', val:f.mgmt},
-    {lbl:'食費',   val:f.meal},
-    {lbl:'その他', val:f.other},
-  ].filter(i => i.val != null);
-
-  const itemsHTML = items.map(i =>
-    `<div class="fc-fee-item">
-      <div class="fc-fee-item-lbl">${i.lbl}</div>
-      <div class="fc-fee-item-val">${i.val}<span class="fc-fee-item-mn">万</span></div>
-    </div>`
-  ).join('');
-
-  const monthlyPanel = f.monthlyTotal != null ? `<div class="fc-fee-monthly">
-    <div class="fc-fee-monthly-ttl">
-      <span class="fc-fee-monthly-lbl">月額費用</span>
-      <span class="fc-fee-monthly-val">${f.monthlyTotal}</span>
-      <span class="fc-fee-amt-mn">万円</span>
-    </div>
-    ${itemsHTML ? `<div class="fc-fee-items">${itemsHTML}</div>` : ''}
-  </div>` : '';
-
-  return `<div class="fc-fee">
-    <div class="fc-fee-panels">${initPanel}${monthlyPanel}</div>
-    <div class="fc-fee-extra">【別途】介護保険自己負担分・おむつ代・消耗品代など</div>
-  </div>`;
-}
-
 function condBadge(label, val, okVal) {
   if (!val) return '';
   const cls = val === okVal ? 'cond-ok' : val === '相談可' ? 'cond-sou' : 'cond-ng';
@@ -641,6 +602,7 @@ function cardHTML(f) {
   const vacCls   = f.vacancy === 0 ? 'full' : f.vacancy <= 2 ? 'few' : 'ok';
   const vacLabel = f.vacancy === 0 ? '満室' : f.vacancy <= 2 ? `残り${f.vacancy}室` : `${f.vacancy}室空き`;
   const staleClass = f.daysAgo > 14 ? 'fc-stale' : '';
+
   const condBadges = [
     condBadge('生活保護', f.seikatsuHogo, '可'),
     condBadge('身元保証', f.mimonHosho,   '可'),
@@ -652,25 +614,55 @@ function cardHTML(f) {
     f.station ? `🚉 ${f.station}` : '',
   ].filter(Boolean);
 
+  // 費用カラム
+  const initAmt = f.initialFee
+    ? (f.initialFeeAmount != null ? f.initialFeeAmount : '─')
+    : '0';
+  const feeItems = [
+    {lbl:'賃料',   val:f.rent},
+    {lbl:'管理費', val:f.mgmt},
+    {lbl:'食費',   val:f.meal},
+    {lbl:'その他', val:f.other},
+  ].filter(i => i.val != null);
+  const feeItemsHTML = feeItems.map(i =>
+    `<div class="fc-fee-item"><div class="fc-fee-item-lbl">${i.lbl}</div><div class="fc-fee-item-val">${i.val}<span class="fc-fee-item-mn">万</span></div></div>`
+  ).join('');
+  const feeCol = `<div class="fc-fee-col">
+    <div class="fc-fee-panels">
+      <div class="fc-fee-init">
+        <div class="fc-fee-panel-lbl">入居時費用</div>
+        <div class="fc-fee-amt">${initAmt}<span class="fc-fee-amt-mn">万円</span></div>
+      </div>
+      <div class="fc-fee-monthly">
+        <div class="fc-fee-monthly-ttl">
+          <span class="fc-fee-monthly-lbl">月額費用</span>
+          <span class="fc-fee-monthly-val">${f.monthlyTotal ?? '─'}</span>
+          <span class="fc-fee-amt-mn">万円</span>
+        </div>
+        ${feeItemsHTML ? `<div class="fc-fee-items">${feeItemsHTML}</div>` : ''}
+      </div>
+    </div>
+    <div class="fc-fee-extra">【別途】介護保険自己負担分・おむつ代など</div>
+  </div>`;
+
   return `<div class="fcard" onclick="location.href='kaigo-facility-view.html?id=${f.id}'">
     <div class="fc-photo">
       ${f.photoUrl ? `<img src="${f.photoUrl}" alt="${f.name}" loading="lazy">` : ''}
-      <div class="fc-photo-grad"></div>
-      <div class="fc-photo-type">${f.type}</div>
-      ${f.plan !== 'free' ? '<div class="fc-photo-plan">✓ 問合せ可</div>' : ''}
-      <div class="fc-photo-name">${f.name}</div>
+      ${f.plan !== 'free' ? '<div class="fc-photo-plan">✓ 問合可</div>' : ''}
     </div>
-    <div class="fc-body">
-      ${locationTags.length ? `<div class="fc-meta">${locationTags.map(t=>`<span class="fc-tag">${t}</span>`).join('')}</div>` : ''}
-      ${feeHTML(f)}
-      <div class="fc-vac ${vacCls}">
-        <div class="fc-vnum">${f.vacancy === 0 ? '─' : f.vacancy}</div>
-        <div class="fc-vinfo">
-          <div class="fc-vstatus">${vacLabel}</div>
-          <div class="fc-vupdated ${staleClass}">更新：${f.updated}${f.daysAgo > 14 ? ' ⚠️' : ''}</div>
-        </div>
+    <div class="fc-info">
+      <div class="fc-name-row">
+        <span class="fc-type-badge">${f.type}</span>
+        <span class="fc-name">${f.name}</span>
       </div>
+      ${locationTags.length ? `<div class="fc-meta">${locationTags.map(t=>`<span class="fc-tag">${t}</span>`).join('')}</div>` : ''}
       ${condBadges ? `<div class="fc-conds">${condBadges}</div>` : ''}
+    </div>
+    ${feeCol}
+    <div class="fc-vac-col ${vacCls}">
+      <div class="fc-vnum">${f.vacancy === 0 ? '─' : f.vacancy}</div>
+      <div class="fc-vstatus">${vacLabel}</div>
+      <div class="fc-vupdated ${staleClass}">更新<br>${f.updated}${f.daysAgo > 14 ? '<br>⚠️' : ''}</div>
     </div>
   </div>`;
 }
