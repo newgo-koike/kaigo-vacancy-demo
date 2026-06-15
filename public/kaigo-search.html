@@ -41,6 +41,8 @@
     .search-btn:hover:not(:disabled) { background:var(--brand-d); }
     .search-btn:disabled { background:var(--g400); cursor:not-allowed; }
     .result-count-bar { margin-left:auto; font-size:12px; color:var(--g500); white-space:nowrap; }
+    .tb-sel { padding:7px 10px; border:1.5px solid var(--g200); border-radius:8px; font-size:13px; outline:none; font-family:inherit; color:var(--g700); background:white; cursor:pointer; transition:border-color .15s; }
+    .tb-sel:focus { border-color:var(--brand); }
     .spinner { display:inline-block; width:12px; height:12px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
@@ -152,10 +154,26 @@
 
 <!-- TOP SEARCH BAR -->
 <div class="top-bar">
-  <div class="tb-text-wrap">
-    <span class="tb-ico">🔍</span>
-    <input class="tb-text" id="q" type="text" placeholder="施設名・駅名で検索" onkeydown="if(event.key==='Enter')doSearch()">
-  </div>
+  <select class="tb-sel" id="q-area-main">
+    <option value="">エリアを選択</option>
+    <option value="庄内">庄内</option>
+    <option value="服部">服部</option>
+    <option value="曽根">曽根</option>
+    <option value="岡町">岡町</option>
+    <option value="蛍池">蛍池</option>
+    <option value="刀根山">刀根山</option>
+    <option value="千里">千里</option>
+    <option value="少路">少路</option>
+    <option value="豊中">豊中</option>
+  </select>
+  <select class="tb-sel" id="q-price">
+    <option value="">月額利用料（上限）</option>
+    <option value="10">〜10万円</option>
+    <option value="15">〜15万円</option>
+    <option value="20">〜20万円</option>
+    <option value="25">〜25万円</option>
+    <option value="30">〜30万円</option>
+  </select>
   <div class="vac-toggle">
     <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
     <button class="vac-tab" onclick="setVac('ok',this)">空きあり</button>
@@ -350,6 +368,13 @@ async function doSearch() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> 検索中';
 
+  // 上部エリア選択 → サイドバーのチェックと統合
+  const areaMain = document.getElementById('q-area-main').value;
+  if (areaMain) {
+    document.querySelectorAll('input[name="area"]').forEach(cb => {
+      cb.checked = cb.value === areaMain;
+    });
+  }
   const areas = getChecked('area');
 
   try {
@@ -357,8 +382,10 @@ async function doSearch() {
     if (areas.length > 0 && areas.length <= 10) {
       query = query.where('area', 'in', areas);
     }
-    const snap = await query.orderBy('updatedAt','desc').get();
+    // orderByはクライアント側でソート（複合インデックス不要）
+    const snap = await query.get();
     DATA = snap.docs.map(mapDoc);
+    DATA.sort((a, b) => a.daysAgo - b.daysAgo); // 更新が新しい順
     liveFilter();
   } catch(e) {
     document.getElementById('main').innerHTML =
@@ -380,6 +407,8 @@ function liveFilter() {
   const mimon    = document.getElementById('cond-mimon').value;
   const kaigo    = document.getElementById('cond-kaigo').value;
 
+  const priceMax = parseInt(document.getElementById('q-price').value || '0');
+
   const list = DATA.filter(f => {
     if (areas.length && !areas.includes(f.area)) return false;
     if (types.length && !types.includes(f.type)) return false;
@@ -389,6 +418,7 @@ function liveFilter() {
     if (seikatsu && f.seikatsuHogo !== seikatsu) return false;
     if (mimon    && f.mimonHosho   !== mimon)    return false;
     if (kaigo    && f.kaigoNintei  !== kaigo)    return false;
+    if (priceMax && f.monthlyFee && f.monthlyFee > priceMax) return false;
     return true;
   });
 
@@ -414,6 +444,7 @@ function mapDoc(doc) {
     mimonHosho: d.mimonHosho || '',
     kaigoNintei: d.kaigoNintei || '',
     plan: d.plan || 'free',
+    monthlyFee: d.monthlyFee || null, // 万円単位
     updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
     daysAgo,
     photoUrl: d.photoUrl || null,
