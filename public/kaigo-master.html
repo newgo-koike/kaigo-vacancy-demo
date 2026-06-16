@@ -283,12 +283,43 @@
 
 <!-- 検索履歴タブ -->
 <div id="panel-history" class="hidden flex-1 overflow-y-auto p-6">
-  <div class="max-w-3xl mx-auto">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
-      <div class="text-4xl mb-3">📋</div>
-      <div class="text-base font-bold text-slate-600 mb-2">検索履歴機能は準備中です</div>
-      <div class="text-sm text-slate-400">ユーザーの検索行動ログをFirestoreに保存し<br>ここで確認できるようにする予定です</div>
+  <div class="max-w-4xl mx-auto space-y-5">
+
+    <!-- サマリー -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center">
+        <div class="text-3xl font-black text-slate-800" id="log-total">─</div>
+        <div class="text-xs text-slate-400 mt-1">総検索回数</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center">
+        <div class="text-3xl font-black text-teal-600" id="log-users">─</div>
+        <div class="text-xs text-slate-400 mt-1">ユニークユーザー数</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center">
+        <div class="text-3xl font-black text-amber-500" id="log-today">─</div>
+        <div class="text-xs text-slate-400 mt-1">本日の検索回数</div>
+      </div>
     </div>
+
+    <!-- よく使われる条件 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-800">よく使われている検索条件</h2>
+        <button onclick="loadSearchLogs()" class="text-xs text-teal-600 hover:underline">↻ 更新</button>
+      </div>
+      <div id="log-popular" class="space-y-2">
+        <p class="text-sm text-slate-400">読み込み中...</p>
+      </div>
+    </div>
+
+    <!-- 直近の検索履歴 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="text-base font-bold text-slate-800 mb-4">直近の検索履歴（最新50件）</h2>
+      <div id="log-list" class="space-y-2">
+        <p class="text-sm text-slate-400">読み込み中...</p>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -498,6 +529,7 @@ function showToast(msg) {
 // ── タブ切り替え ───────────────────────────────────────────────
 function switchTab(name) {
   if (name === 'users') { loadCorporations(); loadUsers(); loadApplications(); }
+  if (name === 'history') { loadSearchLogs(); }
   ['facilities','users','history'].forEach(t => {
     document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
     document.getElementById(`panel-${t}`).classList.toggle('flex', t === name);
@@ -601,6 +633,93 @@ async function createCorporation() {
     loadCorporations();
   } catch(e) {
     errEl.textContent = e.message; errEl.classList.remove('hidden');
+  }
+}
+
+// ── 検索履歴 ───────────────────────────────────────────────────
+async function loadSearchLogs() {
+  const listEl    = document.getElementById('log-list');
+  const popularEl = document.getElementById('log-popular');
+  listEl.innerHTML = '<p class="text-sm text-slate-400">読み込み中...</p>';
+  popularEl.innerHTML = '<p class="text-sm text-slate-400">集計中...</p>';
+
+  try {
+    const snap = await db.collection('searchLogs').orderBy('searchedAt','desc').limit(50).get();
+    const logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // サマリー
+    document.getElementById('log-total').textContent = snap.size;
+    const uniqueUsers = new Set(logs.map(l => l.uid)).size;
+    document.getElementById('log-users').textContent = uniqueUsers;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayCount = logs.filter(l => l.searchedAt?.toDate() >= today).length;
+    document.getElementById('log-today').textContent = todayCount;
+
+    // よく使われる条件の集計
+    const tagCount = {};
+    const cityCount = {};
+    const typeCount = {};
+    logs.forEach(l => {
+      const c = l.conditions || {};
+      if (c.city) cityCount[c.city] = (cityCount[c.city] || 0) + 1;
+      (c.types || []).forEach(t => { typeCount[t] = (typeCount[t] || 0) + 1; });
+      (c.tags  || []).forEach(t => { tagCount[t]  = (tagCount[t]  || 0) + 1; });
+    });
+    const topCities = Object.entries(cityCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const topTags   = Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+    if (!logs.length) {
+      popularEl.innerHTML = '<p class="text-sm text-slate-400">まだ検索データがありません</p>';
+    } else {
+      popularEl.innerHTML = `
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="text-xs font-bold text-slate-500 mb-2">🏙 よく検索されるエリア</div>
+            ${topCities.length ? topCities.map(([k,v])=>`
+              <div class="flex items-center gap-2 mb-1.5">
+                <div class="h-2 rounded-full bg-teal-400" style="width:${Math.round(v/topCities[0][1]*100)}px;max-width:100px"></div>
+                <span class="text-sm text-slate-700">${k}</span>
+                <span class="text-xs text-slate-400 ml-auto">${v}回</span>
+              </div>`).join('') : '<p class="text-sm text-slate-400">データなし</p>'}
+          </div>
+          <div>
+            <div class="text-xs font-bold text-slate-500 mb-2">🏷 よく選ばれるタグ</div>
+            <div class="flex flex-wrap gap-1.5">
+              ${topTags.map(([k,v])=>`<span class="text-xs px-2 py-1 bg-teal-50 text-teal-700 rounded-full border border-teal-200">${k} <span class="font-bold">${v}</span></span>`).join('')}
+              ${!topTags.length ? '<p class="text-sm text-slate-400">データなし</p>' : ''}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // 直近の一覧
+    if (!logs.length) {
+      listEl.innerHTML = '<p class="text-sm text-slate-400">検索履歴がありません</p>';
+      return;
+    }
+    listEl.innerHTML = logs.map(l => {
+      const c = l.conditions || {};
+      const dateStr = l.searchedAt ? l.searchedAt.toDate().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '─';
+      const condParts = [
+        c.prefecture && c.prefecture,
+        c.city && c.city,
+        c.station && `駅:${c.station}`,
+        c.vacancyFilter === 'ok' && '空室のみ',
+        c.seikatsuHogo && `生活保護:${c.seikatsuHogo}`,
+        c.mimonHosho && `身元保証:${c.mimonHosho}`,
+        (c.tags||[]).slice(0,3).join('・'),
+      ].filter(Boolean).join(' / ');
+      return `<div class="flex items-start gap-3 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 text-sm">
+        <div class="flex-shrink-0 text-xs text-slate-400 mt-0.5 whitespace-nowrap">${dateStr}</div>
+        <div class="flex-1 min-w-0">
+          <span class="font-semibold text-slate-700">${l.userName || l.userEmail || '─'}</span>
+          <span class="text-slate-400 text-xs ml-2">${condParts || '条件なし（全件）'}</span>
+        </div>
+        <span class="text-xs text-slate-400 flex-shrink-0">${l.resultCount ?? '─'}件</span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = `<p class="text-sm text-red-400">⚠️ ${e.message}</p>`;
   }
 }
 

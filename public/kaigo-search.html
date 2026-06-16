@@ -375,6 +375,7 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 const auth = firebase.auth();
+let currentUser = null;
 
 auth.onAuthStateChanged(async user => {
   if (!user) { location.href = 'kaigo-login.html'; return; }
@@ -384,6 +385,7 @@ auth.onAuthStateChanged(async user => {
   if (!['hospital', 'admin'].includes(role)) {
     await auth.signOut(); location.href = 'kaigo-login.html'; return;
   }
+  currentUser = { uid: user.uid, email: user.email, name: uData?.name || '', role };
   if (uData?.name) {
     document.getElementById('hdr-user').textContent = uData.name + ' さん';
   }
@@ -485,6 +487,8 @@ async function doSearch() {
     const snap = await query.get();
     DATA = snap.docs.map(mapDoc);
     applySort();
+    // 検索ログを非同期で保存（失敗しても検索には影響しない）
+    saveSearchLog().catch(() => {});
   } catch(e) {
     document.getElementById('cards-area').innerHTML =
       `<div class="state-box"><div class="state-ico">⚠️</div><div class="state-ttl">読み込みエラー</div><div class="state-sub">${e.message}</div></div>`;
@@ -493,6 +497,46 @@ async function doSearch() {
 
   btn.disabled = false;
   btn.innerHTML = '🔍 この条件で検索';
+}
+
+async function saveSearchLog() {
+  if (!currentUser) return;
+  const city    = document.getElementById('q-city').value;
+  const station = document.getElementById('q-station').value.trim();
+  const pref    = document.getElementById('q-pref').value;
+  const initFee = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
+  const priceMin = document.getElementById('q-price-min').value || '';
+  const priceMax = document.getElementById('q-price-max').value || '';
+  const types   = getChecked('type');
+  const seikatsu = document.getElementById('cond-seikatsu').value;
+  const mimon    = document.getElementById('cond-mimon').value;
+  const kaigo    = document.getElementById('cond-kaigo').value;
+
+  // liveFilter後の表示件数を取得
+  const resultCountEl = document.getElementById('count-bar');
+  const resultCount = parseInt(resultCountEl?.textContent?.match(/\d+/)?.[0] || '0', 10);
+
+  await db.collection('searchLogs').add({
+    uid: currentUser.uid,
+    userName: currentUser.name,
+    userEmail: currentUser.email,
+    searchedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    conditions: {
+      prefecture: pref,
+      city,
+      station,
+      types,
+      initialFee: initFee,
+      priceMin: priceMin ? parseFloat(priceMin) : null,
+      priceMax: priceMax ? parseFloat(priceMax) : null,
+      seikatsuHogo: seikatsu,
+      mimonHosho: mimon,
+      kaigoNintei: kaigo,
+      tags: [...selectedTags],
+      vacancyFilter: activeVac,
+    },
+    resultCount,
+  });
 }
 
 // ── ソート ──────────────────────────────────────────────────

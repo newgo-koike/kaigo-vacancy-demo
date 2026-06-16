@@ -831,6 +831,295 @@
 
 </div>
 
+  <!-- ⑨ 施設データ収集・入力フロー（兵頭さん向け） -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">9</div>
+      <div class="sec-title">施設データの収集・入力フロー（兵頭さん向け）</div>
+    </div>
+
+    <div class="arch-box" style="margin-bottom:16px">
+      <p style="font-size:14px;font-weight:800;color:var(--g800);margin-bottom:12px">📋 兵頭さんが集めてきたデータの流れ</p>
+      <div class="arch-flow">
+        <div class="arch-node">兵頭さんが<br>ヒアリング・収集</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node hl">kaigo-register.html<br><span style="font-size:10px">施設登録・編集画面</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node hl">Firebase Firestore<br><span style="font-size:10px">自動保存</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">kaigo-search.html<br><span style="font-size:10px">即時反映</span></div>
+      </div>
+      <div class="arch-list" style="margin-top:16px">
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>入力先は1か所：</strong>管理者用の施設登録画面（<code>kaigo-register.html</code>）に入力すればFirestoreに保存され、検索画面に即時反映。スプレッドシートへの転記は不要。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>既存施設の編集：</strong>管理者ダッシュボードの「📝 編集」ボタンから直接編集できる。URLに施設IDが入る（例：<code>kaigo-register.html?id=abc1234</code>）。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>大量データの一括登録：</strong>ExcelやスプレッドシートにまとめたデータをCSVに変換してインポートスクリプトで一括登録可能（必要時に随時対応）。</div></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="field-group">
+        <div class="field-group-hd green">施設登録画面（kaigo-register.html）で入力できる項目</div>
+        <div class="field-list">
+          <div class="field-item"><div class="field-name">基本情報</div><div class="field-desc">施設名・施設種別（特養/老健/GH/サ高住/介護付有料/住宅型有料）・都道府県・市区町村・エリア・住所・最寄り駅・距離</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">費用情報</div><div class="field-desc">入居一時金（あり/なし・金額）・家賃・管理費・食費・その他・月額合計（自動計算）</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">入居条件</div><div class="field-desc">生活保護可否・身元保証なし可否・介護認定なし受入（各：可/相談可/不可）</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">連絡先</div><div class="field-desc">担当者名・電話番号・施設HP（有料プランで公開）</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">特徴タグ</div><div class="field-desc">こだわり・特徴44種 ＋ 看護・医療体制31種 から複数選択（チェックボックス）</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">空室情報</div><div class="field-desc">空室数（0=満室）・備考・写真（施設側が更新する部分。登録時に初期値として設定可）</div><div class="field-type">─</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">兵頭さん / Meets Medical 担当者</div>
+      <h3>施設情報を収集→入力する手順</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>ヒアリングシートを印刷して施設訪問</strong><br>マスター管理の「📋 ヒアリング」ボタンでA4印刷用シートを開いて印刷。口頭・手書きでその場に入力してもらう（施設の手間ゼロ）。</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>管理者ダッシュボードで「📝 編集」をクリック</strong><br>該当施設を検索して編集ボタンをクリック。施設登録画面が開く。</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>費用・入居条件・タグを正確に入力</strong><br>ヒアリングシートの内容をそのまま入力。タグはチェックボックスで選ぶだけ。</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>「✅ この内容で更新する」をクリック</strong><br>保存と同時に検索画面へ即時反映される。追加入力はいつでも可能。</div></li>
+      </ol>
+      <div class="manual-note-amber">
+        <strong>費用情報の優先度について：</strong><br>
+        最優先で入力：月額費用合計（家賃＋管理費＋食費）・入居一時金の有無<br>
+        次に入力：内訳（家賃/管理費/食費の明細）・連絡先・施設写真<br>
+        ※費用情報は検索条件の「月額フィルター」に直結するため、最初に埋めると検索の有用性が大きく上がります。
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑩ 3者のユーザーエクスペリエンス -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">10</div>
+      <div class="sec-title">3者のユーザーエクスペリエンス（登録〜日常利用）</div>
+    </div>
+
+    <style>
+      .ux-journey { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+      @media(max-width:900px){ .ux-journey { grid-template-columns:1fr; } }
+      .ux-lane { border-radius:18px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,.07); }
+      .ux-lane-hd { padding:18px 20px; }
+      .ux-lane-hd h3 { font-size:16px; font-weight:800; color:white; margin-bottom:4px; }
+      .ux-lane-hd p { font-size:11px; color:rgba(255,255,255,.75); }
+      .ux-lane.admin .ux-lane-hd { background:linear-gradient(135deg,#92400e,#d97706); }
+      .ux-lane.hospital .ux-lane-hd { background:linear-gradient(135deg,#1e40af,#3b82f6); }
+      .ux-lane.facility .ux-lane-hd { background:linear-gradient(135deg,#065f46,#10b981); }
+      .ux-steps { padding:16px; background:white; display:flex; flex-direction:column; gap:0; }
+      .ux-step { display:flex; gap:12px; }
+      .ux-left { display:flex; flex-direction:column; align-items:center; }
+      .ux-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:white; flex-shrink:0; }
+      .admin .ux-dot { background:#d97706; }
+      .hospital .ux-dot { background:#3b82f6; }
+      .facility .ux-dot { background:#10b981; }
+      .ux-vline { width:2px; background:var(--g100); flex:1; margin:3px 0; min-height:14px; }
+      .ux-content { padding:0 0 14px 0; flex:1; }
+      .ux-title { font-size:13px; font-weight:700; color:var(--g900); }
+      .ux-desc { font-size:11px; color:var(--g500); line-height:1.5; margin-top:2px; }
+      .ux-step:last-child .ux-vline { display:none; }
+      .ux-step:last-child .ux-content { padding-bottom:0; }
+      .ux-freq { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:6px; vertical-align:middle; }
+      .freq-daily { background:#dcfce7; color:#16a34a; }
+      .freq-weekly { background:#dbeafe; color:#1d4ed8; }
+      .freq-once { background:#f1f5f9; color:#64748b; }
+    </style>
+
+    <div class="ux-journey">
+
+      <!-- 管理者 -->
+      <div class="ux-lane admin">
+        <div class="ux-lane-hd">
+          <h3>🔑 管理者（Meets Medical）</h3>
+          <p>兵頭さん・担当スタッフ</p>
+        </div>
+        <div class="ux-steps">
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">1</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">初回セットアップ <span class="ux-freq freq-once">1回</span></div>
+              <div class="ux-desc">Firebaseプロジェクト設定・管理者アカウント作成（既に完了）</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">2</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">施設データ収集・入力 <span class="ux-freq freq-weekly">週次〜随時</span></div>
+              <div class="ux-desc">ヒアリングシートで施設訪問 → kaigo-register.html で費用・タグ・入居条件を入力。訪問するたびに1施設ずつ登録。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">3</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">法人・施設アカウント発行 <span class="ux-freq freq-once">施設獲得時</span></div>
+              <div class="ux-desc">ユーザー管理タブで法人登録 → facilityアカウント作成 → 招待メール送信。施設担当者がパスワード設定でログイン可能に。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">4</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">病院・ケアマネのアカウント承認 <span class="ux-freq freq-weekly">随時</span></div>
+              <div class="ux-desc">申請一覧を確認 → 承認ボタンでアカウント発行 → 招待メール送信。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">5</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">日常モニタリング <span class="ux-freq freq-daily">週1〜2回</span></div>
+              <div class="ux-desc">管理者ダッシュボード：14日以上未更新施設に督促 / 検索履歴タブ：どのエリア・条件が多く検索されているか確認 / 掲載承認・プラン管理。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">6</div></div>
+            <div class="ux-content">
+              <div class="ux-title">有料プラン営業 <span class="ux-freq freq-weekly">随時</span></div>
+              <div class="ux-desc">検索数が多いエリアの施設に絞って有料プラン提案。プランボタン1つで切替。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 病院・ケアマネ -->
+      <div class="ux-lane hospital">
+        <div class="ux-lane-hd">
+          <h3>🏥 病院・ケアマネ（検索ユーザー）</h3>
+          <p>病院MSW・地域ケアマネジャー</p>
+        </div>
+        <div class="ux-steps">
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">1</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">アカウント申請 <span class="ux-freq freq-once">1回</span></div>
+              <div class="ux-desc">kaigo-apply.html で病院名・担当者名・メールアドレスを入力して送信。Meets Medical の承認を待つ（数日以内）。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">2</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">招待メールでパスワード設定 <span class="ux-freq freq-once">1回</span></div>
+              <div class="ux-desc">Firebaseからのメール「パスワードのリセット」が届く → リンクをクリックして自分のパスワードを設定。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">3</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">ログイン → 初回検索条件の設定 <span class="ux-freq freq-once">初回のみ</span></div>
+              <div class="ux-desc">kaigo-login.html からログイン。よく使うエリア・条件を設定して「💾 この条件を保存」をクリック。次回から自動で同じ条件が表示される。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">4</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">日常の施設検索 <span class="ux-freq freq-daily">毎日〜随時</span></div>
+              <div class="ux-desc">ログイン → 前回の条件が自動復元 → 「🔍 この条件で検索」 → 空室状況を確認 → 施設詳細を見て連絡先を取得（有料施設）。退院患者の受け入れ先を素早く特定。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">5</div></div>
+            <div class="ux-content">
+              <div class="ux-title">施設と直接連絡 <span class="ux-freq freq-daily">随時</span></div>
+              <div class="ux-desc">有料プラン施設の詳細ページで担当者名・電話番号を確認して直接問い合わせ。無料施設は施設HPへ誘導。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 介護施設 -->
+      <div class="ux-lane facility">
+        <div class="ux-lane-hd">
+          <h3>🏠 介護施設・法人（更新ユーザー）</h3>
+          <p>施設担当者・法人運営スタッフ</p>
+        </div>
+        <div class="ux-steps">
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">1</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">Meets Medical の訪問を受ける <span class="ux-freq freq-once">1回</span></div>
+              <div class="ux-desc">ヒアリングシートに記入（施設の手間は30分程度）。掲載許可を口頭で承諾。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">2</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">招待メールでログイン設定 <span class="ux-freq freq-once">1回</span></div>
+              <div class="ux-desc">Meets Medical から届く招待メールのリンクをクリック → パスワード設定 → kaigo-facility-login.html からログイン。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">3</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">ダッシュボードで自施設を確認 <span class="ux-freq freq-once">初回のみ</span></div>
+              <div class="ux-desc">ログイン後、法人ダッシュボードに自社の施設一覧が表示される。情報に誤りがあればMeets Medical に連絡。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">4</div><div class="ux-vline"></div></div>
+            <div class="ux-content">
+              <div class="ux-title">空室情報を更新する <span class="ux-freq freq-daily">空室変動時</span></div>
+              <div class="ux-desc">入居・退居があったとき → ダッシュボードで対象施設の「更新」をクリック → 空室数を変更して保存。1分以内で完了。検索画面に即時反映。</div>
+            </div>
+          </div>
+          <div class="ux-step">
+            <div class="ux-left"><div class="ux-dot">5</div></div>
+            <div class="ux-content">
+              <div class="ux-title">有料プランで問い合わせを受ける <span class="ux-freq freq-daily">随時</span></div>
+              <div class="ux-desc">有料プランに移行すると病院・ケアマネから直接電話が来るようになる。空室情報を常に最新に保つことで問い合わせ数が増える。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ⑪ 検索データの蓄積と活用 -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">11</div>
+      <div class="sec-title">検索データの蓄積と活用</div>
+    </div>
+
+    <div class="arch-box" style="margin-bottom:16px">
+      <p style="font-size:13px;font-weight:700;color:var(--g700);margin-bottom:12px">📊 何が記録されるか</p>
+      <div class="arch-list">
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>いつ・誰が：</strong>検索日時・ユーザー名・メールアドレス</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>どのエリアを：</strong>都道府県・市区町村・駅名</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>どんな条件で：</strong>施設種別・月額レンジ・空室有無・入居条件（生活保護/身元保証/介護認定）・こだわりタグ</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>結果何件出たか：</strong>フィルタリング後の施設表示件数</div></div>
+      </div>
+    </div>
+
+    <table class="spec-table">
+      <tr><th>活用できること</th><th>具体例</th></tr>
+      <tr>
+        <td>需要の高いエリア把握</td>
+        <td>「豊中市・庄内エリアが最も検索されている」→ そのエリアの施設に有料プランを優先営業</td>
+      </tr>
+      <tr>
+        <td>ニーズの高い条件発見</td>
+        <td>「生活保護可で検索するユーザーが多い」→ 生活保護可の施設を優先してデータ充実化</td>
+      </tr>
+      <tr>
+        <td>よく使うタグの把握</td>
+        <td>「看取り・ターミナルケア」タグを含む検索が多い → タグが正確に設定された施設が少なければ登録を優先</td>
+      </tr>
+      <tr>
+        <td>アクティブユーザーの確認</td>
+        <td>どの病院・ケアマネが頻繁に使っているか → ロイヤルユーザーへの有料施設の積極的な紹介</td>
+      </tr>
+      <tr>
+        <td>検索結果ゼロ件の特定</td>
+        <td>条件に合う施設がない（結果0件）の検索が多ければ → 未掲載施設を優先的に追加</td>
+      </tr>
+    </table>
+
+    <div class="manual-note-amber" style="margin-top:16px">
+      <strong>管理者ダッシュボード → 「📋 検索履歴」タブ</strong>で確認できます。<br>
+      直近50件の検索履歴一覧 ＋ よく検索されるエリア・タグのランキングがリアルタイムで表示されます。
+    </div>
+  </div>
+
+</div>
+
 <div class="footer">
   介護施設空室検索システム v2.0<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
