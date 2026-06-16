@@ -175,8 +175,23 @@
 <div id="panel-users" class="hidden flex-1 overflow-y-auto p-6">
   <div class="max-w-2xl mx-auto space-y-6">
 
+    <!-- 申請一覧 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-800">アカウント申請一覧</h2>
+          <p class="text-xs text-slate-400 mt-0.5">申請フォームから送信された申請を確認・承認できます</p>
+        </div>
+        <button onclick="loadApplications()" class="text-xs text-teal-600 hover:underline">↻ 更新</button>
+      </div>
+      <div id="applications-list" class="space-y-3">
+        <p class="text-sm text-slate-400">読み込み中...</p>
+      </div>
+    </div>
+
     <!-- アカウント発行 -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <input type="hidden" id="pending-app-id" value="">
       <h2 class="text-base font-bold text-slate-800 mb-4">新規アカウントを発行</h2>
       <div id="user-err" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-500"></div>
       <div id="user-ok"  class="hidden mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-600"></div>
@@ -482,7 +497,7 @@ function showToast(msg) {
 
 // ── タブ切り替え ───────────────────────────────────────────────
 function switchTab(name) {
-  if (name === 'users') { loadCorporations(); loadUsers(); }
+  if (name === 'users') { loadCorporations(); loadUsers(); loadApplications(); }
   ['facilities','users','history'].forEach(t => {
     document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
     document.getElementById(`panel-${t}`).classList.toggle('flex', t === name);
@@ -495,7 +510,6 @@ function switchTab(name) {
       btn.classList.add('border-transparent','text-slate-500');
     }
   });
-  if (name === 'users') loadUsers();
 }
 
 // ── ユーザー管理 ───────────────────────────────────────────────
@@ -525,10 +539,17 @@ async function createUser() {
     if (role === 'facility' && corpId) userData.corporationId = corpId;
     await db.collection('users').doc(cred.user.uid).set(userData);
     await secondaryApp.auth().signOut();
-    okEl.textContent = `✅ ${name}（${role}）のアカウントを発行しました`;
+    const savedEmail = email;
+    const appId = document.getElementById('pending-app-id').value;
+    okEl.innerHTML = `✅ ${name}（${role}）のアカウントを発行しました &nbsp;<button onclick="sendInvite('${savedEmail}')" class="px-3 py-1 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition-colors">📧 招待メールを送る</button>`;
     okEl.classList.remove('hidden');
     ['u-name','u-email','u-pass'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('u-corpId').value = '';
+    if (appId) {
+      await db.collection('applications').doc(appId).update({ status: 'approved', approvedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+      document.getElementById('pending-app-id').value = '';
+      loadApplications();
+    }
     loadUsers();
   } catch(e) {
     const msg = e.code === 'auth/email-already-in-use' ? 'このメールアドレスは既に登録されています' : e.message;
@@ -580,6 +601,79 @@ async function createCorporation() {
     loadCorporations();
   } catch(e) {
     errEl.textContent = e.message; errEl.classList.remove('hidden');
+  }
+}
+
+// ── 申請管理 ───────────────────────────────────────────────────
+async function loadApplications() {
+  const el = document.getElementById('applications-list');
+  el.innerHTML = '<p class="text-sm text-slate-400">読み込み中...</p>';
+  try {
+    const snap = await db.collection('applications').orderBy('appliedAt','desc').get();
+    if (snap.empty) { el.innerHTML = '<p class="text-sm text-slate-400">申請はありません</p>'; return; }
+    el.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const isPending = d.status === 'pending';
+      const dateStr = d.appliedAt ? d.appliedAt.toDate().toLocaleDateString('ja-JP') : '─';
+      const badge = isPending
+        ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">未処理</span>'
+        : '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">承認済</span>';
+      const nameEsc = (d.name||'').replace(/'/g,"\\'");
+      const emailEsc = (d.email||'').replace(/'/g,"\\'");
+      const orgEsc  = (d.organizationName||'').replace(/'/g,"\\'");
+      return `<div class="border border-slate-200 rounded-xl p-4 ${isPending?'bg-amber-50':'bg-slate-50'}">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            ${badge}
+            <span class="text-sm font-bold text-slate-800">${d.organizationName||'─'}</span>
+            <span class="text-xs text-slate-500">${d.name||''}</span>
+          </div>
+          <span class="text-xs text-slate-400 flex-shrink-0">${dateStr}</span>
+        </div>
+        <div class="text-xs text-slate-500 mb-3">
+          📧 ${d.email||'─'}${d.tel?` ・ 📞 ${d.tel}`:''}${d.message?`<br>💬 ${d.message}`:''}
+        </div>
+        ${isPending?`<div class="flex gap-2 flex-wrap">
+          <button onclick="prefillFromApplication('${doc.id}','${nameEsc}','${emailEsc}','${orgEsc}')"
+            class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-colors">
+            ✅ 承認・アカウント発行へ
+          </button>
+          <button onclick="markApplicationApproved('${doc.id}')"
+            class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition-colors">
+            済みにする
+          </button>
+        </div>`:''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<p class="text-sm text-red-400">⚠️ ${e.message}</p>`;
+  }
+}
+
+function prefillFromApplication(appId, name, email, org) {
+  document.getElementById('u-name').value = name;
+  document.getElementById('u-email').value = email;
+  document.getElementById('u-role').value = 'hospital';
+  document.getElementById('pending-app-id').value = appId;
+  toggleFacilityField();
+  document.getElementById('panel-users').querySelector('.space-y-6').children[1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  showToast(`📋 ${org} の申請内容を入力欄に反映しました`);
+}
+
+async function markApplicationApproved(appId) {
+  try {
+    await db.collection('applications').doc(appId).update({ status: 'approved', approvedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    showToast('✅ 承認済みに変更しました');
+    loadApplications();
+  } catch(e) { showToast('⚠️ ' + e.message); }
+}
+
+async function sendInvite(email) {
+  try {
+    await auth.sendPasswordResetEmail(email);
+    showToast(`📧 ${email} に招待メール（パスワード設定リンク）を送りました`);
+  } catch(e) {
+    showToast('⚠️ メール送信に失敗: ' + e.message);
   }
 }
 

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アカウント申請 | 介護施設空室検索システム</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans:['"Noto Sans JP"','sans-serif'] }, colors: { brand:{ DEFAULT:'#0d9488', dark:'#0f766e', light:'#f0fdfa' } } } }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-5 font-sans">
+
+  <div class="flex items-center gap-3 mb-7">
+    <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center text-xl">🏥</div>
+    <div>
+      <div class="text-base font-bold text-slate-900">介護施設空室検索システム</div>
+      <div class="text-xs text-slate-400 tracking-widest">Powered by Meets Medical</div>
+    </div>
+  </div>
+
+  <!-- 送信完了 -->
+  <div id="done-view" class="hidden bg-white rounded-2xl shadow-lg border border-slate-200 w-full max-w-md p-8 text-center">
+    <div class="text-4xl mb-4">✅</div>
+    <div class="text-lg font-bold text-slate-800 mb-2">申請を受け付けました</div>
+    <div class="text-sm text-slate-500 leading-relaxed mb-6">
+      担当者より数日以内にご登録のメールアドレスへ<br>ご連絡いたします。
+    </div>
+    <a href="kaigo-login.html" class="inline-block px-6 py-3 bg-brand text-white text-sm font-bold rounded-xl hover:bg-brand-dark transition-colors">
+      ログイン画面に戻る
+    </a>
+  </div>
+
+  <!-- 申請フォーム -->
+  <div id="form-view" class="bg-white rounded-2xl shadow-lg border border-slate-200 w-full max-w-md p-7">
+    <h2 class="text-lg font-bold text-slate-800 mb-1">アカウント申請</h2>
+    <p class="text-xs text-slate-400 mb-6 leading-relaxed">
+      下記フォームにご記入ください。Meets Medical担当者が内容を確認のうえ、アカウントを発行いたします。
+    </p>
+
+    <div id="errMsg" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-500"></div>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5">病院名・施設名・法人名 <span class="text-red-400">*</span></label>
+        <input id="a-org" type="text" placeholder="例：豊中記念病院"
+          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5">担当者氏名 <span class="text-red-400">*</span></label>
+        <input id="a-name" type="text" placeholder="例：田中 花子"
+          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5">メールアドレス <span class="text-red-400">*</span></label>
+        <input id="a-email" type="email" placeholder="example@hospital.jp"
+          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5">電話番号（任意）</label>
+        <input id="a-tel" type="tel" placeholder="06-1234-5678"
+          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5">ご要望・メッセージ（任意）</label>
+        <textarea id="a-msg" rows="3" placeholder="利用目的や担当エリアなど"
+          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors resize-none"></textarea>
+      </div>
+    </div>
+
+    <button id="submitBtn" onclick="submitApply()"
+      class="mt-5 w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl text-base transition-colors shadow-md">
+      申請する
+    </button>
+
+    <p class="text-xs text-slate-400 text-center mt-4">
+      <a href="kaigo-login.html" class="hover:text-slate-600">← ログイン画面に戻る</a>
+    </p>
+  </div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+
+async function submitApply() {
+  const org   = document.getElementById('a-org').value.trim();
+  const name  = document.getElementById('a-name').value.trim();
+  const email = document.getElementById('a-email').value.trim();
+  const tel   = document.getElementById('a-tel').value.trim();
+  const msg   = document.getElementById('a-msg').value.trim();
+  const btn   = document.getElementById('submitBtn');
+  const errEl = document.getElementById('errMsg');
+
+  errEl.classList.add('hidden');
+  if (!org || !name || !email) {
+    errEl.textContent = '病院名・担当者氏名・メールアドレスは必須です';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailReg.test(email)) {
+    errEl.textContent = 'メールアドレスの形式が正しくありません';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  try {
+    await db.collection('applications').add({
+      organizationName: org,
+      name, email, tel, message: msg,
+      status: 'pending',
+      appliedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    document.getElementById('form-view').classList.add('hidden');
+    document.getElementById('done-view').classList.remove('hidden');
+  } catch(e) {
+    errEl.textContent = '送信に失敗しました。時間をおいて再度お試しください。';
+    errEl.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = '申請する';
+  }
+}
+</script>
+</body>
+</html>
