@@ -187,6 +187,7 @@
     <div class="hdr-title">介護施設 空き状況検索</div>
   </div>
   <div class="hdr-right">
+    <span class="hdr-user" id="hdr-user"></span>
     <button class="hdr-logout" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
 </header>
@@ -198,6 +199,7 @@
   <div class="sidebar">
 
     <button class="sb-search-btn" id="search-btn" onclick="doSearch()">🔍 この条件で検索</button>
+    <button onclick="saveConditions()" style="margin:6px 14px 0;width:calc(100% - 28px);padding:7px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:11px;font-weight:600;color:var(--g500);cursor:pointer;font-family:inherit;transition:all .12s;" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--g200)';this.style.color='var(--g500)'">💾 この条件を保存</button>
 
     <!-- 場所 -->
     <div class="sb-sec">
@@ -377,12 +379,17 @@ const auth = firebase.auth();
 auth.onAuthStateChanged(async user => {
   if (!user) { location.href = 'kaigo-login.html'; return; }
   const uSnap = await db.collection('users').doc(user.uid).get();
-  const role = uSnap.data()?.role;
+  const uData = uSnap.data();
+  const role = uData?.role;
   if (!['hospital', 'admin'].includes(role)) {
     await auth.signOut(); location.href = 'kaigo-login.html'; return;
   }
+  if (uData?.name) {
+    document.getElementById('hdr-user').textContent = uData.name + ' さん';
+  }
   document.body.style.visibility = 'visible';
   initSidebar();
+  loadSavedConditions();
 });
 
 // ── 定数 ─────────────────────────────────────────────────
@@ -694,6 +701,64 @@ function clearTags() {
   selectedTags.clear();
   document.querySelectorAll('.tag-chip').forEach(b => b.classList.remove('on'));
   liveFilter();
+}
+
+// ── 検索条件の保存・復元 ──────────────────────────────────────
+const COND_KEY = 'kaigo_search_conditions';
+
+function saveConditions() {
+  const conds = {
+    pref      : document.getElementById('q-pref').value,
+    city      : document.getElementById('q-city').value,
+    station   : document.getElementById('q-station').value,
+    initFee   : document.querySelector('input[name="init-fee"]:checked')?.value || 'all',
+    priceMin  : document.getElementById('q-price-min').value,
+    priceMax  : document.getElementById('q-price-max').value,
+    vac       : activeVac,
+    types     : getChecked('type'),
+    seikatsu  : document.getElementById('cond-seikatsu').value,
+    mimon     : document.getElementById('cond-mimon').value,
+    kaigo     : document.getElementById('cond-kaigo').value,
+    tags      : [...selectedTags],
+    sort      : document.getElementById('sort-sel')?.value || 'updated',
+  };
+  localStorage.setItem(COND_KEY, JSON.stringify(conds));
+  showToast('💾 検索条件を保存しました');
+}
+
+function loadSavedConditions() {
+  const raw = localStorage.getItem(COND_KEY);
+  if (!raw) return;
+  try {
+    const c = JSON.parse(raw);
+    if (c.pref)    { document.getElementById('q-pref').value = c.pref; updateCityOptions(); }
+    if (c.city)      document.getElementById('q-city').value = c.city;
+    if (c.station)   document.getElementById('q-station').value = c.station;
+    if (c.priceMin)  document.getElementById('q-price-min').value = c.priceMin;
+    if (c.priceMax)  document.getElementById('q-price-max').value = c.priceMax;
+    if (c.seikatsu)  document.getElementById('cond-seikatsu').value = c.seikatsu;
+    if (c.mimon)     document.getElementById('cond-mimon').value = c.mimon;
+    if (c.kaigo)     document.getElementById('cond-kaigo').value = c.kaigo;
+    if (c.vac)       { activeVac = c.vac; document.querySelectorAll('.vac-tab').forEach(t => t.classList.toggle('on', t.textContent.trim() === (c.vac === 'ok' ? '空きあり' : 'すべて'))); }
+    // ラジオ
+    if (c.initFee) {
+      const r = document.querySelector(`input[name="init-fee"][value="${c.initFee}"]`);
+      if (r) { r.checked = true; syncRadioChip(r); }
+    }
+    // タグは initSidebar 後に復元するため少し遅らせる
+    setTimeout(() => {
+      if (c.tags?.length) {
+        c.tags.forEach(tag => {
+          selectedTags.add(tag);
+          document.querySelectorAll('.tag-chip').forEach(btn => { if (btn.textContent === tag) btn.classList.add('on'); });
+        });
+      }
+      if (c.types) {
+        document.querySelectorAll('input[name="type"]').forEach(cb => { cb.checked = c.types.includes(cb.value); });
+      }
+    }, 100);
+    showToast('💾 前回の検索条件を復元しました');
+  } catch(e) { /* 無視 */ }
 }
 
 function showToast(msg) {
