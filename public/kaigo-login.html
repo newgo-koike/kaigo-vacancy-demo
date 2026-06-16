@@ -4,82 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ログイン | 介護施設空室システム</title>
-  <style>
-    :root {
-      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
-      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
-      --g400:#94a3b8; --g500:#64748b; --g600:#475569;
-      --g700:#334155; --g800:#1e293b; --g900:#0f172a;
-      --r:12px;
-      --err:#ef4444; --err-bg:#fef2f2;
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Noto Sans JP"', 'sans-serif'] },
+          colors: { brand: { DEFAULT:'#0d9488', dark:'#0f766e', light:'#f0fdfa' } }
+        }
+      }
     }
-    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-    html,body { height:100%; }
-    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
-
-    .logo-wrap { display:flex; align-items:center; gap:10px; margin-bottom:32px; }
-    .logo { width:40px; height:40px; background:var(--brand); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; }
-    .logo-txt { font-size:16px; font-weight:800; color:var(--g900); }
-    .logo-sub { font-size:11px; color:var(--g500); }
-
-    .card { background:white; border-radius:18px; padding:32px 28px; width:100%; max-width:400px; box-shadow:0 4px 24px rgba(0,0,0,.08); border:1px solid var(--g200); }
-    .card-ttl { font-size:18px; font-weight:800; color:var(--g900); margin-bottom:4px; }
-    .card-sub { font-size:13px; color:var(--g500); margin-bottom:24px; }
-
-    .f-grp { margin-bottom:16px; }
-    .f-lbl { display:block; font-size:12px; font-weight:600; color:var(--g600); margin-bottom:5px; }
-    .f-inp { width:100%; padding:11px 14px; border:1.5px solid var(--g200); border-radius:10px; font-size:15px; outline:none; font-family:inherit; color:var(--g800); transition:border-color .15s,box-shadow .15s; background:white; }
-    .f-inp:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
-
-    .err-msg { display:none; background:var(--err-bg); border:1px solid #fecaca; border-radius:9px; padding:10px 14px; font-size:13px; color:var(--err); margin-bottom:16px; }
-    .err-msg.show { display:block; }
-
-    .login-btn { width:100%; padding:13px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .1s; box-shadow:0 4px 14px rgba(13,148,136,.25); margin-top:4px; }
-    .login-btn:hover:not(:disabled) { background:var(--brand-d); transform:translateY(-1px); }
-    .login-btn:disabled { background:var(--g400); cursor:not-allowed; transform:none; box-shadow:none; }
-
-    .loading { display:none; text-align:center; padding:12px; font-size:13px; color:var(--g500); }
-    .loading.show { display:block; }
-    .spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--g200); border-top-color:var(--brand); border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:6px; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-
-    .divider { border:none; border-top:1px solid var(--g100); margin:24px 0; }
-    .role-note { font-size:11px; color:var(--g400); text-align:center; line-height:1.6; }
-  </style>
+  </script>
 </head>
-<body>
+<body class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-5 font-sans">
 
-<div class="logo-wrap">
-  <div class="logo">🏥</div>
-  <div>
-    <div class="logo-txt">介護施設空室システム</div>
-    <div class="logo-sub">Powered by Meets Medical</div>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-ttl">ログイン</div>
-  <div class="card-sub">メールアドレスとパスワードでサインインしてください</div>
-
-  <div class="err-msg" id="errMsg"></div>
-
-  <div class="f-grp">
-    <label class="f-lbl" for="emailInp">メールアドレス</label>
-    <input class="f-inp" id="emailInp" type="email" placeholder="example@hospital.jp" autocomplete="email">
-  </div>
-  <div class="f-grp">
-    <label class="f-lbl" for="passInp">パスワード</label>
-    <input class="f-inp" id="passInp" type="password" placeholder="••••••••" autocomplete="current-password">
+  <!-- ロゴ -->
+  <div class="flex items-center gap-3 mb-7">
+    <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center text-xl">🏥</div>
+    <div>
+      <div class="text-base font-bold text-slate-900 tracking-wide">介護施設空室システム</div>
+      <div class="text-xs text-slate-400 tracking-widest">Powered by Meets Medical</div>
+    </div>
   </div>
 
-  <button class="login-btn" id="loginBtn" onclick="doLogin()">ログイン</button>
-  <div class="loading" id="loading"><span class="spinner"></span>認証中...</div>
+  <!-- カード -->
+  <div class="bg-white rounded-2xl shadow-lg border border-slate-200 w-full max-w-md p-7">
 
-  <hr class="divider">
-  <div class="role-note">
-    病院・ケアマネ / 介護施設 / 管理者<br>共通ログイン画面です
+    <!-- ロール選択 -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <button id="role-hospital" onclick="selectRole('hospital')"
+        class="role-btn flex flex-col items-center gap-1 p-4 rounded-xl border-2 border-slate-200 hover:border-slate-400 transition-all cursor-pointer bg-white">
+        <span class="text-2xl">🏨</span>
+        <span class="text-xs font-bold text-slate-700">医療機関・ケアマネ</span>
+        <span class="text-[10px] text-slate-400 leading-tight">施設を検索・空室確認</span>
+      </button>
+      <button id="role-facility" onclick="selectRole('facility')"
+        class="role-btn flex flex-col items-center gap-1 p-4 rounded-xl border-2 border-slate-200 hover:border-slate-400 transition-all cursor-pointer bg-white">
+        <span class="text-2xl">🏠</span>
+        <span class="text-xs font-bold text-slate-700">介護施設</span>
+        <span class="text-[10px] text-slate-400 leading-tight">自施設の空室情報を更新</span>
+      </button>
+    </div>
+
+    <!-- 区切り -->
+    <div class="flex items-center gap-3 mb-5">
+      <div class="flex-1 h-px bg-slate-200"></div>
+      <span class="text-xs text-slate-400 whitespace-nowrap">メールアドレスでログイン</span>
+      <div class="flex-1 h-px bg-slate-200"></div>
+    </div>
+
+    <!-- エラー -->
+    <div id="errMsg" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-500"></div>
+
+    <!-- フォーム -->
+    <div class="mb-4">
+      <label class="block text-xs font-medium text-slate-600 mb-1.5">メールアドレス</label>
+      <input id="emailInp" type="email" placeholder="example@hospital.jp" autocomplete="email"
+        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+    </div>
+    <div class="mb-5">
+      <label class="block text-xs font-medium text-slate-600 mb-1.5">パスワード</label>
+      <input id="passInp" type="password" placeholder="••••••••" autocomplete="current-password"
+        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+    </div>
+
+    <button id="loginBtn" onclick="doLogin()"
+      class="w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl text-base transition-colors shadow-md disabled:bg-slate-300 disabled:cursor-not-allowed">
+      ログイン
+    </button>
+
+    <p class="text-xs text-slate-400 text-center mt-5 leading-relaxed">
+      アカウントをお持ちでない方は<br>管理者にお問い合わせください
+    </p>
   </div>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -94,80 +94,69 @@ firebase.initializeApp({
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
 });
 const auth = firebase.auth();
-const db = firebase.firestore();
+const db   = firebase.firestore();
 
-// すでにログイン済みなら即リダイレクト
-auth.onAuthStateChanged(async (user) => {
-  if (user) await redirectByRole(user);
-});
+auth.onAuthStateChanged(async user => { if (user) await redirectByRole(user); });
+
+function selectRole(role) {
+  const hospital = document.getElementById('role-hospital');
+  const facility = document.getElementById('role-facility');
+  hospital.className = hospital.className.replace(' border-blue-500 bg-blue-50','').replace(' border-brand bg-brand-light','');
+  facility.className = facility.className.replace(' border-blue-500 bg-blue-50','').replace(' border-brand bg-brand-light','');
+  if (role === 'hospital') hospital.classList.add('border-blue-500','bg-blue-50');
+  if (role === 'facility') facility.classList.add('border-brand','bg-brand-light');
+}
 
 async function doLogin() {
   const email = document.getElementById('emailInp').value.trim();
   const pass  = document.getElementById('passInp').value;
-  const errEl = document.getElementById('errMsg');
   const btn   = document.getElementById('loginBtn');
-  const loading = document.getElementById('loading');
-
-  errEl.classList.remove('show');
-
-  if (!email || !pass) {
-    showErr('メールアドレスとパスワードを入力してください');
-    return;
-  }
-
+  document.getElementById('errMsg').classList.add('hidden');
+  if (!email || !pass) { showErr('メールアドレスとパスワードを入力してください'); return; }
   btn.disabled = true;
-  loading.classList.add('show');
-
+  btn.textContent = '認証中...';
   try {
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     await redirectByRole(cred.user);
-  } catch (e) {
+  } catch(e) {
     showErr(loginErrMsg(e.code));
     btn.disabled = false;
-    loading.classList.remove('show');
+    btn.textContent = 'ログイン';
   }
 }
 
 async function redirectByRole(user) {
   const snap = await db.collection('users').doc(user.uid).get();
   const role = snap.data()?.role;
-
   if (role === 'admin')    { location.href = 'kaigo-master.html'; return; }
   if (role === 'hospital') { location.href = 'kaigo-search.html'; return; }
   if (role === 'facility') {
-    const facilityId = snap.data()?.facilityId;
-    location.href = facilityId ? `kaigo-manage.html?id=${facilityId}` : 'kaigo-manage.html';
+    const fid = snap.data()?.facilityId;
+    location.href = fid ? `kaigo-manage.html?id=${fid}` : 'kaigo-manage.html';
     return;
   }
   showErr('このアカウントには権限がありません。管理者に連絡してください。');
   await auth.signOut();
   document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loading').classList.remove('show');
+  document.getElementById('loginBtn').textContent = 'ログイン';
 }
 
 function showErr(msg) {
   const el = document.getElementById('errMsg');
   el.textContent = msg;
-  el.classList.add('show');
+  el.classList.remove('hidden');
 }
 
 function loginErrMsg(code) {
-  if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential')
+  if (['auth/user-not-found','auth/wrong-password','auth/invalid-credential'].includes(code))
     return 'メールアドレスまたはパスワードが正しくありません';
   if (code === 'auth/too-many-requests')
     return '試行回数が多すぎます。しばらく時間をおいてから再試行してください';
-  if (code === 'auth/invalid-email')
-    return 'メールアドレスの形式が正しくありません';
   return 'ログインに失敗しました。もう一度お試しください';
 }
 
-// Enterキーでログイン
-document.getElementById('passInp').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
-document.getElementById('emailInp').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('passInp').focus();
-});
+document.getElementById('passInp').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('emailInp').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('passInp').focus(); });
 </script>
 </body>
 </html>

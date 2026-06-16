@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>マスター管理 | Meets Medical</title>
+  <title>管理者ダッシュボード | Meets Medical</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
@@ -17,7 +19,7 @@
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html,body { height:100%; }
-    body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:var(--g50); color:var(--g800); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; visibility:hidden; }
+    body { font-family:'Noto Sans JP',-apple-system,sans-serif; background:var(--g50); color:var(--g800); -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; visibility:hidden; }
 
     .hdr { flex-shrink:0; background:var(--g900); height:54px; padding:0 20px; display:flex; align-items:center; gap:10px; }
     .hdr-logo { width:28px; height:28px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
@@ -100,7 +102,7 @@
   <div class="hdr-logo">🏥</div>
   <div>
     <div class="hdr-title">Meets Medical</div>
-    <div class="hdr-sub">マスター管理</div>
+    <div class="hdr-sub">管理者ダッシュボード</div>
   </div>
   <div class="hdr-actions">
     <a class="hdr-btn hdr-btn-ghost" href="kaigo-search.html" target="_blank">検索画面を確認</a>
@@ -109,6 +111,24 @@
   </div>
 </header>
 
+<!-- タブナビゲーション -->
+<div class="flex border-b border-slate-200 bg-white flex-shrink-0 px-5">
+  <button onclick="switchTab('facilities')" id="tab-facilities"
+    class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-teal-500 text-teal-600 -mb-px">
+    🏥 施設管理
+  </button>
+  <button onclick="switchTab('users')" id="tab-users"
+    class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 -mb-px">
+    👤 ユーザー管理
+  </button>
+  <button onclick="switchTab('history')" id="tab-history"
+    class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 -mb-px">
+    📋 検索履歴
+  </button>
+</div>
+
+<!-- 施設管理タブ -->
+<div id="panel-facilities" class="flex flex-col flex-1 overflow-hidden">
 <div class="top-bar">
   <div class="stat"><div class="stat-num" id="st-total">—</div><div class="stat-lbl">登録施設数</div></div>
   <div class="stat-sep"></div>
@@ -147,6 +167,80 @@
       <tr class="empty-row"><td colspan="12">読み込み中...</td></tr>
     </tbody>
   </table>
+</div>
+
+</div><!-- /panel-facilities -->
+
+<!-- ユーザー管理タブ -->
+<div id="panel-users" class="hidden flex-1 overflow-y-auto p-6">
+  <div class="max-w-2xl mx-auto space-y-6">
+
+    <!-- アカウント発行 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="text-base font-bold text-slate-800 mb-4">新規アカウントを発行</h2>
+      <div id="user-err" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-500"></div>
+      <div id="user-ok"  class="hidden mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-600"></div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">名前</label>
+          <input id="u-name" type="text" placeholder="例：田中 花子"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">メールアドレス</label>
+          <input id="u-email" type="email" placeholder="example@hospital.jp"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">パスワード（8文字以上）</label>
+          <input id="u-pass" type="password" placeholder="••••••••"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">権限</label>
+          <select id="u-role" onchange="toggleFacilityField()"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500 bg-white">
+            <option value="hospital">hospital — 医療機関・ケアマネ（施設検索のみ）</option>
+            <option value="facility">facility — 介護施設担当者（自施設の空室更新のみ）</option>
+            <option value="admin">admin — 管理者（全機能）</option>
+          </select>
+        </div>
+        <div id="facility-id-wrap" class="hidden">
+          <label class="block text-xs font-medium text-slate-600 mb-1">施設ID</label>
+          <input id="u-facilityId" type="text" placeholder="FirestoreのドキュメントID"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500 font-mono">
+          <p class="text-xs text-slate-400 mt-1">マスター管理の施設一覧URLに含まれるIDを入力してください</p>
+        </div>
+      </div>
+      <button onclick="createUser()"
+        class="mt-4 w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors">
+        アカウントを発行する
+      </button>
+    </div>
+
+    <!-- 登録済みユーザー一覧 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-800">登録済みユーザー</h2>
+        <button onclick="loadUsers()" class="text-xs text-teal-600 hover:underline">↻ 更新</button>
+      </div>
+      <div id="users-list" class="space-y-2">
+        <p class="text-sm text-slate-400">読み込み中...</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 検索履歴タブ -->
+<div id="panel-history" class="hidden flex-1 overflow-y-auto p-6">
+  <div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
+      <div class="text-4xl mb-3">📋</div>
+      <div class="text-base font-bold text-slate-600 mb-2">検索履歴機能は準備中です</div>
+      <div class="text-sm text-slate-400">ユーザーの検索行動ログをFirestoreに保存し<br>ここで確認できるようにする予定です</div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -350,6 +444,85 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('on');
   setTimeout(() => t.classList.remove('on'), 3000);
+}
+
+// ── タブ切り替え ───────────────────────────────────────────────
+function switchTab(name) {
+  ['facilities','users','history'].forEach(t => {
+    document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
+    document.getElementById(`panel-${t}`).classList.toggle('flex', t === name);
+    const btn = document.getElementById(`tab-${t}`);
+    if (t === name) {
+      btn.classList.add('border-teal-500','text-teal-600');
+      btn.classList.remove('border-transparent','text-slate-500');
+    } else {
+      btn.classList.remove('border-teal-500','text-teal-600');
+      btn.classList.add('border-transparent','text-slate-500');
+    }
+  });
+  if (name === 'users') loadUsers();
+}
+
+// ── ユーザー管理 ───────────────────────────────────────────────
+function toggleFacilityField() {
+  const role = document.getElementById('u-role').value;
+  document.getElementById('facility-id-wrap').classList.toggle('hidden', role !== 'facility');
+}
+
+async function createUser() {
+  const name       = document.getElementById('u-name').value.trim();
+  const email      = document.getElementById('u-email').value.trim();
+  const pass       = document.getElementById('u-pass').value;
+  const role       = document.getElementById('u-role').value;
+  const facilityId = document.getElementById('u-facilityId').value.trim();
+  const errEl      = document.getElementById('user-err');
+  const okEl       = document.getElementById('user-ok');
+
+  errEl.classList.add('hidden'); okEl.classList.add('hidden');
+
+  if (!name || !email || !pass) { errEl.textContent = '名前・メール・パスワードを入力してください'; errEl.classList.remove('hidden'); return; }
+  if (pass.length < 8) { errEl.textContent = 'パスワードは8文字以上で入力してください'; errEl.classList.remove('hidden'); return; }
+
+  try {
+    const secondaryApp = firebase.apps.find(a => a.name === 'secondary') || firebase.initializeApp(firebase.app().options, 'secondary');
+    const cred = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
+    const userData = { name, email, role, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
+    if (role === 'facility' && facilityId) userData.facilityId = facilityId;
+    await db.collection('users').doc(cred.user.uid).set(userData);
+    await secondaryApp.auth().signOut();
+    okEl.textContent = `✅ ${name}（${role}）のアカウントを発行しました`;
+    okEl.classList.remove('hidden');
+    document.getElementById('u-name').value = '';
+    document.getElementById('u-email').value = '';
+    document.getElementById('u-pass').value = '';
+    document.getElementById('u-facilityId').value = '';
+    loadUsers();
+  } catch(e) {
+    const msg = e.code === 'auth/email-already-in-use' ? 'このメールアドレスは既に登録されています' : e.message;
+    errEl.textContent = msg; errEl.classList.remove('hidden');
+  }
+}
+
+async function loadUsers() {
+  const el = document.getElementById('users-list');
+  el.innerHTML = '<p class="text-sm text-slate-400">読み込み中...</p>';
+  try {
+    const snap = await db.collection('users').orderBy('createdAt','desc').get();
+    if (snap.empty) { el.innerHTML = '<p class="text-sm text-slate-400">ユーザーが登録されていません</p>'; return; }
+    const roleColors = { admin:'bg-red-100 text-red-600', hospital:'bg-teal-100 text-teal-700', facility:'bg-blue-100 text-blue-700' };
+    el.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const cls = roleColors[d.role] || 'bg-slate-100 text-slate-600';
+      return `<div class="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+        <span class="text-xs font-bold px-2 py-1 rounded-lg ${cls}">${d.role}</span>
+        <span class="text-sm font-semibold text-slate-800">${d.name || '名前未設定'}</span>
+        <span class="text-xs text-slate-400">${d.email || ''}</span>
+        ${d.facilityId ? `<span class="text-xs text-slate-300 font-mono ml-auto">ID: ${d.facilityId}</span>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<p class="text-sm text-red-400">⚠️ 読み込みエラー: ${e.message}</p>`;
+  }
 }
 </script>
 </body>
