@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施設ログイン | 介護施設空室検索システム</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['"Noto Sans JP"','sans-serif'] }, colors: { brand:{ DEFAULT:'#0d9488', dark:'#0f766e' } } } }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-5 font-sans">
+
+  <div class="flex items-center gap-3 mb-7">
+    <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center text-xl">🏠</div>
+    <div>
+      <div class="text-base font-bold text-slate-900">介護施設空室検索システム</div>
+      <div class="text-xs text-slate-400 tracking-widest">施設・法人担当者ログイン</div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-lg border border-slate-200 w-full max-w-md p-7">
+    <h2 class="text-lg font-bold text-slate-800 mb-1">ログイン</h2>
+    <p class="text-xs text-slate-400 mb-6">施設・法人担当者専用ページです</p>
+
+    <div id="errMsg" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-500"></div>
+
+    <div class="mb-4">
+      <label class="block text-xs font-medium text-slate-600 mb-1.5">メールアドレス</label>
+      <input id="emailInp" type="email" placeholder="example@facility.jp" autocomplete="email"
+        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+    </div>
+    <div class="mb-5">
+      <label class="block text-xs font-medium text-slate-600 mb-1.5">パスワード</label>
+      <input id="passInp" type="password" placeholder="••••••••" autocomplete="current-password"
+        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+    </div>
+
+    <button id="loginBtn" onclick="doLogin()"
+      class="w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl text-base transition-colors shadow-md">
+      ログイン
+    </button>
+
+    <p class="text-xs text-slate-400 text-center mt-5 leading-relaxed">
+      アカウントをお持ちでない方は<br>Meets Medicalまでお問い合わせください
+    </p>
+  </div>
+
+  <a href="kaigo-login.html" class="mt-4 text-xs text-slate-400 hover:text-slate-600">医療機関・ケアマネの方はこちら</a>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+auth.onAuthStateChanged(async user => { if (user) await redirectByRole(user); });
+
+async function doLogin() {
+  const email = document.getElementById('emailInp').value.trim();
+  const pass  = document.getElementById('passInp').value;
+  const btn   = document.getElementById('loginBtn');
+  document.getElementById('errMsg').classList.add('hidden');
+  if (!email || !pass) { showErr('メールアドレスとパスワードを入力してください'); return; }
+  btn.disabled = true; btn.textContent = '認証中...';
+  try {
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    await redirectByRole(cred.user);
+  } catch(e) {
+    showErr(loginErrMsg(e.code));
+    btn.disabled = false; btn.textContent = 'ログイン';
+  }
+}
+
+async function redirectByRole(user) {
+  const snap = await db.collection('users').doc(user.uid).get();
+  const role = snap.data()?.role;
+  if (role === 'admin')    { location.href = 'kaigo-master.html'; return; }
+  if (role === 'facility') { location.href = 'kaigo-facility-dashboard.html'; return; }
+  showErr('このアカウントは施設担当者用ではありません。');
+  await auth.signOut();
+  btn.disabled = false; btn.textContent = 'ログイン';
+}
+
+function showErr(msg) { const el=document.getElementById('errMsg'); el.textContent=msg; el.classList.remove('hidden'); }
+function loginErrMsg(code) {
+  if (['auth/user-not-found','auth/wrong-password','auth/invalid-credential'].includes(code))
+    return 'メールアドレスまたはパスワードが正しくありません';
+  if (code==='auth/too-many-requests') return '試行回数が多すぎます。しばらくお待ちください';
+  return 'ログインに失敗しました';
+}
+
+document.getElementById('passInp').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('emailInp').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('passInp').focus(); });
+</script>
+</body>
+</html>

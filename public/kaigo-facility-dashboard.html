@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施設ダッシュボード | 介護施設空室検索システム</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['"Noto Sans JP"','sans-serif'] },
+        colors: { brand:{ DEFAULT:'#0d9488', dark:'#0f766e', light:'#f0fdfa' } }
+      }}
+    }
+  </script>
+  <style> body { visibility:hidden; } </style>
+</head>
+<body class="min-h-screen bg-slate-50 font-sans">
+
+  <!-- ヘッダー -->
+  <header class="bg-slate-900 h-14 px-5 flex items-center gap-3 flex-shrink-0">
+    <div class="w-7 h-7 bg-brand rounded-lg flex items-center justify-center text-sm">🏠</div>
+    <span class="text-sm font-bold text-white" id="corp-name">読み込み中...</span>
+    <span class="text-xs text-slate-400 ml-1">施設管理</span>
+    <div class="ml-auto flex items-center gap-3">
+      <span class="text-xs text-slate-400" id="user-name"></span>
+      <button onclick="firebase.auth().signOut().then(()=>location.href='kaigo-facility-login.html')"
+        class="text-xs border border-slate-600 text-slate-400 hover:text-white hover:border-slate-400 px-3 py-1.5 rounded-lg transition-colors">
+        ログアウト
+      </button>
+    </div>
+  </header>
+
+  <!-- メイン -->
+  <main class="max-w-3xl mx-auto px-4 py-8">
+
+    <!-- サマリー -->
+    <div class="grid grid-cols-3 gap-4 mb-8">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
+        <div class="text-3xl font-black text-slate-800" id="stat-total">─</div>
+        <div class="text-xs text-slate-400 mt-1">管理施設数</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
+        <div class="text-3xl font-black text-emerald-500" id="stat-open">─</div>
+        <div class="text-xs text-slate-400 mt-1">空室あり</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm">
+        <div class="text-3xl font-black text-red-400" id="stat-stale">─</div>
+        <div class="text-xs text-slate-400 mt-1">14日以上未更新</div>
+      </div>
+    </div>
+
+    <!-- 施設一覧 -->
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="text-sm font-bold text-slate-700">管理施設一覧</h2>
+      <span class="text-xs text-slate-400">空室数をクリックして更新できます</span>
+    </div>
+
+    <div id="facility-list" class="space-y-3">
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-slate-400 text-sm">
+        読み込み中...
+      </div>
+    </div>
+
+  </main>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+auth.onAuthStateChanged(async user => {
+  if (!user) { location.href = 'kaigo-facility-login.html'; return; }
+  const uSnap = await db.collection('users').doc(user.uid).get();
+  const uData = uSnap.data();
+  if (!['facility','admin'].includes(uData?.role)) {
+    await auth.signOut(); location.href = 'kaigo-facility-login.html'; return;
+  }
+  document.body.style.visibility = 'visible';
+  document.getElementById('user-name').textContent = uData.name || '';
+  loadFacilities(uData);
+});
+
+async function loadFacilities(uData) {
+  const list = document.getElementById('facility-list');
+  try {
+    let snap;
+    if (uData.role === 'admin') {
+      // 管理者は全施設を見られる
+      snap = await db.collection('facilities').orderBy('name').get();
+      document.getElementById('corp-name').textContent = 'Meets Medical（管理者）';
+    } else if (uData.corporationId) {
+      // 法人アカウント: 同じ法人の施設を取得
+      snap = await db.collection('facilities').where('corporationId','==',uData.corporationId).get();
+      const corpSnap = await db.collection('corporations').doc(uData.corporationId).get();
+      document.getElementById('corp-name').textContent = corpSnap.data()?.name || '施設管理';
+    } else {
+      list.innerHTML = '<div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-slate-400 text-sm">法人情報が設定されていません。管理者に連絡してください。</div>';
+      return;
+    }
+
+    const facilities = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // サマリー更新
+    document.getElementById('stat-total').textContent = facilities.length;
+    document.getElementById('stat-open').textContent  = facilities.filter(f => (f.vacancy ?? 0) > 0).length;
+    const now = new Date();
+    document.getElementById('stat-stale').textContent = facilities.filter(f => {
+      if (!f.updatedAt) return true;
+      return Math.floor((now - f.updatedAt.toDate()) / 86400000) > 14;
+    }).length;
+
+    if (!facilities.length) {
+      list.innerHTML = '<div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-slate-400 text-sm">施設が登録されていません</div>';
+      return;
+    }
+
+    list.innerHTML = facilities.map(f => {
+      const daysAgo = f.updatedAt ? Math.floor((now - f.updatedAt.toDate()) / 86400000) : 999;
+      const updTxt  = daysAgo === 0 ? '本日更新' : `${daysAgo}日前`;
+      const isStale = daysAgo > 14;
+      const vac     = f.vacancy ?? 0;
+      const vacCls  = vac === 0
+        ? 'bg-slate-100 text-slate-500'
+        : vac <= 2
+          ? 'bg-orange-100 text-orange-600'
+          : 'bg-emerald-100 text-emerald-700';
+      const vacTxt  = vac === 0 ? '満室' : `${vac}室`;
+
+      return `
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 px-5 py-4 hover:shadow-md transition-shadow">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-semibold">${f.type || '─'}</span>
+            <span class="text-sm font-bold text-slate-800 truncate">${f.name}</span>
+          </div>
+          <div class="text-xs text-slate-400">${f.city || f.area || '─'} ${f.station ? `/ ${f.station}` : ''}</div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <div class="text-xs ${isStale ? 'text-red-400 font-semibold' : 'text-slate-400'} mb-1.5">
+            ${isStale ? '⚠️ ' : ''}${updTxt}
+          </div>
+          <span class="inline-block text-sm font-bold px-3 py-1 rounded-full ${vacCls}">${vacTxt}</span>
+        </div>
+        <a href="kaigo-manage.html?id=${f.id}"
+          class="flex-shrink-0 bg-brand hover:bg-brand-dark text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors">
+          更新
+        </a>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<div class="bg-white rounded-2xl border border-red-200 p-6 text-center text-red-400 text-sm">⚠️ ${e.message}</div>`;
+  }
+}
+</script>
+</body>
+</html>

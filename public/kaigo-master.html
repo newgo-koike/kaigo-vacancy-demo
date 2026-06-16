@@ -205,17 +205,51 @@
             <option value="admin">admin — 管理者（全機能）</option>
           </select>
         </div>
-        <div id="facility-id-wrap" class="hidden">
-          <label class="block text-xs font-medium text-slate-600 mb-1">施設ID</label>
-          <input id="u-facilityId" type="text" placeholder="FirestoreのドキュメントID"
-            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500 font-mono">
-          <p class="text-xs text-slate-400 mt-1">マスター管理の施設一覧URLに含まれるIDを入力してください</p>
+        <div id="corp-id-wrap" class="hidden">
+          <label class="block text-xs font-medium text-slate-600 mb-1">法人（運営母体）</label>
+          <select id="u-corpId" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500 bg-white">
+            <option value="">── 法人を選択 ──</option>
+          </select>
+          <p class="text-xs text-slate-400 mt-1">法人が未登録の場合は先に下の「法人を登録」から追加してください</p>
         </div>
       </div>
       <button onclick="createUser()"
         class="mt-4 w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors">
         アカウントを発行する
       </button>
+    </div>
+
+    <!-- 法人登録 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="text-base font-bold text-slate-800 mb-4">法人を登録</h2>
+      <div id="corp-err" class="hidden mb-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-500"></div>
+      <div id="corp-ok"  class="hidden mb-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-600"></div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">法人名・運営母体名</label>
+          <input id="c-name" type="text" placeholder="例：社会福祉法人○○会"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">担当者メール（任意）</label>
+          <input id="c-email" type="email" placeholder="contact@corp.jp"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-teal-500">
+        </div>
+      </div>
+      <button onclick="createCorporation()"
+        class="mt-4 w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-sm transition-colors">
+        法人を登録する
+      </button>
+      <!-- 法人一覧 -->
+      <div class="mt-5 border-t border-slate-100 pt-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold text-slate-600">登録済み法人</span>
+          <button onclick="loadCorporations()" class="text-xs text-teal-600 hover:underline">↻ 更新</button>
+        </div>
+        <div id="corp-list" class="space-y-2">
+          <p class="text-sm text-slate-400">読み込み中...</p>
+        </div>
+      </div>
     </div>
 
     <!-- 登録済みユーザー一覧 -->
@@ -448,6 +482,7 @@ function showToast(msg) {
 
 // ── タブ切り替え ───────────────────────────────────────────────
 function switchTab(name) {
+  if (name === 'users') { loadCorporations(); loadUsers(); }
   ['facilities','users','history'].forEach(t => {
     document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
     document.getElementById(`panel-${t}`).classList.toggle('flex', t === name);
@@ -466,40 +501,85 @@ function switchTab(name) {
 // ── ユーザー管理 ───────────────────────────────────────────────
 function toggleFacilityField() {
   const role = document.getElementById('u-role').value;
-  document.getElementById('facility-id-wrap').classList.toggle('hidden', role !== 'facility');
+  document.getElementById('corp-id-wrap').classList.toggle('hidden', role !== 'facility');
 }
 
 async function createUser() {
-  const name       = document.getElementById('u-name').value.trim();
-  const email      = document.getElementById('u-email').value.trim();
-  const pass       = document.getElementById('u-pass').value;
-  const role       = document.getElementById('u-role').value;
-  const facilityId = document.getElementById('u-facilityId').value.trim();
-  const errEl      = document.getElementById('user-err');
-  const okEl       = document.getElementById('user-ok');
+  const name   = document.getElementById('u-name').value.trim();
+  const email  = document.getElementById('u-email').value.trim();
+  const pass   = document.getElementById('u-pass').value;
+  const role   = document.getElementById('u-role').value;
+  const corpId = document.getElementById('u-corpId').value;
+  const errEl  = document.getElementById('user-err');
+  const okEl   = document.getElementById('user-ok');
 
   errEl.classList.add('hidden'); okEl.classList.add('hidden');
-
   if (!name || !email || !pass) { errEl.textContent = '名前・メール・パスワードを入力してください'; errEl.classList.remove('hidden'); return; }
   if (pass.length < 8) { errEl.textContent = 'パスワードは8文字以上で入力してください'; errEl.classList.remove('hidden'); return; }
+  if (role === 'facility' && !corpId) { errEl.textContent = '施設担当者には法人を選択してください'; errEl.classList.remove('hidden'); return; }
 
   try {
     const secondaryApp = firebase.apps.find(a => a.name === 'secondary') || firebase.initializeApp(firebase.app().options, 'secondary');
     const cred = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
     const userData = { name, email, role, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
-    if (role === 'facility' && facilityId) userData.facilityId = facilityId;
+    if (role === 'facility' && corpId) userData.corporationId = corpId;
     await db.collection('users').doc(cred.user.uid).set(userData);
     await secondaryApp.auth().signOut();
     okEl.textContent = `✅ ${name}（${role}）のアカウントを発行しました`;
     okEl.classList.remove('hidden');
-    document.getElementById('u-name').value = '';
-    document.getElementById('u-email').value = '';
-    document.getElementById('u-pass').value = '';
-    document.getElementById('u-facilityId').value = '';
+    ['u-name','u-email','u-pass'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('u-corpId').value = '';
     loadUsers();
   } catch(e) {
     const msg = e.code === 'auth/email-already-in-use' ? 'このメールアドレスは既に登録されています' : e.message;
     errEl.textContent = msg; errEl.classList.remove('hidden');
+  }
+}
+
+// ── 法人管理 ───────────────────────────────────────────────────
+let CORPORATIONS = [];
+
+async function loadCorporations() {
+  const listEl = document.getElementById('corp-list');
+  const selEl  = document.getElementById('u-corpId');
+  try {
+    const snap = await db.collection('corporations').orderBy('name').get();
+    CORPORATIONS = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // セレクト更新
+    selEl.innerHTML = '<option value="">── 法人を選択 ──</option>' +
+      CORPORATIONS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    // 一覧表示
+    if (snap.empty) { listEl.innerHTML = '<p class="text-sm text-slate-400">まだ法人が登録されていません</p>'; return; }
+    listEl.innerHTML = CORPORATIONS.map(c => `
+      <div class="flex items-center gap-3 px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100">
+        <span class="text-sm font-semibold text-slate-800 flex-1">${c.name}</span>
+        ${c.contactEmail ? `<span class="text-xs text-slate-400">${c.contactEmail}</span>` : ''}
+        <span class="text-xs font-mono text-slate-300">${c.id.slice(0,8)}</span>
+      </div>`).join('');
+  } catch(e) {
+    listEl.innerHTML = `<p class="text-sm text-red-400">⚠️ ${e.message}</p>`;
+  }
+}
+
+async function createCorporation() {
+  const name  = document.getElementById('c-name').value.trim();
+  const email = document.getElementById('c-email').value.trim();
+  const errEl = document.getElementById('corp-err');
+  const okEl  = document.getElementById('corp-ok');
+  errEl.classList.add('hidden'); okEl.classList.add('hidden');
+  if (!name) { errEl.textContent = '法人名を入力してください'; errEl.classList.remove('hidden'); return; }
+  try {
+    await db.collection('corporations').add({
+      name, contactEmail: email || '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    okEl.textContent = `✅「${name}」を登録しました`;
+    okEl.classList.remove('hidden');
+    document.getElementById('c-name').value = '';
+    document.getElementById('c-email').value = '';
+    loadCorporations();
+  } catch(e) {
+    errEl.textContent = e.message; errEl.classList.remove('hidden');
   }
 }
 
