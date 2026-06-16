@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>納品書 v2.0 | 介護施設空室検索システム</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
+      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
+      --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
+      --g800:#1e293b; --g900:#0f172a;
+      --ok:#16a34a; --ok-bg:#dcfce7;
+      --amber:#d97706; --amber-bg:#fef3c7;
+      --purple:#7c3aed; --purple-bg:#f5f3ff;
+      --red:#dc2626; --red-bg:#fee2e2;
+      --blue:#1d4ed8; --blue-bg:#dbeafe;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Inter','Noto Sans JP',-apple-system,sans-serif; background:#f0f4f8; color:var(--g800); line-height:1.7; -webkit-font-smoothing:antialiased; }
+
+    .page-hdr { background:linear-gradient(to right, #0f172a, #0d4f47); padding:56px 0 44px; text-align:center; }
+    .page-hdr-logo { display:inline-flex; align-items:center; gap:14px; margin-bottom:20px; }
+    .logo-box { width:56px; height:56px; background:var(--brand); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 16px rgba(13,148,136,.35); }
+    .page-hdr h1 { font-size:36px; font-weight:700; color:white; margin-bottom:10px; letter-spacing:-.5px; }
+    .page-hdr p { font-size:16px; color:var(--g400); }
+    .v2-badge { display:inline-block; background:linear-gradient(135deg,#0d9488,#7c3aed); color:white; font-size:13px; font-weight:800; padding:4px 14px; border-radius:20px; margin-bottom:14px; letter-spacing:.05em; }
+    .delivery-meta { display:inline-flex; gap:36px; margin-top:28px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:14px 32px; flex-wrap:wrap; justify-content:center; }
+    .delivery-meta-item { font-size:12px; color:var(--g400); }
+    .delivery-meta-item strong { color:white; display:block; font-size:13px; margin-bottom:2px; }
+
+    .container { max-width:1280px; margin:0 auto; padding:0 40px 80px; }
+    .sec { margin-top:64px; }
+    .sec-hd { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+    .sec-num { width:40px; height:40px; background:var(--brand); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:white; flex-shrink:0; box-shadow:0 2px 10px rgba(13,148,136,.3); }
+    .sec-title { font-size:24px; font-weight:700; color:var(--g900); }
+
+    /* WHAT'S NEW */
+    .whats-new { background:linear-gradient(135deg, #f5f3ff, #f0fdfa); border:1px solid #c4b5fd; border-radius:18px; padding:24px 28px; margin-top:32px; }
+    .whats-new h3 { font-size:16px; font-weight:800; color:var(--purple); margin-bottom:14px; }
+    .new-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    @media(max-width:900px){ .new-grid { grid-template-columns:1fr 1fr; } }
+    @media(max-width:600px){ .new-grid { grid-template-columns:1fr; } }
+    .new-item { background:white; border-radius:12px; padding:14px 16px; border:1px solid #e9d5ff; }
+    .new-item-title { font-size:12px; font-weight:800; color:var(--purple); margin-bottom:4px; }
+    .new-item-desc { font-size:12px; color:var(--g600); line-height:1.5; }
+
+    /* TOOL CARDS */
+    .tool-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    @media(max-width:1100px){ .tool-grid { grid-template-columns:1fr 1fr; } }
+    @media(max-width:600px){ .tool-grid { grid-template-columns:1fr; } }
+    .tool-card { background:white; border-radius:18px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.07); border-left:4px solid var(--brand); }
+    .tool-card.new { border-left-color:var(--purple); }
+    .tool-card-hd { padding:20px 22px 16px; border-bottom:1px solid var(--g100); }
+    .tool-badge { display:inline-block; font-size:10px; font-weight:700; padding:4px 12px; border-radius:6px; margin-bottom:10px; }
+    .badge-public { background:var(--blue-bg); color:var(--blue); }
+    .badge-facility { background:var(--ok-bg); color:var(--ok); }
+    .badge-admin { background:var(--amber-bg); color:var(--amber); }
+    .badge-new { background:var(--purple-bg); color:var(--purple); margin-left:6px; font-size:9px; padding:2px 7px; border-radius:4px; }
+    .tool-title { font-size:18px; font-weight:800; color:var(--g900); margin-bottom:4px; }
+    .tool-desc { font-size:12px; color:var(--g500); line-height:1.6; }
+    .tool-card-body { padding:16px 22px; }
+    .tool-url { font-size:11px; font-family:monospace; background:var(--g50); border:1px solid var(--g200); border-radius:6px; padding:8px 10px; color:var(--g600); word-break:break-all; margin-bottom:12px; }
+    .tool-link { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:var(--brand); color:white; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none; transition:background .15s; }
+    .tool-link:hover { background:var(--brand-d); }
+    .tool-note { font-size:11px; color:var(--g400); margin-top:10px; line-height:1.5; }
+
+    /* ROLE FLOW */
+    .role-flow { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    @media(max-width:768px){ .role-flow { grid-template-columns:1fr; } }
+    .role-card { background:white; border-radius:16px; padding:20px 22px; border:1.5px solid var(--g200); box-shadow:0 2px 12px rgba(0,0,0,.05); }
+    .role-card.admin { border-color:#fcd34d; background:#fffbeb; }
+    .role-card.hospital { border-color:#93c5fd; background:#eff6ff; }
+    .role-card.facility { border-color:#86efac; background:#f0fdf4; }
+    .role-title { font-size:14px; font-weight:800; margin-bottom:8px; }
+    .role-card.admin .role-title { color:var(--amber); }
+    .role-card.hospital .role-title { color:var(--blue); }
+    .role-card.facility .role-title { color:var(--ok); }
+    .role-pages { display:flex; flex-direction:column; gap:5px; }
+    .role-page { font-size:11px; color:var(--g600); background:rgba(255,255,255,.7); border-radius:6px; padding:5px 8px; font-family:monospace; }
+
+    /* AUTH FLOW */
+    .auth-flow { display:flex; flex-direction:column; gap:0; }
+    .auth-step { display:flex; gap:16px; }
+    .auth-left { display:flex; flex-direction:column; align-items:center; }
+    .auth-circle { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:white; flex-shrink:0; }
+    .auth-circle.apply { background:#7c3aed; }
+    .auth-circle.review { background:var(--amber); }
+    .auth-circle.invite { background:var(--brand); }
+    .auth-circle.login  { background:var(--ok); }
+    .auth-line { width:2px; background:var(--g200); flex:1; margin:4px 0; min-height:16px; }
+    .auth-content { padding:0 0 22px 0; flex:1; }
+    .auth-title { font-size:14px; font-weight:800; color:var(--g900); margin-bottom:3px; }
+    .auth-desc { font-size:12px; color:var(--g600); line-height:1.5; }
+    .auth-step:last-child .auth-line { display:none; }
+    .auth-step:last-child .auth-content { padding-bottom:0; }
+
+    /* SPEC TABLE */
+    .spec-table { width:100%; border-collapse:collapse; background:white; border-radius:14px; overflow:hidden; font-size:13px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+    .spec-table th { background:var(--g900); color:white; padding:12px 16px; text-align:left; font-size:11px; font-weight:700; letter-spacing:.05em; }
+    .spec-table td { padding:11px 16px; border-top:1px solid var(--g100); vertical-align:top; }
+    .spec-table tr:first-child td { border-top:none; }
+    .spec-table td:first-child { color:var(--g600); font-weight:600; width:160px; white-space:nowrap; }
+    code { font-family:monospace; font-size:11px; background:var(--g100); padding:2px 6px; border-radius:4px; color:var(--g700); }
+
+    /* FIELD LIST */
+    .field-group { background:white; border-radius:14px; overflow:hidden; margin-bottom:12px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+    .field-group-hd { background:var(--g900); color:white; padding:12px 16px; font-size:12px; font-weight:800; letter-spacing:.06em; }
+    .field-group-hd.purple { background:var(--purple); }
+    .field-group-hd.green { background:var(--ok); }
+    .field-item { display:grid; grid-template-columns:160px 1fr 80px; gap:8px; padding:10px 16px; border-top:1px solid var(--g100); font-size:12px; align-items:start; }
+    .field-item:first-child { border-top:none; }
+    .field-name { font-weight:600; color:var(--g700); font-family:monospace; font-size:11px; }
+    .field-desc { color:var(--g500); }
+    .field-type { font-size:10px; color:var(--g400); text-align:right; font-family:monospace; }
+
+    /* MANUAL */
+    .manual-block { background:white; border-radius:18px; padding:28px 32px; margin-bottom:14px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
+    .manual-role { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:10px; }
+    .manual-block h3 { font-size:16px; font-weight:800; color:var(--g900); margin-bottom:12px; }
+    .manual-steps { list-style:none; display:flex; flex-direction:column; gap:10px; }
+    .manual-steps li { display:flex; gap:12px; font-size:13px; }
+    .step-num { width:28px; height:28px; background:var(--brand); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:white; flex-shrink:0; margin-top:1px; }
+    .step-txt { color:var(--g700); line-height:1.5; flex:1; }
+    .step-txt strong { color:var(--g900); }
+    .manual-note { margin-top:14px; font-size:12px; color:var(--g500); background:var(--g50); border-radius:8px; padding:10px 12px; line-height:1.6; border-left:3px solid var(--g300,var(--g200)); }
+    .manual-note-amber { margin-top:14px; font-size:12px; color:#92400e; background:var(--amber-bg); border-radius:8px; padding:10px 12px; line-height:1.6; border-left:3px solid var(--amber); }
+    .manual-point { margin-top:16px; font-size:14px; color:var(--brand-d); background:linear-gradient(135deg, var(--brand-l), #e0f2fe); border-radius:8px; padding:12px 16px; line-height:1.6; font-weight:600; border-left:4px solid var(--brand); }
+
+    /* DATA STATUS */
+    .data-status-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+    @media(max-width:900px){ .data-status-grid { grid-template-columns:1fr 1fr; } }
+    .data-status-card { background:white; border:1px solid var(--g200); border-radius:14px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,.05); }
+    .data-status-card.ok { border-color:#86efac; background:#f0fdf4; }
+    .data-status-card.warn { border-color:#fcd34d; background:#fffbeb; }
+    .data-status-label { font-size:10px; font-weight:700; color:var(--g500); letter-spacing:.06em; margin-bottom:6px; }
+    .data-status-card.ok .data-status-label { color:#166534; }
+    .data-status-card.warn .data-status-label { color:#92400e; }
+    .data-status-value { font-size:24px; font-weight:700; color:var(--g900); }
+    .data-status-card.ok .data-status-value { color:#15803d; }
+    .data-status-card.warn .data-status-value { color:#b45309; }
+    .data-status-note { font-size:11px; color:var(--g500); margin-top:4px; line-height:1.5; }
+
+    /* ARCHITECTURE */
+    .arch-box { background:white; border-radius:16px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
+    .arch-flow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0; }
+    .arch-node { background:var(--g100); border-radius:10px; padding:10px 16px; font-size:12px; font-weight:600; color:var(--g700); text-align:center; }
+    .arch-node.hl { background:linear-gradient(135deg, var(--brand), #0e8870); color:white; }
+    .arch-node.hl2 { background:linear-gradient(135deg, #7c3aed, #0d9488); color:white; }
+    .arch-arrow { color:var(--g400); font-size:16px; }
+    .arch-list { display:flex; flex-direction:column; gap:6px; margin-top:14px; }
+    .arch-item { display:flex; gap:10px; font-size:13px; align-items:flex-start; }
+    .arch-dot { width:6px; height:6px; background:var(--brand); border-radius:50%; margin-top:7px; flex-shrink:0; }
+    .arch-txt { color:var(--g600); }
+    .arch-txt strong { color:var(--g800); }
+
+    .onboarding-flow { display:flex; flex-direction:column; gap:0; }
+    .onboarding-step { display:flex; gap:16px; }
+    .onboarding-left { display:flex; flex-direction:column; align-items:center; }
+    .onboarding-circle { width:44px; height:44px; background:linear-gradient(135deg, var(--brand), #0e8870); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; color:white; flex-shrink:0; box-shadow:0 2px 10px rgba(13,148,136,.3); }
+    .onboarding-line { width:2px; background:rgba(13,148,136,.2); flex:1; margin:4px 0; min-height:20px; }
+    .onboarding-content { padding:0 0 28px 0; flex:1; }
+    .onboarding-title { font-size:16px; font-weight:800; color:var(--g900); margin-bottom:4px; }
+    .onboarding-desc { font-size:13px; color:var(--g600); line-height:1.6; }
+    .onboarding-step:last-child .onboarding-line { display:none; }
+    .onboarding-step:last-child .onboarding-content { padding-bottom:0; }
+
+    .tags-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .tag-pill { font-size:11.5px; padding:4px 12px; background:var(--g100); border-radius:20px; color:var(--g600); border:1px solid var(--g200); }
+    .tag-pill.medical { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+
+    @media(max-width:768px) {
+      .container { padding:0 16px 60px; }
+      .page-hdr { padding:32px 16px 28px; }
+      .page-hdr h1 { font-size:22px; }
+      .delivery-meta { flex-direction:column; gap:10px; padding:12px 16px; text-align:left; }
+      .sec { margin-top:40px; }
+      .sec-title { font-size:18px; }
+      .field-item { grid-template-columns:120px 1fr; }
+      .field-type { display:none; }
+    }
+
+    .footer { text-align:center; padding:40px; font-size:12px; color:var(--g400); background:var(--g900); margin-top:60px; }
+    .diff-badge { display:inline-block; font-size:9px; font-weight:800; padding:1px 6px; border-radius:4px; background:var(--purple-bg); color:var(--purple); margin-left:6px; vertical-align:middle; }
+  </style>
+</head>
+<body>
+
+<div class="page-hdr">
+  <div class="page-hdr-logo">
+    <div class="logo-box">🏥</div>
+  </div>
+  <div class="v2-badge">✨ v2.0</div>
+  <h1>介護施設 空室検索システム</h1>
+  <p>納品書・仕様書・操作マニュアル　v2.0</p>
+  <div class="delivery-meta">
+    <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月16日</div>
+    <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
+    <div class="delivery-meta-item"><strong>システム名</strong>介護施設空室検索システム</div>
+    <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- v2新機能まとめ -->
+  <div class="sec" style="margin-top:40px">
+    <div class="sec-hd">
+      <div class="sec-num" style="background:var(--purple)">★</div>
+      <div class="sec-title">v2.0 で追加・変更されたこと</div>
+    </div>
+    <div class="whats-new">
+      <h3>🆕 v1.x → v2.0 の主な変更点</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">🔐 ログイン認証の追加</div>
+          <div class="new-item-desc">Firebase Authentication を導入。病院・ケアマネ / 介護施設・法人 / 管理者の3ロールに分けて、それぞれ専用ログイン画面から入室。無許可アクセスを防止。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏢 法人アカウント管理</div>
+          <div class="new-item-desc">介護法人・運営母体ごとにアカウントを発行。1つのアカウントで複数施設を管理できる「法人ダッシュボード」を追加。1施設のみの法人も同様の仕組みで対応。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">📝 アカウント申請フォーム</div>
+          <div class="new-item-desc">病院・ケアマネが自分でアカウントを申請できるフォームを追加。管理者がFirebaseコンソールを操作せずに、管理画面上で承認・アカウント発行・招待メール送信まで完結。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">👤 管理者によるユーザー管理</div>
+          <div class="new-item-desc">管理者ダッシュボードにユーザー管理タブを追加。法人登録・ユーザーアカウント発行・申請承認・招待メール送信がすべて管理画面から操作可能に。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🎨 UI刷新（Tailwind CSS）</div>
+          <div class="new-item-desc">新規ページはすべて Tailwind CSS で統一。Noto Sans JP フォント採用。ログイン画面・法人ダッシュボード・申請フォームをモダンデザインで実装。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">💾 検索条件の保存機能</div>
+          <div class="new-item-desc">検索条件（エリア・施設種別・費用・入居条件・タグ）をブラウザに保存。次回ログイン時に自動で復元。「この条件を保存」ボタンで手動保存も可能。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ① ツール一覧 -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">1</div>
+      <div class="sec-title">ツール一覧（全10ページ）</div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div class="role-flow">
+        <div class="role-card admin">
+          <div class="role-title">🔑 管理者（Meets Medical）</div>
+          <div class="role-pages">
+            <div class="role-page">kaigo-login.html</div>
+            <div class="role-page">kaigo-master.html</div>
+            <div class="role-page">kaigo-register.html</div>
+            <div class="role-page">kaigo-hearing-sheet.html</div>
+            <div class="role-page">kaigo-search.html</div>
+          </div>
+        </div>
+        <div class="role-card hospital">
+          <div class="role-title">🏥 病院・ケアマネ（hospital）</div>
+          <div class="role-pages">
+            <div class="role-page">kaigo-login.html</div>
+            <div class="role-page">kaigo-search.html</div>
+            <div class="role-page">kaigo-facility-view.html</div>
+            <div class="role-page">kaigo-apply.html（申請前）</div>
+          </div>
+        </div>
+        <div class="role-card facility">
+          <div class="role-title">🏠 介護施設・法人（facility）</div>
+          <div class="role-pages">
+            <div class="role-page">kaigo-facility-login.html</div>
+            <div class="role-page">kaigo-facility-dashboard.html</div>
+            <div class="role-page">kaigo-manage.html</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-grid">
+
+      <!-- 医療機関ログイン -->
+      <div class="tool-card new">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-public">病院・ケアマネ向け <span class="badge-new">NEW</span></div>
+          <div class="tool-title">医療機関ログイン</div>
+          <div class="tool-desc">病院担当者・ケアマネ・MSW専用のログイン画面。ログイン後は自動的に施設検索ページへ移動。アカウントをお持ちでない方は「アカウントを申請する」リンクから申請フォームへ誘導。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-login.html</div>
+          <a class="tool-link" href="kaigo-login.html" target="_blank">▶ 開く</a>
+          <div class="tool-note">管理者もこちらからログイン可（ログイン後、管理者ダッシュボードへ自動遷移）。</div>
+        </div>
+      </div>
+
+      <!-- 施設ログイン -->
+      <div class="tool-card new">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-facility">介護施設・法人向け <span class="badge-new">NEW</span></div>
+          <div class="tool-title">介護施設・法人ログイン</div>
+          <div class="tool-desc">介護施設担当者・法人専用のログイン画面。医療機関とは入り口を分離。ログイン後は法人ダッシュボードへ移動。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-facility-login.html</div>
+          <a class="tool-link" href="kaigo-facility-login.html" target="_blank">▶ 開く</a>
+          <div class="tool-note">施設担当者にはこちらのURLを案内してください。</div>
+        </div>
+      </div>
+
+      <!-- 申請フォーム -->
+      <div class="tool-card new">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-public">病院・ケアマネ向け <span class="badge-new">NEW</span></div>
+          <div class="tool-title">アカウント申請フォーム</div>
+          <div class="tool-desc">ログイン不要で誰でもアクセス可能。病院名・担当者名・メールアドレスを入力して申請。管理者がkaigo-master.htmlで承認後、招待メールを送信。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-apply.html</div>
+          <a class="tool-link" href="kaigo-apply.html" target="_blank">▶ 開く</a>
+          <div class="tool-note">申請データはFirestoreの <code>applications</code> コレクションに保存され、管理者ダッシュボードで一覧確認できます。</div>
+        </div>
+      </div>
+
+      <!-- 法人ダッシュボード -->
+      <div class="tool-card new">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-facility">介護施設・法人向け <span class="badge-new">NEW</span></div>
+          <div class="tool-title">法人ダッシュボード</div>
+          <div class="tool-desc">法人アカウントでログインすると表示されるトップページ。管理している施設の一覧・空室状況・最終更新日を一覧表示。各施設の「更新」ボタンから空室更新ページへ移動。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-facility-dashboard.html</div>
+          <a class="tool-link" href="kaigo-facility-dashboard.html" target="_blank">▶ 開く</a>
+          <div class="tool-note">管理施設数・空室あり件数・14日以上未更新件数をサマリーカードで確認できます。</div>
+        </div>
+      </div>
+
+      <!-- 検索 -->
+      <div class="tool-card">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-public">病院・ケアマネ向け</div>
+          <div class="tool-title">空き状況検索</div>
+          <div class="tool-desc">3カラムレイアウト（フィルターサイドバー / こだわりタグ列 / 施設カード一覧）。エリア・施設種別・費用・入居条件・こだわりタグで絞り込み可能。ログインユーザー名をヘッダーに表示。検索条件の保存・復元機能付き。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-search.html</div>
+          <a class="tool-link" href="kaigo-search.html" target="_blank">▶ 開く</a>
+          <div class="tool-note">「💾 この条件を保存」ボタンで条件をブラウザに記憶。次回ログイン時に自動で復元するトースト通知が表示されます。</div>
+        </div>
+      </div>
+
+      <!-- 空室更新 -->
+      <div class="tool-card">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-facility">施設担当者向け</div>
+          <div class="tool-title">空室更新ページ</div>
+          <div class="tool-desc">法人ダッシュボードの「更新」ボタン、またはマスター管理の更新URLから開く。空室数・備考・写真を更新できる。スマホ・PCどちらでも操作可能。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-manage.html?id=【施設ID】</div>
+          <div class="tool-note">法人ダッシュボードの「更新」ボタンからも直接開けます。施設IDはマスター管理画面で確認できます。</div>
+        </div>
+      </div>
+
+      <!-- 施設詳細 -->
+      <div class="tool-card">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-public">病院・ケアマネ向け</div>
+          <div class="tool-title">施設詳細ページ</div>
+          <div class="tool-desc">施設ごとの個別ページ。空室数・備考・特徴タグ・入居相談連絡先を表示。有料プランのみ担当者名・電話番号を表示。病院・ケアマネへのURL共有・QR配布用。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-facility-view.html?id=【施設ID】</div>
+          <div class="tool-note">施設IDはマスター管理画面の「共有ページ URL」列からコピー可。📢QRコードを保存して配布できます。</div>
+        </div>
+      </div>
+
+      <!-- 施設登録 -->
+      <div class="tool-card">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-admin">Meets Medical管理者向け</div>
+          <div class="tool-title">施設登録・情報更新</div>
+          <div class="tool-desc">新規施設の登録、および既存施設の情報（タグ・入居条件・住所・電話番号など）を更新するページ。マスター管理の「📝 編集」ボタンからも開ける。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-register.html</div>
+          <a class="tool-link" href="kaigo-register.html" target="_blank">▶ 開く（新規登録）</a>
+          <div class="tool-note">既存施設の更新：<code>kaigo-register.html?id=【施設ID】</code></div>
+        </div>
+      </div>
+
+      <!-- マスター管理 -->
+      <div class="tool-card">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-admin">Meets Medical管理者向け</div>
+          <div class="tool-title">管理者ダッシュボード</div>
+          <div class="tool-desc">3タブ構成。①施設管理：全施設テーブル・空室・QRコード・掲載承認・プラン切替。②ユーザー管理：申請一覧・法人登録・アカウント発行・招待メール送信・登録済みユーザー一覧。③検索履歴（準備中）。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-master.html</div>
+          <a class="tool-link" href="kaigo-master.html" target="_blank">▶ 開く</a>
+          <div class="tool-note">「📝 編集」で施設情報更新、「📋 ヒアリング」で訪問用シートを印刷。申請一覧から1クリックでアカウント発行フォームに内容が自動入力されます。</div>
+        </div>
+      </div>
+
+      <!-- ヒアリングシート -->
+      <div class="tool-card">
+        <div class="tool-card-hd">
+          <div class="tool-badge badge-admin">Meets Medical管理者向け</div>
+          <div class="tool-title">施設ヒアリングシート</div>
+          <div class="tool-desc">施設訪問時に使うA4印刷用シート。マスター管理の「📋 ヒアリング」ボタンから開くと、登録済みの施設情報が自動入力された状態で表示。</div>
+        </div>
+        <div class="tool-card-body">
+          <div class="tool-url">https://kaigo-link-dev-59bc5.web.app/kaigo-hearing-sheet.html?id=【施設ID】</div>
+          <a class="tool-link" href="kaigo-hearing-sheet.html" target="_blank">▶ 開く（汎用）</a>
+          <div class="tool-note">① 施設基本情報 / ② 入居条件（チェック式）/ ③ こだわりタグ44種 / ④ 看護・医療体制タグ31種 / ⑤ 備考欄。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ② アカウント登録フロー -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">2</div>
+      <div class="sec-title">アカウント登録フロー（v2.0新機能）</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <!-- 病院・ケアマネのフロー -->
+      <div class="arch-box">
+        <p style="font-size:14px;font-weight:800;color:var(--blue);margin-bottom:16px">🏥 病院・ケアマネ のアカウント登録</p>
+        <div class="auth-flow">
+          <div class="auth-step">
+            <div class="auth-left"><div class="auth-circle apply">1</div><div class="auth-line"></div></div>
+            <div class="auth-content">
+              <div class="auth-title">申請フォームに入力</div>
+              <div class="auth-desc"><code>kaigo-apply.html</code> で病院名・担当者名・メールアドレスを送信。</div>
+            </div>
+          </div>
+          <div class="auth-step">
+            <div class="auth-left"><div class="auth-circle review">2</div><div class="auth-line"></div></div>
+            <div class="auth-content">
+              <div class="auth-title">管理者が申請を確認・承認</div>
+              <div class="auth-desc"><code>kaigo-master.html</code> のユーザー管理タブ「申請一覧」に届く。承認ボタンを押すとアカウント発行フォームに内容が自動入力される。</div>
+            </div>
+          </div>
+          <div class="auth-step">
+            <div class="auth-left"><div class="auth-circle invite">3</div><div class="auth-line"></div></div>
+            <div class="auth-content">
+              <div class="auth-title">招待メールを送信</div>
+              <div class="auth-desc">アカウント発行後に「📧 招待メールを送る」をクリック。Firebase からパスワード設定リンクのメールが届く。</div>
+            </div>
+          </div>
+          <div class="auth-step">
+            <div class="auth-left"><div class="auth-circle login">4</div></div>
+            <div class="auth-content">
+              <div class="auth-title">パスワード設定 → ログイン</div>
+              <div class="auth-desc">利用者がメールのリンクからパスワードを設定し、<code>kaigo-login.html</code> からログイン。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 介護施設・法人のフロー -->
+      <div class="arch-box">
+        <p style="font-size:14px;font-weight:800;color:var(--ok);margin-bottom:16px">🏠 介護施設・法人 のアカウント登録</p>
+        <div class="auth-flow">
+          <div class="auth-step">
+            <div class="auth-left"><div class="auth-circle review">1</div><div class="auth-line"></div></div>
+            <div class="auth-content">
+              <div class="auth-title">管理者が法人を登録</div>
+              <div class="auth-desc">ユーザー管理タブの「法人を登録」セクションで法人名・担当者メールを登録する。</div>
+            </div>
+          </div>
+          <div class="auth-step">
+            <div class="auth-left"><div class="auth-circle apply">2</div><div class="auth-line"></div></div>
+            <div class="auth-content">
+              <div class="auth-title">管理者がユーザーアカウントを発行</div>
+              <div class="auth-desc">「新規アカウントを発行」セクションで名前・メール・パスワード・権限（facility）・法人を選択してアカウントを作成。</div>
+            </div>
+          </div>
+          <div class="auth-step">
+            <div class="auth-left"><div class="auth-circle invite">3</div><div class="auth-line"></div></div>
+            <div class="auth-content">
+              <div class="auth-title">招待メールを送信</div>
+              <div class="auth-desc">発行後に表示される「📧 招待メールを送る」をクリック。Firebase からパスワード設定リンクが届く。</div>
+            </div>
+          </div>
+          <div class="auth-step">
+            <div class="auth-left"><div class="auth-circle login">4</div></div>
+            <div class="auth-content">
+              <div class="auth-title">パスワード設定 → ログイン</div>
+              <div class="auth-desc"><code>kaigo-facility-login.html</code> からログインすると、自分の法人の施設一覧（法人ダッシュボード）が表示される。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ③ システム構成 -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">3</div>
+      <div class="sec-title">システム構成・仕様</div>
+    </div>
+
+    <div class="arch-box">
+      <p style="font-size:13px;font-weight:700;color:var(--g700);margin-bottom:8px">全体のデータフロー</p>
+      <div class="arch-flow">
+        <div class="arch-node hl2">Firebase Auth<br><span style="font-size:10px">ロール認証（3種）</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node hl">Firebase Firestore<br><span style="font-size:10px">施設・法人・ユーザー・申請</span></div>
+        <div class="arch-arrow">↔</div>
+        <div class="arch-node">各HTMLページ<br><span style="font-size:10px">Firebase Hosting</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">閲覧者<br><span style="font-size:10px">ケアマネ・施設担当・管理者</span></div>
+      </div>
+      <div class="arch-list">
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>認証レイヤー（NEW）：</strong>Firebase Auth でログイン必須。role（admin / hospital / facility）に応じてリダイレクト先が変わる。未認証ユーザーはログイン画面へ自動遷移。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>リアルタイム同期：</strong>施設が空室を更新すると、検索画面に即座に反映（約1〜3秒）。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>法人グルーピング（NEW）：</strong>corporationId で施設と法人アカウントを紐づけ。法人ダッシュボードには自分の法人の施設だけが表示される。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>サーバー不要：</strong>Firebase Hosting（静的HTML）＋ Firestore のみ。サーバー管理・メンテナンス費用なし。</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <table class="spec-table">
+        <tr><th>項目</th><th>内容</th></tr>
+        <tr><td>ホスティング</td><td>Firebase Hosting — <code>kaigo-link-dev-59bc5.web.app</code>（自動デプロイ設定：GitHub Actions 連携済み）</td></tr>
+        <tr><td>認証</td><td>Firebase Authentication — メール/パスワード認証。3ロール（admin / hospital / facility）<span class="diff-badge">v2.0 NEW</span></td></tr>
+        <tr><td>データベース</td><td>Firebase Firestore — コレクション: <code>facilities</code> / <code>corporations</code> / <code>users</code> / <code>applications</code></td></tr>
+        <tr><td>写真保存</td><td>Firebase Storage — パス: <code>facilities/【施設ID】/photo.jpg</code></td></tr>
+        <tr><td>フロントエンド</td><td>HTML + CSS + Vanilla JavaScript。新規ページは Tailwind CSS（CDN）+ Noto Sans JP フォント<span class="diff-badge">v2.0 NEW</span></td></tr>
+        <tr><td>外部ライブラリ</td><td>Firebase SDK v10.7.1、QRCode.js v1.0.0、Tailwind CSS（CDN）</td></tr>
+        <tr><td>対応ブラウザ</td><td>Chrome・Safari・Edge 最新版、iOS Safari、Android Chrome</td></tr>
+        <tr><td>プロジェクトID</td><td><code>kaigo-link-dev-59bc5</code></td></tr>
+        <tr><td>GitHubリポジトリ</td><td><code>newgo-koike/kaigo-vacancy-demo</code></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ④ データ構造 -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">4</div>
+      <div class="sec-title">データ構造（Firestoreコレクション）</div>
+    </div>
+
+    <!-- corporations -->
+    <div class="field-group">
+      <div class="field-group-hd purple">corporations（法人・運営母体）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.0 NEW</span></div>
+      <div class="field-list">
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">法人名・運営母体名（例：社会福祉法人○○会）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">contactEmail</div><div class="field-desc">担当者メールアドレス（任意）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">createdAt</div><div class="field-desc">登録日時</div><div class="field-type">timestamp</div></div>
+      </div>
+    </div>
+
+    <!-- users -->
+    <div class="field-group">
+      <div class="field-group-hd purple">users（ユーザーアカウント）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.0 NEW</span></div>
+      <div class="field-list">
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">role</div><div class="field-desc">権限（admin / hospital / facility）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">facilityロールのみ。どの法人に属するかを示す</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">createdAt</div><div class="field-desc">アカウント作成日時</div><div class="field-type">timestamp</div></div>
+      </div>
+    </div>
+
+    <!-- applications -->
+    <div class="field-group">
+      <div class="field-group-hd purple">applications（アカウント申請）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.0 NEW</span></div>
+      <div class="field-list">
+        <div class="field-item"><div class="field-name">organizationName</div><div class="field-desc">病院名・施設名・法人名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者氏名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">tel</div><div class="field-desc">電話番号（任意）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">message</div><div class="field-desc">ご要望・メッセージ（任意）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">status</div><div class="field-desc">申請ステータス（pending / approved）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">appliedAt</div><div class="field-desc">申請日時</div><div class="field-type">timestamp</div></div>
+        <div class="field-item"><div class="field-name">approvedAt</div><div class="field-desc">承認日時（承認後に追加）</div><div class="field-type">timestamp</div></div>
+      </div>
+    </div>
+
+    <!-- facilities -->
+    <div class="field-group">
+      <div class="field-group-hd">facilities（施設情報）</div>
+      <div class="field-list">
+        <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">法人ID（どの法人が管理するかの紐づけ）<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.0 NEW</span></div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">施設名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">type</div><div class="field-desc">施設種別（特養 / 老健 / グループホーム / サ高住 / 介護付有料 / 住宅型有料）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">prefecture</div><div class="field-desc">都道府県（大阪府 など）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">city</div><div class="field-desc">市区町村（豊中市 / 吹田市 / 茨木市 など）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">area</div><div class="field-desc">エリア名（庄内 / 岡町 / 曽根 など）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">address</div><div class="field-desc">住所</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">station</div><div class="field-desc">最寄り駅名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">stationDistance</div><div class="field-desc">駅からの距離（例: 徒歩5分）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">vacancy</div><div class="field-desc">空室数（0=満室）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">vacancyNotes</div><div class="field-desc">空室に関する補足（待機リスト状況など）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">rent</div><div class="field-desc">家賃（万円）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">managementFee</div><div class="field-desc">管理費（万円）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">mealFee</div><div class="field-desc">食費（万円）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">monthlyTotal</div><div class="field-desc">月額合計（万円・自動計算）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">initialFee</div><div class="field-desc">入居一時金あり/なし</div><div class="field-type">boolean</div></div>
+        <div class="field-item"><div class="field-name">initialFeeAmount</div><div class="field-desc">入居一時金額（万円）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">seikatsuHogo</div><div class="field-desc">生活保護 可否（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">mimonHosho</div><div class="field-desc">身元保証なし可否（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">kaigoNintei</div><div class="field-desc">介護認定なし受入（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">features</div><div class="field-desc">こだわり・特徴（44種）・看護医療体制（31種）タグ</div><div class="field-type">string[]</div></div>
+        <div class="field-item"><div class="field-name">photoUrl</div><div class="field-desc">施設写真のダウンロードURL（Firebase Storage）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">plan</div><div class="field-desc">プラン（free / paid）。有料のみ連絡先表示</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">approved</div><div class="field-desc">掲載承認済みフラグ</div><div class="field-type">boolean</div></div>
+        <div class="field-item"><div class="field-name">updatedAt</div><div class="field-desc">最終更新日時</div><div class="field-type">timestamp</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 現在のデータ状況 -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">5</div>
+      <div class="sec-title">現在のデータ状況（2026年6月時点）</div>
+    </div>
+
+    <div class="data-status-grid">
+      <div class="data-status-card ok">
+        <div class="data-status-label">登録施設数</div>
+        <div class="data-status-value">154件</div>
+        <div class="data-status-note">豊中市内全介護施設を一括インポート済み</div>
+      </div>
+      <div class="data-status-card warn">
+        <div class="data-status-label">空室数（要更新）</div>
+        <div class="data-status-value">すべて0</div>
+        <div class="data-status-note">初期値0のまま。施設への確認・更新が必要</div>
+      </div>
+      <div class="data-status-card">
+        <div class="data-status-label">登録法人数</div>
+        <div class="data-status-value">─</div>
+        <div class="data-status-note">順次追加予定。管理者ダッシュボードから登録</div>
+      </div>
+      <div class="data-status-card">
+        <div class="data-status-label">ユーザー数</div>
+        <div class="data-status-value">1名</div>
+        <div class="data-status-note">管理者アカウントのみ。今後招待制で追加予定</div>
+      </div>
+    </div>
+
+    <table class="spec-table">
+      <tr><th>項目</th><th>状況</th></tr>
+      <tr><td>データ出所</td><td>豊中市介護情報リスト（Excel）から一括インポート</td></tr>
+      <tr><td>入力済み</td><td>施設名・種別・住所・電話番号・最寄り駅・エリア</td></tr>
+      <tr><td>仮設定済み</td><td>こだわりタグ・入居条件（生活保護・身元保証・介護認定）= 施設種別に応じたデフォルト値。実態と異なる可能性あり</td></tr>
+      <tr><td>要確認・更新</td><td>空室数（現在すべて0）・担当者名・写真・タグの正確性・入居条件の正確な可否<br><span style="font-size:11px;color:var(--amber)">▶ 施設への訪問時に確認・修正を推奨</span></td></tr>
+      <tr><td>次フェーズ</td><td>吹田市・茨木市データの追加インポート（全国展開は1,000〜4,000件想定）</td></tr>
+    </table>
+  </div>
+
+  <!-- ⑥ 営業・オンボーディング -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">6</div>
+      <div class="sec-title">施設への営業・オンボーディング手順</div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 営業担当</div>
+      <h3>施設を開拓して空室更新を依頼するまでの流れ</h3>
+      <div class="onboarding-flow" style="margin-top:16px">
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">1</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">管理者ダッシュボードで対象施設を確認</div>
+            <div class="onboarding-desc"><code>kaigo-master.html</code> の施設管理タブで施設名を検索。共有ページURLをコピー・QRコードを確認しておく。</div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">2</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">施設に訪問 → 検索ページを見せる</div>
+            <div class="onboarding-desc"><code>kaigo-search.html</code> でその施設の表示を見せる。「すでに基本情報を入れてあります。一緒に確認させてください」とヒアリングのきっかけにする。</div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">3</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">ヒアリングして情報を正確に埋める</div>
+            <div class="onboarding-desc">
+              ① タグ（こだわり・医療体制）が実態と合っているか<br>
+              ② 入居条件（生活保護・身元保証・介護認定）の正確な可否<br>
+              ③ 施設HP・公式サイトのURL<br>
+              ④ 担当者名・直通電話番号（有料プラン用）<br>
+              ⑤ 施設写真（あれば提供してもらうか後日送付）
+            </div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">4</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">掲載許可取得 → 「掲載承認」をオンにする</div>
+            <div class="onboarding-desc">了承を得たら <code>kaigo-master.html</code> の「掲載承認」列を✅済にする。</div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">5</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">管理者で法人登録 → 施設担当者アカウントを発行</div>
+            <div class="onboarding-desc">ユーザー管理タブで法人を登録 → 法人アカウント（facilityロール）を発行 → 招待メールを送信。担当者がパスワードを設定してログイン完了。</div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">6</div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">有料プランの案内</div>
+            <div class="onboarding-desc">有料プランにすると担当者への直接問い合わせが表示されるようになることを説明。ケアマネ・MSWからの直接問い合わせ獲得につながることを伝える。</div>
+          </div>
+        </div>
+      </div>
+      <div class="manual-point">ポイント：「Meets Medical 側で入力するので施設の負担はゼロ」が最大の訴求ポイント。法人アカウント発行まで完結することで空室更新の習慣化を促す。</div>
+    </div>
+  </div>
+
+  <!-- ⑦ 操作マニュアル -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">7</div>
+      <div class="sec-title">操作マニュアル</div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 担当者</div>
+      <h3>アカウント申請を承認する</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>管理者ダッシュボードを開く</strong><br><code>kaigo-master.html</code> → ユーザー管理タブをクリック</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>「申請一覧」で未処理の申請を確認</strong><br>黄色の「未処理」バッジがついた申請が表示される</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>「✅ 承認・アカウント発行へ」をクリック</strong><br>上の「新規アカウントを発行」フォームに申請者の名前・メールが自動入力される</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>パスワードを入力して「アカウントを発行する」</strong><br>仮パスワードを設定（申請者が後で変更するため何でもOK。8文字以上）</div></li>
+        <li><div class="step-num">5</div><div class="step-txt"><strong>「📧 招待メールを送る」をクリック</strong><br>Firebaseからパスワード設定リンクがメール送信される。申請者がリンクをクリックして自分のパスワードを設定する。</div></li>
+      </ol>
+      <div class="manual-note">申請は自動的に「承認済み」に更新されます。招待メールの件名は Firebase からの自動送信になります（「パスワードのリセット」という件名）。</div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 担当者</div>
+      <h3>施設情報を更新・修正する</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>マスター管理ページを開く</strong><br><code>kaigo-master.html</code> → 施設管理タブ</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>対象施設の「📝 編集」ボタンをクリック</strong><br>施設名で絞り込んで対象を探す</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>修正したい項目を変更する</strong><br>タグ・入居条件・住所・電話番号・費用などを修正</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>「✅ この内容で更新する」をクリック</strong><br>保存後、検索ページに即時反映</div></li>
+      </ol>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-facility" style="background:var(--ok-bg);color:var(--ok)">施設担当者（法人アカウント）</div>
+      <h3>空室情報を更新する</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>施設専用ログイン画面を開く</strong><br><code>kaigo-facility-login.html</code> にアクセスしてログイン</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>法人ダッシュボードで更新したい施設を選ぶ</strong><br>管理している施設の一覧が表示される。対象施設の「更新」ボタンをクリック</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>「空室数」を現在の数に変更</strong><br>満室の場合は「0」を入力</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>備考があれば記入（任意）</strong><br>「来月2名入居予定」「見学受付中」など自由に入力</div></li>
+        <li><div class="step-num">5</div><div class="step-txt"><strong>「更新する」をクリック</strong><br>即座に検索ページに反映されます</div></li>
+      </ol>
+      <div class="manual-note">ダッシュボードには「14日以上未更新」の施設が赤字で警告表示されます。定期的にログインして更新をお願いします。</div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-public" style="background:var(--blue-bg);color:var(--blue)">ケアマネ・MSW・病院担当者</div>
+      <h3>施設を検索する</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>ログイン画面を開く</strong><br><code>kaigo-login.html</code> にアクセスしてメール・パスワードでログイン</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>エリア・費用・施設種別でフィルタリング</strong><br>左サイドバーで条件を設定して「この条件で検索」をクリック</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>こだわり条件・医療体制タグで絞り込み</strong><br>中央列で複数タグを選択（AND検索）</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>「💾 この条件を保存」をクリック</strong><br>次回ログイン時に同じ条件が自動で復元されます</div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ⑧ 運用・注意事項 -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">8</div>
+      <div class="sec-title">運用上の注意事項</div>
+    </div>
+    <table class="spec-table">
+      <tr><th>項目</th><th>内容</th></tr>
+      <tr>
+        <td>アカウント管理<span class="diff-badge">v2.0</span></td>
+        <td>管理者ダッシュボードのユーザー管理タブから全操作可能。Firebase コンソールを操作する必要はありません。</td>
+      </tr>
+      <tr>
+        <td>招待メールの件名</td>
+        <td>Firebase が自動送信するため件名は「パスワードのリセット」になります。申請者に事前に「このメールが届きます」と伝えておくとスムーズです。</td>
+      </tr>
+      <tr>
+        <td>法人アカウント</td>
+        <td>1法人で複数施設を管理する場合は法人を先に登録し、そのcorporationIdに紐づけた施設を登録してください。法人アカウントには自動的に紐づいた施設のみが表示されます。</td>
+      </tr>
+      <tr>
+        <td>タグ・入居条件の正確性</td>
+        <td>現在のタグは施設タイプに基づくデフォルト設定。施設への訪問時に正確な情報に更新してください。</td>
+      </tr>
+      <tr>
+        <td>有料プランバッジ</td>
+        <td>有料プランの施設には緑の丸チェック（✓）が表示されます。マスター管理のプランボタンでワンクリック切り替え。</td>
+      </tr>
+      <tr>
+        <td>更新の督促</td>
+        <td>マスター管理・法人ダッシュボード双方で「14日以上未更新」施設が赤字警告表示されます。定期的にLINEで更新を促してください。</td>
+      </tr>
+      <tr>
+        <td>Firebase費用目安</td>
+        <td>1日300アクセス程度まで無料枠で運用可能。ケアマネ・MSWが日常的に使い始め1日100〜200人規模になったら有料プラン（Blaze：従量課金、月$25〜）への移行を検討。</td>
+      </tr>
+      <tr>
+        <td>今後の予定</td>
+        <td>吹田市・茨木市への展開 / 検索履歴のFirestore保存 / 地図表示（Google Maps連携） / GitHub Actions 自動デプロイ</td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  介護施設空室検索システム v2.0<br>
+  制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
+  <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
+</div>
+
+</body>
+</html>
