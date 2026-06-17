@@ -3,123 +3,182 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>施設情報 | 介護施設検索ツール</title>
+  <title>施設情報 | 介護施設検索システム</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --brand:#0d9488; --brand-d:#0f766e;
-      --brand-l:#f0fdfa; --brand-ll:#ccfbf1;
+      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
       --ok:#16a34a; --ok-bg:#dcfce7;
       --few:#ea580c; --few-bg:#ffedd5;
-      --full-c:#64748b; --full-bg:#f1f5f9;
-      --purple:#7c3aed; --purple-bg:#f5f3ff;
-      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0; --g300:#cbd5e1;
+      --amber:#d97706;
+      --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
       --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
       --g800:#1e293b; --g900:#0f172a;
-      --r:12px; --r-lg:16px;
-      --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
-      --sh-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-    body {
-      font-family:-apple-system,'Helvetica Neue','Hiragino Sans',Arial,sans-serif;
-      background:var(--g50); color:var(--g800); line-height:1.5;
-      -webkit-font-smoothing:antialiased;
-    }
-    .hdr {
-      background:var(--g900); height:62px; padding:0 24px;
-      display:flex; align-items:center; justify-content:space-between;
-      position:sticky; top:0; z-index:100;
-    }
-    .hdr-brand { display:flex; align-items:center; gap:10px; }
-    .hdr-logo { width:32px; height:32px; background:var(--brand); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; }
-    .hdr-title { font-size:15px; font-weight:800; color:white; }
-    .hdr-sub   { font-size:10px; color:var(--g400); margin-top:1px; }
-    .hdr-back  { font-size:12px; color:var(--g400); text-decoration:none; padding:6px 12px; border:1px solid rgba(255,255,255,.15); border-radius:7px; transition:all .15s; }
-    .hdr-back:hover { color:white; border-color:rgba(255,255,255,.35); }
+    body { font-family:'Noto Sans JP',-apple-system,sans-serif; background:var(--g50); color:var(--g800); -webkit-font-smoothing:antialiased; visibility:hidden; }
+    body.ready { visibility:visible; }
 
-    .page { max-width:640px; margin:0 auto; padding:28px 20px 60px; }
+    /* HEADER */
+    .hdr { background:var(--g900); height:56px; padding:0 20px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:100; }
+    .hdr-logo { width:30px; height:30px; background:var(--brand); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; }
+    .hdr-title { font-size:15px; font-weight:700; color:white; }
+    .hdr-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+    .btn-back { font-size:13px; color:var(--g400); text-decoration:none; padding:6px 14px; border:1px solid rgba(255,255,255,.2); border-radius:7px; transition:all .15s; }
+    .btn-back:hover { color:white; border-color:rgba(255,255,255,.4); }
+    .btn-print { font-size:13px; font-weight:700; color:white; background:var(--brand); border:none; padding:7px 16px; border-radius:8px; cursor:pointer; font-family:inherit; transition:background .15s; }
+    .btn-print:hover { background:var(--brand-d); }
 
-    /* hero photo */
-    .hero { position:relative; height:220px; border-radius:var(--r-lg); overflow:hidden; background:var(--g200); margin-bottom:20px; box-shadow:var(--sh-md); }
+    /* PAGE */
+    .page { max-width:680px; margin:0 auto; padding:28px 20px 80px; }
+
+    /* HERO */
+    .hero { position:relative; height:230px; border-radius:16px; overflow:hidden; background:var(--g200); margin-bottom:22px; box-shadow:0 4px 16px rgba(0,0,0,.1); }
     .hero img { width:100%; height:100%; object-fit:cover; display:block; }
-    .hero-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,20,40,.82) 0%,rgba(10,20,40,.1) 55%,transparent 100%); }
-    .hero-name { position:absolute; bottom:16px; left:18px; right:18px; color:white; font-size:22px; font-weight:900; line-height:1.25; }
-    .hero-type { position:absolute; top:14px; left:14px; background:rgba(10,20,40,.55); backdrop-filter:blur(8px); color:white; font-size:11px; padding:4px 11px; border-radius:20px; font-weight:600; }
-    .hero-area { position:absolute; top:14px; right:14px; background:var(--brand); color:white; font-size:11px; padding:4px 11px; border-radius:20px; font-weight:600; }
+    .hero-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,20,40,.85) 0%,rgba(10,20,40,.1) 55%,transparent 100%); }
+    .hero-name { position:absolute; bottom:16px; left:18px; right:18px; color:white; font-size:24px; font-weight:900; line-height:1.25; }
+    .hero-type { position:absolute; top:14px; left:14px; background:rgba(10,20,40,.55); backdrop-filter:blur(8px); color:white; font-size:12px; padding:5px 13px; border-radius:20px; font-weight:700; }
+    .hero-plan { position:absolute; top:14px; right:14px; background:var(--brand); color:white; font-size:11px; padding:5px 12px; border-radius:20px; font-weight:700; }
+    .hero-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:64px; background:linear-gradient(135deg,#e2e8f0,#cbd5e1); }
 
-    /* vacancy block */
-    .vac-block { border-radius:var(--r-lg); overflow:hidden; margin-bottom:16px; display:flex; box-shadow:var(--sh); }
-    .vac-num   { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:22px 26px; min-width:100px; }
+    /* VACANCY */
+    .vac-block { border-radius:14px; overflow:hidden; margin-bottom:18px; display:flex; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+    .vac-num { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px 28px; min-width:110px; }
     .vac-ok   .vac-num { background:var(--ok-bg); }
     .vac-few  .vac-num { background:var(--few-bg); }
-    .vac-full .vac-num { background:var(--full-bg); }
-    .vac-big  { font-size:52px; font-weight:900; line-height:1; letter-spacing:-3px; }
-    .vac-ok  .vac-big  { color:var(--ok); }
-    .vac-few .vac-big  { color:var(--few); }
-    .vac-full .vac-big { color:var(--full-c); }
-    .vac-unit { font-size:13px; font-weight:700; margin-top:-2px; }
-    .vac-ok  .vac-unit  { color:var(--ok); }
-    .vac-few .vac-unit  { color:var(--few); }
-    .vac-full .vac-unit { color:var(--full-c); }
-    .vac-info { flex:1; padding:16px 18px; display:flex; flex-direction:column; justify-content:center; }
-    .vac-ok  .vac-info { background:color-mix(in srgb,var(--ok-bg) 35%,white); }
-    .vac-few .vac-info { background:color-mix(in srgb,var(--few-bg) 35%,white); }
+    .vac-full .vac-num { background:var(--g100); }
+    .vac-big { font-size:56px; font-weight:900; line-height:1; letter-spacing:-3px; }
+    .vac-ok   .vac-big { color:var(--ok); }
+    .vac-few  .vac-big { color:var(--few); }
+    .vac-full .vac-big { color:var(--g400); }
+    .vac-unit { font-size:14px; font-weight:700; margin-top:-2px; }
+    .vac-ok   .vac-unit { color:var(--ok); }
+    .vac-few  .vac-unit { color:var(--few); }
+    .vac-full .vac-unit { color:var(--g400); }
+    .vac-info { flex:1; padding:18px 20px; display:flex; flex-direction:column; justify-content:center; }
+    .vac-ok   .vac-info { background:color-mix(in srgb,var(--ok-bg) 30%,white); }
+    .vac-few  .vac-info { background:color-mix(in srgb,var(--few-bg) 30%,white); }
     .vac-full .vac-info { background:var(--g50); }
-    .vac-status { font-size:16px; font-weight:800; margin-bottom:4px; }
-    .vac-ok  .vac-status  { color:var(--ok); }
-    .vac-few .vac-status  { color:var(--few); }
-    .vac-full .vac-status { color:var(--full-c); }
-    .vac-upd { font-size:11px; color:var(--g400); margin-top:6px; }
+    .vac-status { font-size:18px; font-weight:800; margin-bottom:4px; }
+    .vac-ok   .vac-status { color:var(--ok); }
+    .vac-few  .vac-status { color:var(--few); }
+    .vac-full .vac-status { color:var(--g500); }
+    .vac-notes { font-size:13px; color:var(--g600); margin-top:8px; padding:7px 11px; background:rgba(217,119,6,.08); border-radius:7px; border-left:3px solid #d97706; line-height:1.6; }
+    .vac-upd { font-size:12px; color:var(--g400); margin-top:8px; }
 
-    /* cards */
-    .card { background:white; border-radius:var(--r-lg); padding:20px 22px; box-shadow:var(--sh); margin-bottom:14px; border:1px solid var(--g200); }
-    .card-ttl { font-size:10px; font-weight:800; color:var(--g500); letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--g100); display:flex; align-items:center; gap:7px; }
-    .d-rows { display:flex; flex-direction:column; gap:8px; }
-    .d-row  { display:flex; gap:10px; font-size:13px; }
-    .d-lbl  { color:var(--g400); width:76px; flex-shrink:0; font-size:12px; padding-top:1px; }
-    .d-val  { color:var(--g700); font-weight:500; line-height:1.5; }
-    .feat-tags { display:flex; flex-wrap:wrap; gap:4px; }
-    .feat-tag  { font-size:11px; padding:3px 9px; background:var(--g100); border-radius:5px; color:var(--g600); font-weight:500; }
+    /* ═══ 費用セクション ══════════════════════════════════ */
+    /* 基本料金カード */
+    .fee-section-hd { font-size:12px; font-weight:800; color:var(--g500); letter-spacing:.08em; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--g100); }
+    .fee-card { display:grid; grid-template-columns:1fr 1.6fr; gap:12px; margin-bottom:18px; }
+    .fee-box { border-radius:14px; padding:20px; }
+    .fee-box-init { background:#ecfdf5; border:1px solid #a7f3d0; }
+    .fee-box-monthly { background:#ecfdf5; border:1px solid #a7f3d0; }
+    .fee-box-lbl { font-size:13px; font-weight:700; color:var(--brand-d); margin-bottom:10px; text-align:center; }
+    .fee-big-num { font-size:44px; font-weight:900; color:var(--amber); line-height:1; text-align:center; }
+    .fee-big-unit { font-size:15px; font-weight:600; color:var(--g500); }
+    .fee-sub { text-align:center; margin-top:8px; }
+    .fee-sub-item { font-size:12px; color:var(--g500); margin-top:4px; }
+    .fee-cols { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:10px; }
+    .fee-col { background:rgba(255,255,255,.7); border-radius:8px; padding:8px 4px; text-align:center; }
+    .fee-col-lbl { font-size:11px; color:var(--g500); font-weight:600; }
+    .fee-col-val { font-size:16px; font-weight:800; color:var(--ok); margin-top:2px; }
+    .fee-col-unit { font-size:10px; color:var(--g400); }
+    .fee-note { font-size:11px; color:var(--g400); text-align:center; margin-top:8px; }
 
-    /* campaign */
-    .campaign-card { background:var(--purple-bg); border:1px solid #ddd6fe; border-radius:var(--r-lg); padding:16px 18px; margin-bottom:14px; }
-    .camp-label { font-size:10px; color:var(--purple); font-weight:800; letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px; }
-    .camp-text  { font-size:14px; color:var(--g700); font-weight:500; line-height:1.6; }
+    /* 介護費用説明 */
+    .care-fee-card { background:white; border-radius:14px; padding:20px 24px; margin-bottom:14px; border:1px solid var(--g200); box-shadow:0 2px 10px rgba(0,0,0,.06); }
+    .care-fee-desc { font-size:13px; color:var(--g600); line-height:1.7; margin-bottom:14px; background:var(--g50); border-radius:8px; padding:10px 14px; border-left:3px solid var(--brand); }
+    .care-fee-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .care-fee-table th { background:var(--brand); color:white; padding:8px 12px; font-weight:700; text-align:left; }
+    .care-fee-table th:last-child { text-align:right; }
+    .care-fee-table td { padding:8px 12px; border-bottom:1px solid var(--g100); color:var(--g700); }
+    .care-fee-table td:last-child { text-align:right; font-weight:700; color:var(--ok); }
+    .care-fee-table tr:last-child td { border-bottom:none; }
+    .care-fee-table tr:nth-child(even) td { background:var(--g50); }
+    .care-fee-note { font-size:11px; color:var(--g400); margin-top:8px; }
 
-    /* contact */
-    .contact-card { background:white; border-radius:var(--r-lg); border:1.5px solid var(--brand-ll); box-shadow:0 4px 14px rgba(13,148,136,.1); overflow:hidden; margin-bottom:14px; }
-    .cont-hd    { background:var(--brand-l); padding:12px 18px; font-size:11px; font-weight:700; color:var(--brand-d); letter-spacing:.04em; border-bottom:1px solid var(--brand-ll); }
-    .cont-inner { padding:18px 20px; }
-    .cont-name  { font-size:13px; font-weight:600; color:var(--g600); margin-bottom:4px; }
-    .cont-tel   { font-size:30px; font-weight:900; color:var(--brand-d); letter-spacing:-1px; margin-bottom:14px; }
-    .call-btn   { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .1s; text-decoration:none; }
-    .call-btn:hover { background:var(--brand-d); transform:translateY(-1px); }
+    /* その他費用 */
+    .other-fee-list { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:12px; }
+    .other-fee-item { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--g50); border-radius:8px; border:1px solid var(--g100); }
+    .other-fee-item-lbl { font-size:13px; color:var(--g700); font-weight:500; }
+    .other-fee-item-val { font-size:12px; color:var(--g500); text-align:right; }
 
-    /* vacancy notes */
-    .vac-notes { font-size:12px; color:var(--g600); margin-top:7px; padding:6px 10px; background:rgba(217,119,6,.08); border-radius:6px; border-left:3px solid #d97706; line-height:1.5; }
+    /* 月々の目安（大きく表示） */
+    .monthly-est-card { background:linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius:16px; padding:24px; margin-bottom:18px; border:2px solid #a7f3d0; text-align:center; box-shadow:0 4px 16px rgba(5,150,105,.15); }
+    .monthly-est-label { font-size:13px; font-weight:700; color:var(--brand-d); margin-bottom:8px; }
+    .monthly-est-num { font-size:52px; font-weight:900; color:var(--brand-d); line-height:1; letter-spacing:-2px; }
+    .monthly-est-unit { font-size:20px; font-weight:700; color:var(--brand); }
+    .monthly-est-sub { font-size:12px; color:var(--g500); margin-top:10px; line-height:1.6; }
+    .monthly-est-breakdown { display:flex; justify-content:center; gap:16px; margin-top:12px; flex-wrap:wrap; }
+    .monthly-est-bd-item { font-size:12px; color:var(--g600); background:rgba(255,255,255,.6); border-radius:6px; padding:4px 10px; }
 
-    /* contact blur (free plan) */
-    .cont-locked { position:relative; min-height:120px; }
-    .cont-blur { filter:blur(5px); user-select:none; pointer-events:none; }
-    .cont-lock-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,.72); backdrop-filter:blur(2px); border-radius:0 0 var(--r-lg) var(--r-lg); }
+    /* SECTION CARD */
+    .sec-card { background:white; border-radius:14px; padding:22px 24px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-bottom:14px; border:1px solid var(--g200); }
+    .sec-hd { font-size:13px; font-weight:800; color:var(--g500); letter-spacing:.08em; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--g100); display:flex; align-items:center; gap:8px; }
+    .info-rows { display:flex; flex-direction:column; gap:12px; }
+    .info-row { display:flex; gap:12px; align-items:flex-start; }
+    .info-lbl { font-size:13px; color:var(--g400); width:80px; flex-shrink:0; padding-top:1px; font-weight:500; }
+    .info-val { font-size:15px; color:var(--g700); font-weight:500; line-height:1.5; flex:1; }
 
-    /* footer note */
-    .foot-note { text-align:center; font-size:12px; color:var(--g400); margin-top:28px; line-height:1.7; }
-    .foot-note a { color:var(--brand); text-decoration:none; }
+    /* COND BADGES */
+    .cond-list { display:flex; flex-wrap:wrap; gap:8px; }
+    .cond-badge { font-size:13px; padding:7px 14px; border-radius:8px; font-weight:700; }
+    .cond-ok  { background:#dcfce7; color:#15803d; }
+    .cond-sou { background:#fef3c7; color:#92400e; }
+    .cond-ng  { background:#fee2e2; color:#991b1b; }
+    .cond-na  { background:var(--g100); color:var(--g400); }
 
-    /* error / loading */
-    .state-msg { text-align:center; padding:80px 20px; color:var(--g400); }
+    /* TAGS */
+    .tag-list { display:flex; flex-wrap:wrap; gap:6px; }
+    .tag-item { font-size:13px; padding:5px 11px; background:var(--g100); border-radius:6px; color:var(--g600); font-weight:500; }
+
+    /* CONTACT */
+    .contact-card { background:white; border-radius:14px; border:2px solid var(--brand); box-shadow:0 4px 18px rgba(13,148,136,.12); overflow:hidden; margin-bottom:14px; }
+    .contact-hd { background:var(--brand-l); padding:14px 20px; font-size:14px; font-weight:800; color:var(--brand-d); border-bottom:1px solid #99f6e4; }
+    .contact-inner { padding:20px 24px; }
+    .contact-name { font-size:14px; color:var(--g500); margin-bottom:4px; }
+    .contact-tel  { font-size:36px; font-weight:900; color:var(--brand-d); letter-spacing:-1px; margin-bottom:16px; }
+    .call-btn { display:inline-flex; align-items:center; gap:8px; padding:14px 32px; background:var(--brand); color:white; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; text-decoration:none; transition:background .15s; }
+    .call-btn:hover { background:var(--brand-d); }
+
+    /* LOCK */
+    .lock-card { background:white; border-radius:14px; border:1px dashed var(--g300); padding:28px; text-align:center; margin-bottom:14px; }
+    .lock-icon { font-size:36px; margin-bottom:8px; }
+    .lock-title { font-size:16px; font-weight:700; color:var(--g600); margin-bottom:4px; }
+    .lock-sub { font-size:13px; color:var(--g400); }
+
+    /* NOTES */
+    .notes-box { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px 16px; margin-top:0; }
+    .notes-txt  { font-size:14px; color:var(--g700); line-height:1.8; white-space:pre-wrap; }
+
+    /* FREE PLAN BANNER */
+    .free-banner { background:var(--g100); border-radius:12px; padding:18px 20px; margin-bottom:14px; text-align:center; }
+    .free-banner-ttl { font-size:15px; font-weight:700; color:var(--g600); margin-bottom:6px; }
+    .free-banner-sub { font-size:13px; color:var(--g400); line-height:1.6; }
+
+    /* PRINT */
+    @media print {
+      .hdr, .btn-print, .btn-back { display:none !important; }
+      body { background:white; }
+      .page { max-width:100%; padding:10px 20px; }
+      .hero { height:130px; }
+      .print-only { display:block !important; }
+    }
+    .print-only { display:none; }
+    .print-hd { font-size:11px; color:var(--g400); text-align:right; margin-bottom:12px; }
+    .foot-note { text-align:center; font-size:12px; color:var(--g400); margin-top:28px; line-height:1.8; }
+
+    .state-msg { text-align:center; padding:80px 20px; color:var(--g400); font-size:16px; }
   </style>
 </head>
 <body>
 
 <header class="hdr">
-  <div class="hdr-brand">
-    <div class="hdr-logo">🏠</div>
-    <div>
-      <div class="hdr-title">介護施設検索ツール</div>
-      <div class="hdr-sub">介護施設空き状況プラットフォーム</div>
-    </div>
+  <div class="hdr-logo">🏠</div>
+  <div class="hdr-title">介護施設検索システム</div>
+  <div class="hdr-right">
+    <a href="kaigo-search.html" class="btn-back">← 検索に戻る</a>
+    <button class="btn-print" onclick="window.print()">🖨 印刷・PDF</button>
   </div>
 </header>
 
@@ -128,6 +187,7 @@
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp({
@@ -138,98 +198,272 @@ firebase.initializeApp({
   messagingSenderId:"646624290677",
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
 });
-const db = firebase.firestore();
-
+const db   = firebase.firestore();
+const auth = firebase.auth();
 const id   = new URLSearchParams(location.search).get('id');
 const page = document.getElementById('page');
 
-if (!id) {
-  page.innerHTML = '<div class="state-msg">⚠️ 施設IDが指定されていません。</div>';
-} else {
-  load(id);
-}
+auth.onAuthStateChanged(async user => {
+  if (!user) { location.href = 'kaigo-login.html'; return; }
+  const uSnap = await db.collection('users').doc(user.uid).get();
+  const role  = uSnap.data()?.role;
+  if (!['hospital','admin'].includes(role)) { location.href = 'kaigo-login.html'; return; }
+  document.body.classList.add('ready');
+  if (!id) { page.innerHTML = '<div class="state-msg">⚠️ 施設IDが指定されていません。</div>'; return; }
+  load();
+});
 
-function load(docId) {
-  db.collection('facilities').doc(docId).onSnapshot(doc => {
-    if (!doc.exists) {
-      page.innerHTML = '<div class="state-msg">施設が見つかりませんでした。</div>';
-      return;
-    }
+function load() {
+  db.collection('facilities').doc(id).onSnapshot(doc => {
+    if (!doc.exists) { page.innerHTML = '<div class="state-msg">施設が見つかりませんでした。</div>'; return; }
     render(doc);
-  }, e => {
-    page.innerHTML = `<div class="state-msg">⚠️ 読み込みエラー: ${e.message}</div>`;
-  });
+  }, e => { page.innerHTML = `<div class="state-msg">⚠️ ${e.message}</div>`; });
 }
 
 function render(doc) {
   const d      = doc.data();
-  const total  = typeof d.vacancy === 'number' ? d.vacancy : 0;
+  const vac    = typeof d.vacancy === 'number' ? d.vacancy : 0;
   const upd    = d.updatedAt ? d.updatedAt.toDate() : new Date();
-  const now    = new Date();
-  const days   = Math.floor((now - upd) / 86400000);
-  const updStr = upd.toISOString().slice(0, 10);
-  const vacCls = total === 0 ? 'vac-full' : total <= 2 ? 'vac-few' : 'vac-ok';
-  const status = total === 0 ? '現在満室です' : total <= 2 ? `残り${total}室 — お早めにご相談ください` : `${total}室 空きあり`;
-  const photo  = d.photoUrl || `https://picsum.photos/seed/${doc.id.slice(0,10)}/700/400`;
-  const station  = [d.station, d.stationDistance].filter(Boolean).join(' ');
-  const hp       = d.hp || '';
-  const isPaid   = d.plan === 'paid';
+  const days   = Math.floor((new Date() - upd) / 86400000);
+  const updStr = upd.toLocaleDateString('ja-JP');
+  const isPaid = d.plan === 'paid';
+  const vacCls = vac === 0 ? 'vac-full' : vac <= 2 ? 'vac-few' : 'vac-ok';
+  const status = vac === 0 ? '現在満室です' : vac <= 2 ? `残り${vac}室 — お早めにご相談ください` : `${vac}室 空きあり`;
+  // station は stationsArr/stationHtml で代替（後述）
 
-  document.title = `${d.name || '施設情報'} | 介護施設検索ツール`;
+  // 費用
+  const rent    = d.rent ?? null;
+  const mgmt    = d.managementFee ?? null;
+  const meal    = d.mealFee ?? null;
+  const other   = d.otherFee ?? null;
+  const initAmt = d.initialFee ? (d.initialFeeAmount ?? 0) : 0;
+  const hasBreakdown = rent != null || mgmt != null || meal != null;
+  const total = hasBreakdown
+    ? Math.round(((rent||0)+(mgmt||0)+(meal||0)+(other||0))*10)/10
+    : (d.monthlyFee ?? null);
 
-  page.innerHTML = `
-    <div class="hero">
-      <img src="${photo}" alt="${d.name}" loading="lazy">
-      <div class="hero-grad"></div>
-      <div class="hero-name">${d.name || ''}${isPaid ? '<span title="問合せ可能（有料プラン）" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--brand);color:white;font-size:12px;font-weight:900;vertical-align:middle;margin-left:8px;flex-shrink:0">✓</span>' : ''}</div>
-      <div class="hero-type">${d.type || ''}</div>
-      ${d.area ? `<div class="hero-area">📍 ${d.area}</div>` : ''}
-    </div>
+  // 駅（沿線対応）
+  const stationsArr = d.stations || [];
+  const stationHtml = stationsArr.length
+    ? stationsArr.map(s => `<div class="info-row"><span class="info-lbl">🚉 ${s.line||'最寄り駅'}</span><span class="info-val">${s.name}駅${s.walk ? `　徒歩${s.walk}分` : (s.dist ? `　${s.dist}` : '')}</span></div>`).join('')
+    : (d.station ? `<div class="info-row"><span class="info-lbl">最寄り駅</span><span class="info-val">🚉 ${[d.station, d.stationDistance].filter(Boolean).join('　')}</span></div>` : '');
 
-    <div class="vac-block ${vacCls}">
-      <div class="vac-num">
-        <div class="vac-big">${total}</div>
-        <div class="vac-unit">室空き</div>
+  document.title = `${d.name||'施設情報'} | 介護施設検索システム`;
+
+  // ── ① 基本料金カード ──────────────────────────────────────
+  const feeBreakCols = [
+    {lbl:'賃料',  val:rent},
+    {lbl:'管理費',val:mgmt},
+    {lbl:'食費',  val:meal},
+  ].filter(i => i.val != null);
+
+  const feeCard = `
+  <div class="sec-card">
+    <div class="sec-hd">💴 基本料金（施設への直接支払い）</div>
+    <div class="fee-card">
+      <div class="fee-box fee-box-init">
+        <div class="fee-box-lbl">入居時費用（一時金）</div>
+        <div class="fee-big-num">${initAmt}<span class="fee-big-unit">万円</span></div>
+        ${other != null ? `<div class="fee-sub"><div class="fee-sub-item">その他 ${other}万円</div></div>` : ''}
       </div>
-      <div class="vac-info">
-        <div class="vac-status">${status}</div>
-        ${d.vacancyNotes ? `<div class="vac-notes">📝 ${d.vacancyNotes}</div>` : ''}
-        <div class="vac-upd">更新日: ${updStr}${days > 14 ? ' ⚠️ 古い情報の可能性があります' : ''}</div>
-      </div>
-    </div>
-
-    ${d.campaign ? `
-    <div class="campaign-card">
-      <div class="camp-label">🎁 キャンペーン・お知らせ</div>
-      <div class="camp-text">${d.campaign}</div>
-    </div>` : ''}
-
-    ${isPaid ? `
-    <div class="contact-card">
-      <div class="cont-hd">📞 入居相談・見学申し込み</div>
-      <div class="cont-inner">
-        ${d.contactName ? `<div class="cont-name">担当：${d.contactName}</div>` : ''}
-        ${d.contactTel  ? `<div class="cont-tel">${d.contactTel}</div><a class="call-btn" href="tel:${d.contactTel}">📞 電話で問い合わせる</a>` : ''}
-      </div>
-    </div>` : ''}
-
-    <div class="card">
-      <div class="card-ttl">🏥 施設基本情報</div>
-      <div class="d-rows">
-        <div class="d-row"><span class="d-lbl">施設種別</span><span class="d-val">${d.type || '─'}</span></div>
-        ${d.address  ? `<div class="d-row"><span class="d-lbl">住所</span><span class="d-val">${d.address}</span></div>` : ''}
-        ${station      ? `<div class="d-row"><span class="d-lbl">最寄り駅</span><span class="d-val">🚉 ${station}</span></div>` : ''}
-        <div class="d-row"><span class="d-lbl">駐車場</span><span class="d-val">${d.parking ? '🅿️ ' + d.parking : '<span style="color:var(--g400);font-size:11px">未入力</span>'}</span></div>
-        <div class="d-row"><span class="d-lbl">総部屋数</span><span class="d-val">${d.totalRooms ? d.totalRooms + '室' : '<span style="color:var(--g400);font-size:11px">未入力</span>'}</span></div>
-        ${d.features && d.features.length ? `<div class="d-row"><span class="d-lbl">特徴</span><div class="feat-tags">${d.features.map(t=>`<span class="feat-tag">${t}</span>`).join('')}</div></div>` : ''}
+      <div class="fee-box fee-box-monthly">
+        <div class="fee-box-lbl">月額費用（施設負担分）</div>
+        <div class="fee-big-num">${total ?? '─'}<span class="fee-big-unit">万円</span></div>
+        ${feeBreakCols.length ? `
+        <div class="fee-cols">
+          ${feeBreakCols.map(i=>`<div class="fee-col"><div class="fee-col-lbl">${i.lbl}</div><div class="fee-col-val">${i.val}</div><div class="fee-col-unit">万円</div></div>`).join('')}
+        </div>` : ''}
       </div>
     </div>
+  </div>`;
 
-    <div class="foot-note">
-      このページは施設担当者が随時更新しています。<br>
-      空室状況は変動しますので、直接お問い合わせください。
+  // ── ② 介護費用の説明 ─────────────────────────────────────
+  const careFeeCard = `
+  <div class="care-fee-card">
+    <div class="sec-hd">🏥 介護費用の目安（介護保険自己負担分）</div>
+    <div class="care-fee-desc">
+      施設費用とは別に、介護サービスを利用する場合は<strong>介護保険の自己負担分（1〜3割）</strong>が毎月かかります。
+      負担割合は所得によって異なります。以下は<strong>1割負担の場合</strong>の目安です。
     </div>
-  `;
+    <table class="care-fee-table">
+      <thead><tr><th>介護度</th><th>サービス種別</th><th style="text-align:right">月の目安（1割負担）</th></tr></thead>
+      <tbody>
+        <tr><td>要介護1</td><td>身体介護・生活援助など</td><td>約 1.6万円</td></tr>
+        <tr><td>要介護2</td><td>身体介護・生活援助など</td><td>約 1.9万円</td></tr>
+        <tr><td>要介護3</td><td>身体介護・生活援助など</td><td>約 2.2万円</td></tr>
+        <tr><td>要介護4</td><td>身体介護・生活援助など</td><td>約 2.5万円</td></tr>
+        <tr><td>要介護5</td><td>身体介護・生活援助など</td><td>約 2.8万円</td></tr>
+      </tbody>
+    </table>
+    <div class="care-fee-note">※ 施設入所の場合、介護保険の居住費・食費（補足給付対象）は上記とは別の計算になります。ご状況により大きく変わりますので詳しくはお問い合わせください。</div>
+  </div>`;
+
+  // ── ③ その他かかる費用 ──────────────────────────────────
+  const otherFeeCard = `
+  <div class="sec-card">
+    <div class="sec-hd">📋 その他かかる費用の目安</div>
+    <div class="other-fee-list">
+      <div class="other-fee-item"><span class="other-fee-item-lbl">おむつ代</span><span class="other-fee-item-val">5,000〜15,000円/月</span></div>
+      <div class="other-fee-item"><span class="other-fee-item-lbl">洗濯代</span><span class="other-fee-item-val">2,000〜5,000円/月</span></div>
+      <div class="other-fee-item"><span class="other-fee-item-lbl">散髪代</span><span class="other-fee-item-val">2,000〜4,000円/月</span></div>
+      <div class="other-fee-item"><span class="other-fee-item-lbl">医療費（通院等）</span><span class="other-fee-item-val">3,000〜10,000円/月</span></div>
+      <div class="other-fee-item"><span class="other-fee-item-lbl">日用品・レク費</span><span class="other-fee-item-val">2,000〜5,000円/月</span></div>
+      <div class="other-fee-item"><span class="other-fee-item-lbl">被服費</span><span class="other-fee-item-val">1,000〜3,000円/月</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--g400);margin-top:10px">※ 施設・ご利用状況により異なります。目安としてご参考ください。</div>
+  </div>`;
+
+  // ── ④ 月々の総合目安 ────────────────────────────────────
+  const estBase = total ?? 0;
+  const estCare = 2.2; // 要介護3目安（1割）
+  const estOther = 2.0; // その他目安
+  const estMin = total ? Math.round((estBase + 1.6 + 1.4) * 10) / 10 : null;
+  const estMax = total ? Math.round((estBase + 2.8 + 3.5) * 10) / 10 : null;
+
+  const monthlyEstCard = (estMin && estMax) ? `
+  <div class="monthly-est-card">
+    <div class="monthly-est-label">月々にかかる費用の目安（総合）</div>
+    <div style="margin:8px 0">
+      <span class="monthly-est-num">${estMin}</span>
+      <span class="monthly-est-unit">万円〜</span>
+      <span class="monthly-est-num">${estMax}</span>
+      <span class="monthly-est-unit">万円</span>
+    </div>
+    <div class="monthly-est-breakdown">
+      <span class="monthly-est-bd-item">施設費用 ${total}万円</span>
+      <span class="monthly-est-bd-item">介護保険 1.6〜2.8万円</span>
+      <span class="monthly-est-bd-item">その他 1.4〜3.5万円</span>
+    </div>
+    <div class="monthly-est-sub">※ 介護度・ご利用サービス・所得区分などにより大きく変動します。<br>詳しくはMeets Medicalまでお問い合わせください。</div>
+  </div>` : '';
+
+  // ── 入居条件 ──────────────────────────────────────────────
+  function condBadge(lbl, val) {
+    if (!val) return `<span class="cond-badge cond-na">${lbl}：未入力</span>`;
+    const cls = val === '可' ? 'cond-ok' : val === '相談可' ? 'cond-sou' : 'cond-ng';
+    return `<span class="cond-badge ${cls}">${lbl}：${val}</span>`;
+  }
+  const condHtml = [
+    condBadge('生活保護', d.seikatsuHogo),
+    condBadge('身元保証なし', d.mimonHosho),
+    condBadge('介護認定なし', d.kaigoNintei),
+  ].join('');
+
+  const photo = d.photoUrl || '';
+  const heroContent = photo
+    ? `<img src="${photo}" alt="${d.name||''}" loading="lazy">`
+    : `<div class="hero-placeholder">🏠</div>`;
+
+  // ── 有料プランのフルページ ────────────────────────────────
+  if (isPaid) {
+    page.innerHTML = `
+      <div class="print-only"><div class="print-hd">印刷日：${new Date().toLocaleDateString('ja-JP')}　介護施設検索システム</div></div>
+
+      <div class="hero">
+        ${heroContent}
+        ${photo ? '<div class="hero-grad"></div>' : ''}
+        ${photo ? `<div class="hero-name">${d.name||''}</div>` : ''}
+        ${d.type ? `<div class="hero-type">${d.type}</div>` : ''}
+        <div class="hero-plan">✓ 掲載施設</div>
+      </div>
+      ${!photo ? `<h2 style="font-size:22px;font-weight:900;color:var(--g900);margin-bottom:18px">${d.name||''} ${d.type ? `<span style="font-size:14px;background:var(--g100);color:var(--g600);padding:3px 10px;border-radius:6px;font-weight:700;margin-left:8px">${d.type}</span>` : ''}</h2>` : ''}
+
+      <div class="vac-block ${vacCls}">
+        <div class="vac-num">
+          <div class="vac-big">${vac}</div>
+          <div class="vac-unit">室空き</div>
+        </div>
+        <div class="vac-info">
+          <div class="vac-status">${status}</div>
+          ${d.vacancyNotes ? `<div class="vac-notes">📝 ${d.vacancyNotes}</div>` : ''}
+          <div class="vac-upd">更新日：${updStr}${days > 14 ? ' ⚠️ 古い情報の可能性があります' : ''}</div>
+        </div>
+      </div>
+
+      ${feeCard}
+      ${monthlyEstCard}
+      ${careFeeCard}
+      ${otherFeeCard}
+
+      <div class="sec-card">
+        <div class="sec-hd">📍 アクセス・所在地</div>
+        <div class="info-rows">
+          ${d.address ? `<div class="info-row"><span class="info-lbl">住所</span><span class="info-val">${d.address}</span></div>` : ''}
+          ${stationHtml}
+          ${d.city    ? `<div class="info-row"><span class="info-lbl">エリア</span><span class="info-val">${d.prefecture||''} ${d.city||''}</span></div>` : ''}
+        </div>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-hd">✅ 入居条件</div>
+        <div class="cond-list">${condHtml}</div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-hd">📞 入居相談・見学申し込み</div>
+        <div class="contact-inner">
+          ${d.contactName ? `<div class="contact-name">担当：${d.contactName}</div>` : ''}
+          ${d.contactTel  ? `<div class="contact-tel">${d.contactTel}</div><a class="call-btn" href="tel:${d.contactTel}">📞 電話で問い合わせる</a>` : '<div class="contact-name" style="color:var(--g400)">連絡先は未入力です</div>'}
+        </div>
+      </div>
+
+      ${d.features && d.features.length ? `
+      <div class="sec-card">
+        <div class="sec-hd">🏷 特徴・こだわり</div>
+        <div class="tag-list">${d.features.map(t=>`<span class="tag-item">${t}</span>`).join('')}</div>
+      </div>` : ''}
+
+      ${d.vacancyNotes || d.campaign ? `
+      <div class="sec-card">
+        <div class="sec-hd">📝 備考・お知らせ</div>
+        <div class="notes-box">
+          <div class="notes-txt">${[d.campaign, d.vacancyNotes].filter(Boolean).join('\n\n')}</div>
+        </div>
+      </div>` : ''}
+
+      <div class="foot-note">
+        このページは施設担当者が随時更新しています。<br>
+        空室状況は変動しますので、直接お問い合わせください。
+      </div>`;
+
+  } else {
+    // ── 無料プラン（アクセス＋費用のみ） ─────────────────────
+    page.innerHTML = `
+      <div class="print-only"><div class="print-hd">印刷日：${new Date().toLocaleDateString('ja-JP')}　介護施設検索システム</div></div>
+
+      <div style="margin-bottom:20px">
+        <h2 style="font-size:22px;font-weight:900;color:var(--g900);margin-bottom:8px">
+          ${d.name||''}
+          ${d.type ? `<span style="font-size:14px;background:var(--g100);color:var(--g600);padding:4px 12px;border-radius:6px;font-weight:700;margin-left:10px">${d.type}</span>` : ''}
+        </h2>
+        <div style="font-size:14px;color:var(--g400)">${d.city || d.prefecture || ''}</div>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-hd">📍 アクセス・所在地</div>
+        <div class="info-rows">
+          ${d.address ? `<div class="info-row"><span class="info-lbl">住所</span><span class="info-val">${d.address}</span></div>` : ''}
+          ${stationHtml}
+          ${d.city    ? `<div class="info-row"><span class="info-lbl">エリア</span><span class="info-val">${d.prefecture||''} ${d.city||''}</span></div>` : ''}
+        </div>
+      </div>
+
+      ${feeCard}
+      ${monthlyEstCard}
+      ${careFeeCard}
+      ${otherFeeCard}
+
+      <div class="lock-card">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">空室状況・連絡先はMeets Medicalまでお問い合わせください</div>
+        <div class="lock-sub">詳しい空室状況・施設担当者へのご連絡は<br>Meets Medical を通じてご案内いたします。</div>
+      </div>
+
+      <div class="foot-note">
+        このページは介護施設検索システムの施設情報ページです。<br>
+        Powered by Meets Medical
+      </div>`;
+  }
 }
 </script>
 </body>

@@ -3,188 +3,355 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>介護施設 空き状況検索</title>
+  <title>介護施設検索</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
+      --brand:#059669; --brand-d:#047857; --brand-l:#ecfdf5; --brand-xd:#065f46;
+      --pink:#ec4899; --pink-d:#db2777; --pink-l:#fdf2f8;
       --ok:#16a34a; --ok-bg:#dcfce7;
-      --few:#ea580c; --few-bg:#ffedd5;
-      --full-c:#64748b; --full-bg:#f1f5f9;
-      --amber:#d97706; --amber-bg:#fef3c7;
+      --few:#ea580c; --few-bg:#fff7ed;
+      --full-c:#94a3b8; --full-bg:#f8fafc;
+      --amber:#b45309; --amber-bg:#fffbeb;
       --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0; --g300:#cbd5e1;
       --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
       --g800:#1e293b; --g900:#0f172a;
+      --sh1: 0 1px 4px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --sh2: 0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04);
+      --sh3: 0 12px 40px rgba(0,0,0,.10), 0 4px 14px rgba(0,0,0,.06);
+      --sh-brand: 0 4px 20px rgba(5,150,105,.28);
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html,body { height:100%; }
     body { font-family:'Noto Sans JP',-apple-system,sans-serif; background:var(--g50); color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; visibility:hidden; }
 
-    /* HEADER */
-    .hdr { flex-shrink:0; background:var(--g900); height:52px; padding:0 16px; display:flex; align-items:center; gap:10px; z-index:200; }
-    .hdr-logo { width:28px; height:28px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
-    .hdr-title { font-size:14px; font-weight:700; color:white; letter-spacing:.04em; }
-    .hdr-sub { font-size:10px; color:var(--g400); letter-spacing:.06em; }
-    .hdr-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
-    .hdr-user { font-size:11px; color:var(--g400); }
-    .hdr-logout { background:transparent; border:1px solid var(--g600); color:var(--g400); font-size:11px; padding:4px 10px; border-radius:6px; cursor:pointer; font-family:inherit; }
-    .hdr-logout:hover { color:white; border-color:var(--g400); }
+    /* ═══ HEADER ══════════════════════════════════════════════ */
+    .hdr { flex-shrink:0; background:white; height:58px; padding:0 20px; display:flex; align-items:center; gap:12px; z-index:200; border-bottom:2px solid var(--brand-l); }
+    .hdr-logo { width:38px; height:38px; background:transparent; border-radius:0; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .hdr-title { font-size:15px; font-weight:700; color:var(--brand-d); letter-spacing:.03em; }
+    .hdr-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+    .hdr-user { font-size:13px; color:var(--g500); font-weight:500; }
+    .hdr-logout { background:transparent; border:1px solid var(--g200); color:var(--g500); font-size:13px; padding:6px 14px; border-radius:8px; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .hdr-logout:hover { color:var(--brand-d); border-color:var(--brand); background:var(--brand-l); }
 
-    /* BODY LAYOUT */
+    /* ═══ BODY LAYOUT ════════════════════════════════════════ */
     .body-wrap { flex:1; display:flex; overflow:hidden; }
 
-    /* LEFT SIDEBAR */
-    .sidebar { width:240px; min-width:240px; background:white; border-right:1px solid var(--g200); overflow-y:auto; flex-shrink:0; }
+    /* ── フルページ検索モード ── */
+    .body-wrap.search-only {
+      flex-direction:column; align-items:center; overflow-y:auto;
+      background: linear-gradient(150deg, #ecfdf5 0%, #fdf2f8 45%, #f0fdf4 100%);
+      padding-bottom:80px; position:relative;
+    }
+    .body-wrap.search-only .search-hero,
+    .body-wrap.search-only .sidebar { position:relative; z-index:1; }
+    .body-wrap.search-only .sidebar {
+      width:100%; max-width:1120px; min-width:unset;
+      border-right:none; border-radius:20px; background:white;
+      box-shadow:0 8px 40px rgba(0,0,0,.10), 0 2px 12px rgba(0,0,0,.06);
+      overflow-y:visible;
+      display:grid; grid-template-columns:1fr 1fr; align-items:start;
+      padding:0;
+    }
+    .body-wrap.search-only .sb-sec { border-bottom:none; padding:20px 28px; }
+    .body-wrap.search-only .sb-sec:nth-child(odd)  { border-right:1px solid var(--g100); }
+    .body-wrap.search-only .sb-sec:nth-child(even) { border-right:none; }
+    /* 施設種別は検索モードでフル幅 */
+    .body-wrap.search-only .sb-sec-type { grid-column:1/-1; border-right:none !important; border-bottom:1px solid var(--g100); }
+    /* 空室・入居条件を初期画面では非表示 */
+    .body-wrap.search-only .sb-sec-vac,
+    .body-wrap.search-only .sb-sec-cond { display:none; }
+    .body-wrap.search-only .sb-action-area { position:static; grid-column:1/-1; padding:20px 28px 28px; border-top:1px solid var(--g100); }
+    .body-wrap.search-only .sb-action-area .sb-search-btn { font-size:18px; padding:16px; border-radius:13px; }
+    .body-wrap.search-only .main { display:none; }
 
-    /* TAG SIDEBAR（2列目） */
-    .tag-sidebar { width:210px; min-width:210px; background:var(--g50); border-right:1px solid var(--g200); overflow-y:auto; flex-shrink:0; padding:12px; }
+    /* ヒーロー */
+    .search-hero { display:none; width:100%; max-width:1120px; padding:48px 32px 24px; }
+    .body-wrap.search-only .search-hero { display:flex; align-items:center; gap:20px; }
+    .hero-icon { flex-shrink:0; }
+    .hero-icon img { width:80px; height:80px; object-fit:contain; filter:drop-shadow(0 4px 16px rgba(5,150,105,.35)); }
 
-    .sb-search-btn { margin:14px 14px 0; width:calc(100% - 28px); padding:11px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .12s; box-shadow:0 3px 10px rgba(13,148,136,.25); display:flex; align-items:center; justify-content:center; gap:6px; }
-    .sb-search-btn:hover:not(:disabled) { background:var(--brand-d); }
-    .sb-search-btn:disabled { background:var(--g400); cursor:not-allowed; box-shadow:none; }
+    /* ═══ アクティブフィルターチップ ══════════════════════════ */
+    .filter-chips-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:10px 20px; background:white; border-bottom:1px solid var(--g100); }
+    .filter-chip { display:inline-flex; align-items:center; gap:5px; padding:5px 10px 5px 12px; background:var(--brand-l); border:1.5px solid rgba(5,150,105,.25); color:var(--brand); border-radius:20px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; transition:all .15s; }
+    .filter-chip:hover { background:#ccfbf1; border-color:var(--brand); }
+    .filter-chip .chip-x { width:16px; height:16px; border-radius:50%; background:rgba(5,150,105,.15); display:flex; align-items:center; justify-content:center; font-size:11px; line-height:1; }
 
-    .sb-sec { border-bottom:1px solid var(--g100); padding:14px 14px 12px; }
-    .sb-sec-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-    .sb-sec-title { font-size:11px; font-weight:700; color:var(--g500); letter-spacing:.08em; text-transform:none; }
-    .sb-clear { font-size:10px; color:var(--brand); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; }
+    /* ═══ スケルトンローディング ══════════════════════════════ */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
+    }
+    .skeleton { background:linear-gradient(90deg, #f1f5f9 25%, #e8edf2 50%, #f1f5f9 75%); background-size:600px 100%; animation:shimmer 1.4s ease infinite; border-radius:8px; }
+    .skel-card { background:white; border-radius:16px; border:1px solid var(--g200); display:flex; min-height:122px; overflow:hidden; box-shadow:var(--sh1); }
+    .skel-photo { width:140px; min-width:140px; background:#e8edf2; }
+    .skel-body { flex:1; padding:18px; display:flex; flex-direction:column; gap:10px; justify-content:center; }
+    .skel-line { height:14px; }
+    .skel-title { height:20px; width:55%; }
+    .skel-sub { height:13px; width:38%; }
+    .skel-fee { width:246px; min-width:246px; border-left:1px solid var(--g100); padding:16px; display:flex; flex-direction:column; gap:8px; justify-content:center; background:#fafffe; }
+    .skel-vac { width:100px; min-width:100px; background:#f4faf9; border-left:1px solid var(--g100); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:12px; }
+    .skel-num { width:44px; height:44px; border-radius:8px; }
+    .hero-title { font-size:30px; font-weight:900; color:var(--g900); margin-bottom:6px; letter-spacing:-.6px; }
+    .hero-sub { font-size:15px; color:var(--g500); line-height:1.8; }
+
+    /* アニメーション */
+    .sidebar { transition:all .32s cubic-bezier(.4,0,.2,1); }
+    .main.fade-in { animation:fadeIn .3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateX(14px)} to{opacity:1;transform:none} }
+
+    /* ═══ SIDEBAR（通常モード） ══════════════════════════════ */
+    .sidebar { width:268px; min-width:268px; background:white; border-right:1px solid var(--g200); overflow-y:auto; flex-shrink:0; }
+
+    /* アクションエリア（検索・保存ボタン） */
+    .sb-action-area {
+      position:sticky; bottom:0; background:white;
+      border-top:1px solid var(--g100); padding:12px 14px 16px;
+      z-index:5; display:flex; flex-direction:column; gap:6px;
+    }
+    .sb-search-btn {
+      width:100%; padding:13px;
+      background:linear-gradient(135deg, var(--pink), var(--pink-d));
+      color:white; border:none; border-radius:11px; font-size:16px; font-weight:700;
+      cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px;
+      box-shadow:0 4px 16px rgba(236,72,153,.35); transition:all .18s;
+    }
+    .sb-search-btn:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 6px 24px rgba(236,72,153,.45); }
+    .sb-search-btn:active:not(:disabled) { transform:translateY(0); }
+    .sb-search-btn:disabled { background:var(--g300); cursor:not-allowed; box-shadow:none; }
+
+    .sb-sec { border-bottom:1px solid var(--g100); padding:16px 16px 14px; }
+    .sb-sec-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .sb-sec-title {
+      font-size:11px; font-weight:700; color:var(--g500); letter-spacing:.1em; text-transform:none;
+      background:var(--g50); border:1px solid var(--g200); border-radius:20px;
+      padding:3px 10px; display:inline-block;
+    }
+    .sb-clear { font-size:12px; color:var(--brand); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; opacity:.8; }
+    .sb-clear:hover { opacity:1; }
 
     /* フォームコントロール */
-    .f-grp { margin-bottom:10px; }
+    .f-grp { margin-bottom:12px; }
     .f-grp:last-child { margin-bottom:0; }
-    .f-lbl { display:block; font-size:11px; color:var(--g500); font-weight:600; margin-bottom:4px; }
-    .f-sel { width:100%; padding:7px 9px; border:1.5px solid var(--g200); border-radius:7px; font-size:13px; outline:none; font-family:inherit; color:var(--g800); background:white; transition:border-color .15s; }
-    .f-sel:focus { border-color:var(--brand); }
-    .f-inp { width:100%; padding:7px 9px; border:1.5px solid var(--g200); border-radius:7px; font-size:13px; outline:none; font-family:inherit; color:var(--g800); transition:border-color .15s; }
-    .f-inp:focus { border-color:var(--brand); }
-    .f-hint { font-size:10px; color:var(--g400); margin-top:3px; }
+    .f-lbl { display:block; font-size:12px; color:var(--g500); font-weight:600; margin-bottom:5px; letter-spacing:.03em; }
+    .f-sel {
+      width:100%; padding:9px 11px; border:1.5px solid var(--g200); border-radius:9px;
+      font-size:14px; outline:none; font-family:inherit; color:var(--g800); background:white;
+      transition:border-color .15s, box-shadow .15s; cursor:pointer;
+    }
+    .f-sel:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(5,150,105,.12); }
+    .f-inp {
+      width:100%; padding:9px 11px; border:1.5px solid var(--g200); border-radius:9px;
+      font-size:14px; outline:none; font-family:inherit; color:var(--g800);
+      transition:border-color .15s, box-shadow .15s;
+    }
+    .f-inp:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(5,150,105,.12); }
+    .f-hint { font-size:11px; color:var(--g400); margin-top:4px; }
 
-    /* 初期費用ラジオチップ */
-    .radio-row { display:flex; gap:5px; flex-wrap:wrap; }
-    .radio-chip { display:inline-flex; align-items:center; padding:5px 10px; border:1.5px solid var(--g200); border-radius:20px; font-size:12px; cursor:pointer; font-family:inherit; background:white; color:var(--g600); transition:all .12s; user-select:none; }
+    /* ラジオチップ */
+    .radio-row { display:flex; gap:6px; flex-wrap:wrap; }
+    .radio-chip {
+      display:inline-flex; align-items:center; padding:6px 13px;
+      border:1.5px solid var(--g200); border-radius:20px; font-size:13px;
+      cursor:pointer; font-family:inherit; background:white; color:var(--g600);
+      transition:all .15s; user-select:none;
+    }
     .radio-chip input { display:none; }
-    .radio-chip.on { border-color:var(--brand); background:var(--brand-l); color:var(--brand); font-weight:600; }
+    .radio-chip.on { border-color:var(--brand); background:var(--brand-l); color:var(--brand); font-weight:700; }
+    .radio-chip:hover:not(.on) { border-color:var(--g300); background:var(--g50); }
 
     /* 月額レンジ */
-    .price-range { display:flex; align-items:center; gap:5px; }
-    .price-sep { font-size:12px; color:var(--g400); flex-shrink:0; }
+    .price-range { display:flex; align-items:center; gap:6px; }
+    .price-sep { font-size:14px; color:var(--g400); flex-shrink:0; }
 
     /* 空室トグル */
-    .vac-toggle { display:flex; border:1.5px solid var(--g200); border-radius:8px; overflow:hidden; }
-    .vac-tab { flex:1; padding:7px 10px; font-size:12px; font-weight:600; background:white; border:none; cursor:pointer; font-family:inherit; color:var(--g500); transition:all .12s; }
-    .vac-tab.on { background:var(--brand); color:white; }
+    .vac-toggle { display:flex; background:var(--g100); border-radius:10px; padding:3px; gap:3px; }
+    .vac-tab {
+      flex:1; padding:8px 10px; font-size:14px; font-weight:600; background:transparent;
+      border:none; border-radius:8px; cursor:pointer; font-family:inherit; color:var(--g500);
+      transition:all .15s;
+    }
+    .vac-tab.on { background:white; color:var(--brand); box-shadow:var(--sh1); }
 
     /* チェックボックス */
-    .cb-item { display:flex; align-items:center; gap:7px; padding:5px 0; cursor:pointer; user-select:none; }
-    .cb-item input { width:14px; height:14px; accent-color:var(--brand); cursor:pointer; flex-shrink:0; }
-    .cb-label { font-size:12px; color:var(--g700); }
+    .cb-item { display:flex; align-items:center; gap:8px; padding:5px 0; cursor:pointer; user-select:none; }
+    .cb-item input { width:16px; height:16px; accent-color:var(--brand); cursor:pointer; flex-shrink:0; }
+    .cb-label { font-size:13px; color:var(--g700); }
 
     /* 入居条件セレクト */
-    .cond-grp { margin-bottom:8px; }
+    .cond-grp { margin-bottom:9px; }
     .cond-grp:last-child { margin-bottom:0; }
-    .cond-lbl { font-size:11px; color:var(--g600); font-weight:600; margin-bottom:4px; display:block; }
-    .cond-sel { width:100%; padding:6px 8px; border:1.5px solid var(--g200); border-radius:7px; font-size:12px; outline:none; font-family:inherit; background:white; color:var(--g800); transition:border-color .15s; }
-    .cond-sel:focus { border-color:var(--brand); }
+    .cond-lbl { font-size:12px; color:var(--g500); font-weight:600; margin-bottom:4px; display:block; }
+    .cond-sel {
+      width:100%; padding:8px 11px; border:1.5px solid var(--g200); border-radius:9px;
+      font-size:13px; outline:none; font-family:inherit; background:white; color:var(--g800);
+      transition:border-color .15s, box-shadow .15s; cursor:pointer;
+    }
+    .cond-sel:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(5,150,105,.12); }
 
-    /* タグ */
-    .tag-bar { display:flex; flex-wrap:wrap; gap:4px; }
-    .tag-chip { padding:3px 9px; border-radius:20px; font-size:10px; font-weight:500; border:1.5px solid var(--g200); background:white; color:var(--g600); cursor:pointer; font-family:inherit; transition:all .12s; white-space:nowrap; line-height:1.4; }
-    .tag-chip:hover { border-color:var(--brand); color:var(--brand); }
-    .tag-chip.on { border-color:var(--brand); background:var(--brand); color:white; }
-    .tag-sec-lbl { font-size:9px; font-weight:700; color:var(--g400); letter-spacing:.06em; margin:8px 0 4px; }
-
-    /* MAIN */
-    .main { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+    /* ═══ MAIN ═══════════════════════════════════════════════ */
+    .main { flex:1; overflow-y:auto; display:flex; flex-direction:column; background:var(--g50); }
 
     /* ソートバー */
-    .sort-bar { flex-shrink:0; background:white; border-bottom:1px solid var(--g200); padding:10px 16px; display:flex; align-items:center; gap:10px; }
-    .result-count { font-size:13px; color:var(--g600); font-weight:400; }
-    .result-count strong { color:var(--ok); font-weight:700; }
-    .sort-label { font-size:12px; color:var(--g500); margin-left:auto; white-space:nowrap; }
-    .sort-sel { padding:5px 8px; border:1.5px solid var(--g200); border-radius:7px; font-size:12px; outline:none; font-family:inherit; color:var(--g700); background:white; cursor:pointer; }
+    .sort-bar {
+      flex-shrink:0; background:white; border-bottom:1px solid var(--g200);
+      padding:12px 20px; display:flex; align-items:center; gap:12px;
+      box-shadow:0 1px 4px rgba(0,0,0,.04);
+    }
+    .result-count { font-size:14px; color:var(--g600); font-weight:500; }
+    .result-count strong { color:var(--ok); font-weight:800; font-size:16px; }
+    .sort-label { font-size:13px; color:var(--g400); margin-left:auto; white-space:nowrap; }
+    .sort-sel {
+      padding:7px 11px; border:1.5px solid var(--g200); border-radius:9px;
+      font-size:13px; outline:none; font-family:inherit; color:var(--g700);
+      background:white; cursor:pointer; transition:border-color .15s;
+    }
     .sort-sel:focus { border-color:var(--brand); }
 
     /* カードリスト */
-    .cards-area { flex:1; padding:14px; }
-    .cards-grid { display:flex; flex-direction:column; gap:8px; }
+    .cards-area { flex:1; padding:18px 20px; }
+    .cards-grid { display:flex; flex-direction:column; gap:12px; }
 
-    /* 施設カード（横長リスト） */
-    .fcard { background:white; border-radius:12px; border:1px solid var(--g200); overflow:hidden; cursor:pointer; transition:box-shadow .15s; display:flex; min-height:110px; }
-    .fcard:hover { box-shadow:0 6px 20px rgba(0,0,0,.1); }
+    /* ═══ 施設カード ═════════════════════════════════════════ */
+    .fcard {
+      background:white; border-radius:16px; border:1px solid var(--g200);
+      overflow:visible; cursor:pointer; position:relative; display:flex;
+      min-height:122px; box-shadow:var(--sh1);
+      transition:transform .2s cubic-bezier(.4,0,.2,1), box-shadow .2s cubic-bezier(.4,0,.2,1);
+    }
+    .fcard:hover { transform:translateY(-3px); box-shadow:var(--sh3); border-color:var(--g300); }
+    .fcard.selected { border-color:var(--brand); box-shadow:0 0 0 3px rgba(5,150,105,.18), var(--sh2); }
 
-    /* 写真 */
-    .fc-photo { width:130px; min-width:130px; background:linear-gradient(135deg,var(--g700),var(--g900)); position:relative; overflow:hidden; flex-shrink:0; }
+    /* 選択チェックボックス */
+    .fc-select-wrap { position:absolute; top:12px; left:12px; z-index:10; }
+    .fc-select-wrap input[type=checkbox] {
+      width:20px; height:20px; accent-color:var(--brand); cursor:pointer;
+      border-radius:5px; background:white;
+    }
+
+    /* 写真エリア */
+    .fc-photo {
+      width:140px; min-width:140px; flex-shrink:0; border-radius:15px 0 0 15px;
+      background:linear-gradient(160deg, #1e3a4f, #0f172a); position:relative; overflow:hidden;
+    }
     .fc-photo img { width:100%; height:100%; object-fit:cover; }
-    .fc-photo-plan { position:absolute; bottom:6px; left:6px; background:var(--brand); color:white; font-size:9px; padding:2px 6px; border-radius:10px; font-weight:700; }
+    .fc-photo::after { content:''; position:absolute; inset:0; background:linear-gradient(to right, transparent 60%, rgba(0,0,0,.12)); }
+    .fc-photo-plan {
+      position:absolute; bottom:8px; left:8px; z-index:1;
+      background:var(--brand); color:white; font-size:10px; padding:3px 8px;
+      border-radius:20px; font-weight:700; letter-spacing:.04em;
+    }
 
-    /* 施設情報 */
-    .fc-info { flex:1; padding:12px 14px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
-    .fc-name-row { display:flex; align-items:center; gap:7px; margin-bottom:5px; flex-wrap:wrap; }
-    .fc-type-badge { font-size:10px; background:var(--g100); color:var(--g600); padding:2px 7px; border-radius:4px; font-weight:700; white-space:nowrap; flex-shrink:0; }
-    .fc-name { font-size:15px; font-weight:700; color:var(--g900); letter-spacing:.01em; }
-    .fc-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
-    .fc-tag { font-size:11px; color:var(--g500); }
-    .fc-conds { display:flex; flex-wrap:wrap; gap:4px; }
-    .fc-cond { font-size:10px; padding:2px 7px; border-radius:4px; font-weight:600; }
+    /* 施設情報エリア */
+    .fc-info { flex:1; padding:16px 18px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+    .fc-name-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+    .fc-type-badge {
+      font-size:11px; background:var(--g100); color:var(--g600);
+      padding:3px 9px; border-radius:20px; font-weight:700; white-space:nowrap; flex-shrink:0;
+    }
+    .fc-name { font-size:18px; font-weight:800; color:var(--g900); letter-spacing:-.2px; }
+    .fc-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+    .fc-tag { font-size:13px; color:var(--g500); }
+    .fc-conds { display:flex; flex-wrap:wrap; gap:5px; }
+    .fc-cond { font-size:11px; padding:3px 9px; border-radius:20px; font-weight:700; letter-spacing:.02em; }
     .cond-ok  { background:var(--ok-bg);   color:var(--ok); }
     .cond-sou { background:var(--amber-bg); color:var(--amber); }
     .cond-ng  { background:var(--full-bg);  color:var(--full-c); }
 
-    /* 費用カラム */
-    .fc-fee-col { width:230px; min-width:230px; border-left:1px solid var(--g100); padding:10px 12px; display:flex; flex-direction:column; justify-content:center; background:#f9fffe; }
-    .fc-fee-panels { display:flex; gap:5px; margin-bottom:5px; }
-    .fc-fee-init { flex:0 0 76px; background:white; border-radius:6px; padding:6px; text-align:center; border:1px solid #d1fae5; }
-    .fc-fee-monthly { flex:1; background:white; border-radius:6px; padding:6px 8px; border:1px solid #d1fae5; }
-    .fc-fee-panel-lbl { font-size:9px; color:var(--g500); margin-bottom:2px; }
-    .fc-fee-amt { font-size:16px; font-weight:700; color:var(--amber); line-height:1.1; letter-spacing:-.3px; }
-    .fc-fee-amt-mn { font-size:9px; font-weight:400; color:var(--g500); }
-    .fc-fee-monthly-ttl { display:flex; align-items:baseline; gap:3px; margin-bottom:4px; }
-    .fc-fee-monthly-lbl { font-size:9px; color:var(--g500); letter-spacing:.04em; }
-    .fc-fee-monthly-val { font-size:15px; font-weight:700; color:var(--amber); letter-spacing:-.3px; }
+    /* 費用エリア */
+    .fc-fee-col {
+      width:246px; min-width:246px; border-left:1px solid var(--g100);
+      padding:14px 16px; display:flex; flex-direction:column; justify-content:center;
+      background:linear-gradient(160deg, #fafffe, #f5fefc);
+    }
+    .fc-fee-panels { display:flex; gap:7px; margin-bottom:7px; }
+    .fc-fee-init {
+      flex:0 0 82px; background:white; border-radius:10px; padding:8px 6px;
+      text-align:center; border:1.5px solid #d1fae5; box-shadow:var(--sh1);
+    }
+    .fc-fee-monthly {
+      flex:1; background:white; border-radius:10px; padding:8px 10px;
+      border:1.5px solid #d1fae5; box-shadow:var(--sh1);
+    }
+    .fc-fee-panel-lbl { font-size:9px; color:var(--g400); margin-bottom:3px; font-weight:600; letter-spacing:.04em; }
+    .fc-fee-amt { font-size:19px; font-weight:800; color:var(--amber); line-height:1; letter-spacing:-.5px; }
+    .fc-fee-amt-mn { font-size:10px; font-weight:500; color:var(--g400); }
+    .fc-fee-monthly-ttl { display:flex; align-items:baseline; gap:3px; margin-bottom:5px; }
+    .fc-fee-monthly-lbl { font-size:9px; color:var(--g400); font-weight:600; letter-spacing:.04em; }
+    .fc-fee-monthly-val { font-size:18px; font-weight:800; color:var(--amber); letter-spacing:-.4px; }
     .fc-fee-items { display:flex; gap:3px; }
-    .fc-fee-item { flex:1; background:var(--g50); border-radius:4px; padding:3px 2px; text-align:center; }
+    .fc-fee-item { flex:1; background:var(--g50); border-radius:5px; padding:3px 2px; text-align:center; }
     .fc-fee-item-lbl { font-size:8px; color:var(--g400); line-height:1.3; }
     .fc-fee-item-val { font-size:11px; font-weight:700; color:var(--ok); }
     .fc-fee-item-mn { font-size:8px; color:var(--g400); }
-    .fc-fee-extra { font-size:9px; color:var(--g400); }
+    .fc-fee-extra { font-size:10px; color:var(--g400); line-height:1.4; }
 
-    /* 空室カラム */
-    .fc-vac-col { width:88px; min-width:88px; border-left:1px solid var(--g100); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 8px; text-align:center; }
-    .fc-vac-col.ok   { background:var(--ok-bg); }
-    .fc-vac-col.few  { background:var(--few-bg); }
-    .fc-vac-col.full { background:var(--full-bg); }
-    .fc-vnum { font-size:28px; font-weight:900; line-height:1; letter-spacing:-.5px; }
+    /* 空室エリア */
+    .fc-vac-col {
+      width:100px; min-width:100px; border-left:1px solid var(--g100);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:12px 8px; text-align:center; border-radius:0 15px 15px 0;
+    }
+    .fc-vac-col.ok   { background:linear-gradient(160deg,#f0fdf4,#dcfce7); }
+    .fc-vac-col.few  { background:linear-gradient(160deg,#fff7ed,#ffedd5); }
+    .fc-vac-col.full { background:var(--g50); }
+    .fc-vnum { font-size:34px; font-weight:900; line-height:1; letter-spacing:-1px; }
     .fc-vac-col.ok   .fc-vnum { color:var(--ok); }
     .fc-vac-col.few  .fc-vnum { color:var(--few); }
-    .fc-vac-col.full .fc-vnum { color:var(--full-c); }
-    .fc-vstatus { font-size:10px; font-weight:500; margin-top:4px; letter-spacing:.03em; }
+    .fc-vac-col.full .fc-vnum { color:var(--g300); }
+    .fc-vstatus { font-size:12px; font-weight:700; margin-top:5px; letter-spacing:.02em; }
     .fc-vac-col.ok   .fc-vstatus { color:var(--ok); }
     .fc-vac-col.few  .fc-vstatus { color:var(--few); }
-    .fc-vac-col.full .fc-vstatus { color:var(--full-c); }
-    .fc-vupdated { font-size:9px; color:var(--g400); margin-top:5px; line-height:1.4; }
+    .fc-vac-col.full .fc-vstatus { color:var(--g400); }
+    .fc-vupdated { font-size:10px; color:var(--g400); margin-top:6px; line-height:1.5; }
     .fc-stale { color:#ef4444; font-weight:600; }
 
-    /* 初期・空状態 */
-    .state-box { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; text-align:center; color:var(--g400); }
-    .state-ico { font-size:44px; margin-bottom:14px; }
-    .state-ttl { font-size:15px; font-weight:700; color:var(--g500); margin-bottom:6px; }
-    .state-sub { font-size:13px; line-height:1.7; }
+    /* 空状態 */
+    .state-box { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:100px 20px; text-align:center; }
+    .state-ico { font-size:52px; margin-bottom:16px; opacity:.4; }
+    .state-ttl { font-size:17px; font-weight:700; color:var(--g500); margin-bottom:8px; }
+    .state-sub { font-size:14px; color:var(--g400); line-height:1.9; }
 
-    .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
+    .spinner { display:inline-block; width:16px; height:16px; border:2.5px solid rgba(255,255,255,.35); border-top-color:white; border-radius:50%; animation:spin .65s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
-    .toast { position:fixed; bottom:24px; right:24px; background:var(--g900); color:white; padding:12px 20px; border-radius:11px; font-size:13px; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,.25); opacity:0; transform:translateY(12px); transition:all .22s; z-index:999; pointer-events:none; }
-    .toast.on { opacity:1; transform:translateY(0); }
+    /* トースト */
+    .toast {
+      position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(14px);
+      background:var(--g900); color:white; padding:12px 24px; border-radius:12px;
+      font-size:14px; font-weight:500; box-shadow:var(--sh3);
+      opacity:0; transition:all .24s cubic-bezier(.4,0,.2,1); z-index:999;
+      pointer-events:none; white-space:nowrap; border:1px solid rgba(255,255,255,.08);
+    }
+    .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    /* 資料出力フローティングボタン */
+    #float-export-btn {
+      display:none; position:fixed; bottom:28px; right:28px;
+      background:linear-gradient(135deg, var(--brand), var(--brand-d));
+      color:white; padding:16px 26px; border-radius:18px; font-size:16px; font-weight:700;
+      cursor:pointer; font-family:inherit; border:none;
+      box-shadow:0 8px 30px rgba(5,150,105,.45);
+      z-index:500; align-items:center; gap:10px;
+      transition:transform .18s, box-shadow .18s;
+    }
+    #float-export-btn:hover { transform:translateY(-3px); box-shadow:0 14px 40px rgba(5,150,105,.55); }
+    .float-cnt {
+      background:white; color:var(--brand); border-radius:50%;
+      width:26px; height:26px; display:inline-flex; align-items:center;
+      justify-content:center; font-size:13px; font-weight:800;
+    }
   </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="hdr-logo">🏥</div>
+  <div class="hdr-logo"><img src="logo.png" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,.3))"></div>
   <div>
-    <div class="hdr-title">介護施設 空き状況検索</div>
+    <div class="hdr-title">介護施設検索</div>
   </div>
   <div class="hdr-right">
     <span class="hdr-user" id="hdr-user"></span>
@@ -193,13 +360,19 @@
 </header>
 
 <!-- BODY -->
-<div class="body-wrap">
+<div class="body-wrap search-only" id="body-wrap">
+
+  <!-- ヒーロー（フルページ検索モードのみ表示） -->
+  <div class="search-hero">
+    <div class="hero-icon"><img src="logo.png" alt="介護施設検索"></div>
+    <div>
+      <div class="hero-title">介護施設を探す</div>
+      <div class="hero-sub">エリア・費用・入居条件から最適な施設を見つけましょう</div>
+    </div>
+  </div>
 
   <!-- 左サイドバー（検索フォーム） -->
   <div class="sidebar">
-
-    <button class="sb-search-btn" id="search-btn" onclick="doSearch()">🔍 この条件で検索</button>
-    <button onclick="saveConditions()" style="margin:6px 14px 0;width:calc(100% - 28px);padding:7px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:11px;font-weight:600;color:var(--g500);cursor:pointer;font-family:inherit;transition:all .12s;" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--g200)';this.style.color='var(--g500)'">💾 この条件を保存</button>
 
     <!-- 場所 -->
     <div class="sb-sec">
@@ -270,7 +443,7 @@
     </div>
 
     <!-- 空室 -->
-    <div class="sb-sec">
+    <div class="sb-sec sb-sec-vac">
       <div class="sb-sec-hd"><span class="sb-sec-title">空室状況</span></div>
       <div class="vac-toggle">
         <button class="vac-tab on" onclick="setVac('all',this)">すべて</button>
@@ -279,7 +452,7 @@
     </div>
 
     <!-- 施設種別 -->
-    <div class="sb-sec">
+    <div class="sb-sec sb-sec-type">
       <div class="sb-sec-hd">
         <span class="sb-sec-title">施設種別</span>
         <button class="sb-clear" onclick="toggleAll('type',true)">全選択</button>
@@ -288,7 +461,7 @@
     </div>
 
     <!-- 入居条件 -->
-    <div class="sb-sec">
+    <div class="sb-sec sb-sec-cond">
       <div class="sb-sec-hd"><span class="sb-sec-title">入居条件</span></div>
       <div class="cond-grp">
         <span class="cond-lbl">生活保護</span>
@@ -319,24 +492,18 @@
       </div>
     </div>
 
-  </div>
-
-  <!-- タグ 2列目 -->
-  <div class="tag-sidebar">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <span class="sb-sec-title">こだわり・タグ</span>
-      <button class="sb-clear" onclick="clearTags()">クリア</button>
+    <!-- 検索・保存ボタン（フォームの下） -->
+    <div class="sb-action-area">
+      <button class="sb-search-btn" id="search-btn" onclick="doSearch()">🔍 この条件で検索</button>
+      <button onclick="saveConditions()" style="width:100%;padding:8px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;font-family:inherit;transition:all .12s;" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--g200)';this.style.color='var(--g500)'">💾 この条件を保存</button>
     </div>
-    <div class="tag-sec-lbl">こだわり・特徴</div>
-    <div class="tag-bar" id="tag-bar-feature"></div>
-    <div class="tag-sec-lbl" style="margin-top:12px">看護・医療体制</div>
-    <div class="tag-bar" id="tag-bar-medical"></div>
+
   </div>
 
   <!-- メインコンテンツ -->
   <div class="main">
 
-    <!-- ソートバー -->
+    <!-- ソートバー（検索後のみ表示） -->
     <div class="sort-bar" id="sort-bar" style="display:none">
       <span class="result-count" id="count-bar"></span>
       <span class="sort-label">並べ替え</span>
@@ -347,17 +514,20 @@
       </select>
     </div>
 
-    <!-- カード一覧 -->
-    <div class="cards-area" id="cards-area">
-      <div class="state-box">
-        <div class="state-ico">🔍</div>
-        <div class="state-ttl">条件を選んで検索してください</div>
-        <div class="state-sub">左のフォームで条件を設定し<br>「この条件で検索」を押してください</div>
-      </div>
-    </div>
+    <!-- アクティブフィルターチップ -->
+    <div class="filter-chips-bar" id="chips-bar" style="display:none"></div>
+
+    <!-- カード一覧（検索後のみ表示） -->
+    <div class="cards-area" id="cards-area"></div>
 
   </div>
 </div>
+
+<!-- 資料出力フローティングボタン -->
+<button id="float-export-btn" onclick="printSelected()">
+  📄 資料出力
+  <span class="float-cnt" id="float-cnt">0</span>
+</button>
 
 <div class="toast" id="toast"></div>
 
@@ -411,48 +581,20 @@ const CITY_MAP = {
   '奈良県': ['奈良市','大和郡山市','天理市'],
 };
 
-const TAGS_FEATURE = [
-  '看取り・ターミナルケア','個室あり','入居一時金0円','訪問看護可','日中看護師常駐','作業療法士（OT）',
-  'キッチン付き居室','家具付き居室','ナースコールあり','機械浴・特殊浴あり',
-  '理美容サービスあり','レクリエーション充実','将棋・囲碁あり','禁煙',
-  '駅近・交通アクセス良好','大手が運営','夫婦入居可・2人部屋あり',
-  '終身利用可','体験入居可','病院・クリニック併設','24時間看護師常駐',
-  '夜間有人','言語聴覚士（ST）','風呂付き居室','介護ベッド付居室',
-  'ゲストルームあり','入浴週3回以上','カラオケあり','園芸・庭園あり','アルコール可','外出自由',
-  '安い・低価格','ペット・犬・猫可','ショートステイ可','デイサービス併設',
-  '24時間介護士常駐','理学療法士（PT）','手厚い人員体制','トイレ付き居室',
-  'ネット利用可','口腔ケア・訪問歯科あり','施設内手作りの食事','麻雀あり','喫煙可',
-];
-const TAGS_MEDICAL = [
-  'リハビリ','胃ろう','人工呼吸器','たん吸引','気管切開',
-  '褥瘡・床ずれ','脳血管性認知症','パーキンソン病','脳梗塞・クモ膜下出血',
-  'リウマチ・関節症','誤嚥性肺炎','介護食','糖尿病・インスリン','ペースメーカー',
-  '鼻腔・経管栄養','ストーマ・人工肛門','ALS','心筋梗塞・狭心症','肝炎',
-  '統合失調症','流動食・嚥下食','人工透析','中心静脈栄養（IVH）','在宅酸素療法',
-  'カテーテル・尿バルーン','アルツハイマー','レビー小体型認知症','がん・末期癌',
-  '骨折・骨粗しょう症','喘息・気管支炎','うつ・鬱病',
-];
-
 // ── 状態 ──────────────────────────────────────────────────
 let DATA = [];
 let SORTED = [];
 let activeVac = 'all';
 const selectedTags = new Set();
+const selectedFacilities = new Set();
 
 // ── サイドバー初期化 ───────────────────────────────────────
 function initSidebar() {
   document.getElementById('type-list').innerHTML = TYPES.map(t =>
     `<label class="cb-item">
       <input type="checkbox" name="type" value="${t.key}" checked onchange="liveFilter()">
-      <span class="cb-label">${t.key}<span style="font-size:9px;color:var(--g400);margin-left:3px">${t.sub}</span></span>
+      <span class="cb-label">${t.key}<span style="font-size:11px;color:var(--g400);margin-left:4px">${t.sub}</span></span>
     </label>`
-  ).join('');
-
-  document.getElementById('tag-bar-feature').innerHTML = TAGS_FEATURE.map(t =>
-    `<button class="tag-chip" onclick="toggleTag('${t}',this)">${t}</button>`
-  ).join('');
-  document.getElementById('tag-bar-medical').innerHTML = TAGS_MEDICAL.map(t =>
-    `<button class="tag-chip" onclick="toggleTag('${t}',this)">${t}</button>`
   ).join('');
 }
 
@@ -473,21 +615,51 @@ function syncRadioChip(input) {
   liveFilter();
 }
 
+// ── スケルトンカードHTML ──────────────────────────────────────
+function skeletonCardHTML() {
+  return `<div class="skel-card">
+    <div class="skel-photo"></div>
+    <div class="skel-body">
+      <div class="skeleton skel-title"></div>
+      <div class="skeleton skel-sub"></div>
+      <div class="skeleton skel-line" style="width:70%"></div>
+    </div>
+    <div class="skel-fee">
+      <div class="skeleton skel-line" style="width:80%;height:16px;margin-bottom:4px"></div>
+      <div class="skeleton skel-line" style="width:60%;height:22px;margin-bottom:4px"></div>
+      <div class="skeleton skel-line" style="width:90%;height:12px"></div>
+    </div>
+    <div class="skel-vac">
+      <div class="skeleton skel-num"></div>
+      <div class="skeleton skel-line" style="width:56px;height:12px;margin-top:4px"></div>
+    </div>
+  </div>`;
+}
+
 // ── 検索実行（Firestore取得） ──────────────────────────────
 async function doSearch() {
   const btn = document.getElementById('search-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> 検索中...';
 
-  const pref = document.getElementById('q-pref').value;
+  // フルページ→結果モードに即切替してスケルトンを見せる
+  const wrap = document.getElementById('body-wrap');
+  if (wrap.classList.contains('search-only')) {
+    wrap.classList.remove('search-only');
+    document.querySelector('.main').classList.add('fade-in');
+  }
+  document.getElementById('sort-bar').style.display = 'flex';
+  document.getElementById('count-bar').innerHTML = '<span style="color:var(--g400)">検索中...</span>';
+  document.getElementById('chips-bar').style.display = 'none';
+  document.getElementById('cards-area').innerHTML =
+    `<div class="cards-grid">${Array(5).fill(skeletonCardHTML()).join('')}</div>`;
 
   try {
-    let query = db.collection('facilities');
-    if (pref) query = query.where('prefecture', '==', pref);
-    const snap = await query.get();
+    const snap = await db.collection('facilities').get();
     DATA = snap.docs.map(mapDoc);
+    selectedFacilities.clear();
+    updateFloatBtn();
     applySort();
-    // 検索ログを非同期で保存（失敗しても検索には影響しない）
     saveSearchLog().catch(() => {});
   } catch(e) {
     document.getElementById('cards-area').innerHTML =
@@ -512,7 +684,6 @@ async function saveSearchLog() {
   const mimon    = document.getElementById('cond-mimon').value;
   const kaigo    = document.getElementById('cond-kaigo').value;
 
-  // liveFilter後の表示件数を取得
   const resultCountEl = document.getElementById('count-bar');
   const resultCount = parseInt(resultCountEl?.textContent?.match(/\d+/)?.[0] || '0', 10);
 
@@ -522,16 +693,11 @@ async function saveSearchLog() {
     userEmail: currentUser.email,
     searchedAt: firebase.firestore.FieldValue.serverTimestamp(),
     conditions: {
-      prefecture: pref,
-      city,
-      station,
-      types,
+      prefecture: pref, city, station, types,
       initialFee: initFee,
       priceMin: priceMin ? parseFloat(priceMin) : null,
       priceMax: priceMax ? parseFloat(priceMax) : null,
-      seikatsuHogo: seikatsu,
-      mimonHosho: mimon,
-      kaigoNintei: kaigo,
+      seikatsuHogo: seikatsu, mimonHosho: mimon, kaigoNintei: kaigo,
       tags: [...selectedTags],
       vacancyFilter: activeVac,
     },
@@ -553,6 +719,7 @@ function applySort() {
 // ── クライアント絞り込み ─────────────────────────────────────
 function liveFilter() {
   if (!DATA.length) return;
+  const pref     = document.getElementById('q-pref').value;
   const city     = document.getElementById('q-city').value;
   const station  = document.getElementById('q-station').value.trim();
   const initFee  = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
@@ -563,9 +730,12 @@ function liveFilter() {
   const mimon    = document.getElementById('cond-mimon').value;
   const kaigo    = document.getElementById('cond-kaigo').value;
 
+  const hasPriceFilter = priceMin > 0 || priceMax > 0;
+
   const base = SORTED.length ? SORTED : DATA;
 
   const list = base.filter(f => {
+    if (pref    && f.prefecture !== pref) return false;
     if (city    && f.city !== city) return false;
     if (station && !f.station.includes(station)) return false;
     if (initFee === 'yes' && !f.initialFee) return false;
@@ -576,8 +746,10 @@ function liveFilter() {
     if (seikatsu && f.seikatsuHogo !== seikatsu) return false;
     if (mimon    && f.mimonHosho   !== mimon)    return false;
     if (kaigo    && f.kaigoNintei  !== kaigo)    return false;
-    if (priceMin && f.monthlyTotal != null && f.monthlyTotal < priceMin) return false;
-    if (priceMax && f.monthlyTotal != null && f.monthlyTotal > priceMax) return false;
+    // 価格フィルター：月額データのない施設は価格指定時に除外
+    if (hasPriceFilter && f.monthlyTotal == null) return false;
+    if (priceMin && f.monthlyTotal < priceMin) return false;
+    if (priceMax && f.monthlyTotal > priceMax) return false;
     return true;
   });
 
@@ -599,12 +771,21 @@ function mapDoc(doc) {
     ? Math.round(((rent||0) + (mgmt||0) + (meal||0) + (other||0)) * 10) / 10
     : (d.monthlyFee ?? null);
 
+  const PREFS = ['大阪府','兵庫県','京都府','奈良県'];
+  const prefecture = d.prefecture ||
+    PREFS.find(p => (d.address || '').startsWith(p)) || '';
+  const city = d.city ||
+    (['豊中市','吹田市','茨木市','池田市','箕面市','摂津市','高槻市','枚方市','大阪市',
+      '尼崎市','西宮市','芦屋市','神戸市','宝塚市','川西市',
+      '京都市','向日市','長岡京市','奈良市','大和郡山市','天理市']
+      .find(c => (d.address || '').includes(c)) || '');
+
   return {
     id: doc.id,
     name: d.name || '',
     type: d.type || '',
-    prefecture: d.prefecture || '',
-    city: d.city || '',
+    prefecture,
+    city,
     addr: d.address || '',
     area: d.area || '',
     station: [d.station, d.stationDistance].filter(Boolean).join(' '),
@@ -641,6 +822,7 @@ function renderCards(list) {
     return;
   }
   area.innerHTML = `<div class="cards-grid">${list.map(cardHTML).join('')}</div>`;
+  renderFilterChips();
 }
 
 function condBadge(label, val, okVal) {
@@ -665,7 +847,6 @@ function cardHTML(f) {
     f.station ? `🚉 ${f.station}` : '',
   ].filter(Boolean);
 
-  // 費用カラム
   const initAmt = f.initialFee
     ? (f.initialFeeAmount != null ? f.initialFeeAmount : '─')
     : '0';
@@ -696,7 +877,12 @@ function cardHTML(f) {
     <div class="fc-fee-extra">【別途】介護保険自己負担分・おむつ代など</div>
   </div>`;
 
-  return `<div class="fcard" onclick="location.href='kaigo-facility-view.html?id=${f.id}'">
+  const isChecked = selectedFacilities.has(f.id);
+
+  return `<div class="fcard${isChecked ? ' selected' : ''}" id="card-${f.id}" onclick="location.href='kaigo-facility-view.html?id=${f.id}'">
+    <div class="fc-select-wrap" onclick="event.stopPropagation()">
+      <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${f.id}', this)" onclick="event.stopPropagation()">
+    </div>
     <div class="fc-photo">
       ${f.photoUrl ? `<img src="${f.photoUrl}" alt="${f.name}" loading="lazy">` : ''}
       ${f.plan !== 'free' ? '<div class="fc-photo-plan">✓ 問合可</div>' : ''}
@@ -718,6 +904,87 @@ function cardHTML(f) {
   </div>`;
 }
 
+// ── 施設選択・資料出力 ────────────────────────────────────────
+function toggleSelect(id, checkbox) {
+  if (checkbox.checked) {
+    selectedFacilities.add(id);
+    document.getElementById('card-' + id)?.classList.add('selected');
+  } else {
+    selectedFacilities.delete(id);
+    document.getElementById('card-' + id)?.classList.remove('selected');
+  }
+  updateFloatBtn();
+}
+
+function updateFloatBtn() {
+  const btn = document.getElementById('float-export-btn');
+  const cnt = document.getElementById('float-cnt');
+  if (selectedFacilities.size > 0) {
+    btn.style.display = 'flex';
+    cnt.textContent = selectedFacilities.size;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function printSelected() {
+  const selected = [...selectedFacilities].map(id => DATA.find(f => f.id === id)).filter(Boolean);
+  if (!selected.length) return;
+
+  const today = new Date().toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'});
+
+  const rows = selected.map(f => {
+    const initAmt = f.initialFee ? (f.initialFeeAmount != null ? f.initialFeeAmount + '万円' : '要確認') : '0円';
+    const vacLabel = f.vacancy === 0 ? '満室' : f.vacancy + '室空き';
+    const condItems = [
+      f.seikatsuHogo ? `生活保護：${f.seikatsuHogo}` : '',
+      f.mimonHosho   ? `身元保証なし：${f.mimonHosho}` : '',
+      f.kaigoNintei  ? `介護認定なし：${f.kaigoNintei}` : '',
+    ].filter(Boolean);
+
+    return `<div style="page-break-inside:avoid;margin-bottom:24px;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+      <div style="background:#0d9488;color:white;padding:10px 16px;display:flex;align-items:center;gap:10px;">
+        <span style="background:rgba(255,255,255,.2);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">${f.type}</span>
+        <strong style="font-size:16px">${f.name}</strong>
+        <span style="margin-left:auto;font-size:13px;opacity:.85">空室：${vacLabel}</span>
+      </div>
+      <div style="padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px;color:#334155;line-height:1.7">
+        <div>📍 ${f.city}${f.addr ? '　' + f.addr : ''}</div>
+        <div>🚉 ${f.station || '—'}</div>
+        <div>💴 入居時費用：${initAmt}</div>
+        <div>📅 月額費用：${f.monthlyTotal != null ? f.monthlyTotal + '万円' : '—'}</div>
+        ${condItems.length ? `<div style="grid-column:1/-1;color:#64748b;font-size:12px">${condItems.join('　')}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>介護施設 資料出力 ${today}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+    body { font-family:'Noto Sans JP',sans-serif; padding:24px; color:#1e293b; max-width:800px; margin:0 auto; }
+    h1 { font-size:17px; color:#0d9488; margin-bottom:6px; }
+    .meta { font-size:12px; color:#64748b; margin-bottom:20px; }
+    @page { margin:1.5cm; }
+  </style>
+</head>
+<body>
+  <h1>🏥 介護施設 空室情報 — ${selected.length}件</h1>
+  <div class="meta">出力日：${today}　※ Meets Medical 介護施設検索システム</div>
+  ${rows}
+</body>
+</html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { showToast('⚠️ ポップアップをブロックされました。許可設定を確認してください'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
 // ── UI ヘルパー ───────────────────────────────────────────────
 function getChecked(name) {
   return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
@@ -732,18 +999,6 @@ function setVac(v, btn) {
   activeVac = v;
   document.querySelectorAll('.vac-tab').forEach(t => t.classList.remove('on'));
   btn.classList.add('on');
-  liveFilter();
-}
-
-function toggleTag(tag, btn) {
-  if (selectedTags.has(tag)) { selectedTags.delete(tag); btn.classList.remove('on'); }
-  else { selectedTags.add(tag); btn.classList.add('on'); }
-  liveFilter();
-}
-
-function clearTags() {
-  selectedTags.clear();
-  document.querySelectorAll('.tag-chip').forEach(b => b.classList.remove('on'));
   liveFilter();
 }
 
@@ -763,7 +1018,6 @@ function saveConditions() {
     seikatsu  : document.getElementById('cond-seikatsu').value,
     mimon     : document.getElementById('cond-mimon').value,
     kaigo     : document.getElementById('cond-kaigo').value,
-    tags      : [...selectedTags],
     sort      : document.getElementById('sort-sel')?.value || 'updated',
   };
   localStorage.setItem(COND_KEY, JSON.stringify(conds));
@@ -784,19 +1038,11 @@ function loadSavedConditions() {
     if (c.mimon)     document.getElementById('cond-mimon').value = c.mimon;
     if (c.kaigo)     document.getElementById('cond-kaigo').value = c.kaigo;
     if (c.vac)       { activeVac = c.vac; document.querySelectorAll('.vac-tab').forEach(t => t.classList.toggle('on', t.textContent.trim() === (c.vac === 'ok' ? '空きあり' : 'すべて'))); }
-    // ラジオ
     if (c.initFee) {
       const r = document.querySelector(`input[name="init-fee"][value="${c.initFee}"]`);
       if (r) { r.checked = true; syncRadioChip(r); }
     }
-    // タグは initSidebar 後に復元するため少し遅らせる
     setTimeout(() => {
-      if (c.tags?.length) {
-        c.tags.forEach(tag => {
-          selectedTags.add(tag);
-          document.querySelectorAll('.tag-chip').forEach(btn => { if (btn.textContent === tag) btn.classList.add('on'); });
-        });
-      }
       if (c.types) {
         document.querySelectorAll('input[name="type"]').forEach(cb => { cb.checked = c.types.includes(cb.value); });
       }
@@ -805,10 +1051,90 @@ function loadSavedConditions() {
   } catch(e) { /* 無視 */ }
 }
 
+// ── アクティブフィルターチップ ────────────────────────────────
+let _chipClears = [];
+
+function renderFilterChips() {
+  _chipClears = [];
+  const chips = [];
+
+  const pref = document.getElementById('q-pref').value;
+  if (pref) chips.push({ label: pref, clear: () => {
+    document.getElementById('q-pref').value='';
+    updateCityOptions();
+    document.getElementById('q-city').value='';
+    liveFilter();
+  }});
+
+  const city = document.getElementById('q-city').value;
+  if (city) chips.push({ label: city, clear: () => { document.getElementById('q-city').value=''; liveFilter(); }});
+
+  const station = document.getElementById('q-station').value.trim();
+  if (station) chips.push({ label: `駅: ${station}`, clear: () => { document.getElementById('q-station').value=''; liveFilter(); }});
+
+  const initFee = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
+  if (initFee !== 'all') chips.push({ label: initFee === 'yes' ? '初期費用あり' : '初期費用なし', clear: () => {
+    const r = document.querySelector('input[name="init-fee"][value="all"]');
+    r.checked = true; syncRadioChip(r);
+  }});
+
+  const priceMin = document.getElementById('q-price-min').value;
+  if (priceMin) chips.push({ label: `${priceMin}万円〜`, clear: () => { document.getElementById('q-price-min').value=''; liveFilter(); }});
+
+  const priceMax = document.getElementById('q-price-max').value;
+  if (priceMax) chips.push({ label: `〜${priceMax}万円`, clear: () => { document.getElementById('q-price-max').value=''; liveFilter(); }});
+
+  if (activeVac === 'ok') chips.push({ label: '空きあり', clear: () => {
+    setVac('all', document.querySelector('.vac-tab'));
+  }});
+
+  const seikatsu = document.getElementById('cond-seikatsu').value;
+  if (seikatsu) chips.push({ label: `生活保護:${seikatsu}`, clear: () => { document.getElementById('cond-seikatsu').value=''; liveFilter(); }});
+
+  const mimon = document.getElementById('cond-mimon').value;
+  if (mimon) chips.push({ label: `身元保証なし:${mimon}`, clear: () => { document.getElementById('cond-mimon').value=''; liveFilter(); }});
+
+  const kaigo = document.getElementById('cond-kaigo').value;
+  if (kaigo) chips.push({ label: `介護認定なし:${kaigo}`, clear: () => { document.getElementById('cond-kaigo').value=''; liveFilter(); }});
+
+  const types = getChecked('type');
+  if (types.length > 0 && types.length < TYPES.length) chips.push({
+    label: `種別: ${types.join('・')}`,
+    clear: () => { toggleAll('type', true); }
+  });
+
+  const bar = document.getElementById('chips-bar');
+  if (!chips.length) { bar.style.display='none'; return; }
+
+  chips.forEach(c => _chipClears.push(c.clear));
+  bar.style.display = 'flex';
+  bar.innerHTML =
+    `<span style="font-size:12px;color:var(--g400);font-weight:600;white-space:nowrap">絞り込み:</span>` +
+    chips.map((c, i) =>
+      `<button class="filter-chip" onclick="_chipClears[${i}]()">${c.label}<span class="chip-x">✕</span></button>`
+    ).join('') +
+    `<button onclick="clearAllFilters()" style="margin-left:4px;font-size:12px;color:var(--g400);background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 6px;" onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--g400)'">すべてクリア</button>`;
+}
+
+function clearAllFilters() {
+  document.getElementById('q-pref').value=''; updateCityOptions();
+  document.getElementById('q-city').value='';
+  document.getElementById('q-station').value='';
+  document.getElementById('q-price-min').value='';
+  document.getElementById('q-price-max').value='';
+  document.getElementById('cond-seikatsu').value='';
+  document.getElementById('cond-mimon').value='';
+  document.getElementById('cond-kaigo').value='';
+  const r = document.querySelector('input[name="init-fee"][value="all"]');
+  if (r) { r.checked=true; syncRadioChip(r); }
+  setVac('all', document.querySelector('.vac-tab'));
+  toggleAll('type', true);
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('on');
-  setTimeout(() => t.classList.remove('on'), 3000);
+  setTimeout(() => t.classList.remove('on'), 3500);
 }
 </script>
 </body>
