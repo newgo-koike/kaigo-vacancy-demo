@@ -177,7 +177,7 @@
   <div class="hdr-logo">🏠</div>
   <div class="hdr-title">介護施設検索システム</div>
   <div class="hdr-right">
-    <a href="kaigo-search.html" class="btn-back">← 検索に戻る</a>
+    <a href="kaigo-search.html" onclick="history.back();return false;" class="btn-back">← 検索に戻る</a>
     <button class="btn-print" onclick="window.print()">🖨 印刷・PDF</button>
   </div>
 </header>
@@ -245,8 +245,8 @@ function render(doc) {
   // 駅（沿線対応）
   const stationsArr = d.stations || [];
   const stationHtml = stationsArr.length
-    ? stationsArr.map(s => `<div class="info-row"><span class="info-lbl">🚉 ${s.line||'最寄り駅'}</span><span class="info-val">${s.name}駅${s.walk ? `　徒歩${s.walk}分` : (s.dist ? `　${s.dist}` : '')}</span></div>`).join('')
-    : (d.station ? `<div class="info-row"><span class="info-lbl">最寄り駅</span><span class="info-val">🚉 ${[d.station, d.stationDistance].filter(Boolean).join('　')}</span></div>` : '');
+    ? stationsArr.map(s => `<div class="info-row"><span class="info-lbl">最寄り駅</span><span class="info-val">🚉 ${[s.line, s.name ? s.name+'駅' : '', s.walk ? '徒歩'+s.walk+'分' : s.dist||''].filter(Boolean).join('　')}</span></div>`).join('')
+    : (d.station ? `<div class="info-row"><span class="info-lbl">最寄り駅</span><span class="info-val">🚉 ${[d.stationLine, d.station, d.stationDistance].filter(Boolean).join('　')}</span></div>` : '');
 
   document.title = `${d.name||'施設情報'} | 介護施設検索システム`;
 

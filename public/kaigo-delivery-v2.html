@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.0 | 介護施設空室検索システム</title>
+  <title>納品書 v2.2 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -192,28 +192,191 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.0</div>
-  <h1>介護施設 空室検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.0</p>
+  <div class="v2-badge">✨ v2.2</div>
+  <h1>介護施設検索システム</h1>
+  <p>納品書・仕様書・操作マニュアル　v2.2</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
-    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月16日</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月18日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
-    <div class="delivery-meta-item"><strong>システム名</strong>介護施設空室検索システム</div>
+    <div class="delivery-meta-item"><strong>システム名</strong>介護施設検索システム</div>
     <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
   </div>
 </div>
 
 <div class="container">
 
+  <!-- CHANGELOG -->
+  <div class="sec" style="margin-top:40px">
+    <div class="sec-hd">
+      <div class="sec-num" style="background:var(--purple)">📅</div>
+      <div class="sec-title">アップデート履歴</div>
+    </div>
+
+    <style>
+      .cl-day { background:white; border-radius:18px; border:1px solid var(--g200); overflow:hidden; margin-bottom:20px; box-shadow:0 2px 12px rgba(0,0,0,.05); }
+      .cl-day-hd { display:flex; align-items:center; gap:14px; padding:18px 24px; background:var(--g900); }
+      .cl-date { font-size:18px; font-weight:800; color:white; letter-spacing:-.3px; }
+      .cl-subtitle { font-size:12px; color:var(--g400); margin-top:2px; }
+      .cl-items { padding:16px 24px; display:flex; flex-direction:column; gap:10px; }
+      .cl-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:10px; border:1px solid var(--g100); background:var(--g50); }
+      .cl-item.added   { border-color:#bbf7d0; background:#f0fdf4; }
+      .cl-item.fixed   { border-color:#bfdbfe; background:#eff6ff; }
+      .cl-item.changed { border-color:#e9d5ff; background:#f5f3ff; }
+      .cl-tag { font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+      .cl-tag.added   { background:#dcfce7; color:var(--ok); }
+      .cl-tag.fixed   { background:#dbeafe; color:var(--blue); }
+      .cl-tag.changed { background:#ede9fe; color:var(--purple); }
+      .cl-txt { font-size:13px; color:var(--g700); line-height:1.6; }
+      .cl-txt strong { color:var(--g900); }
+    </style>
+
+    <!-- 2026/6/18 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月18日</div>
+          <div class="cl-subtitle">検索画面・施設詳細デザイン全面刷新・費用情報強化・沿線対応</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索画面：白背景＋やわらかい配色に刷新</strong><br>ダークグラデーション＋ノイズテクスチャだった検索画面を、白背景＋エメラルドグリーン＆ピンクのやわらかい色調に変更。ソーシャルワーカー・ケアマネが使いやすい明るい印象に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索ボタンをフォーム下部に固定</strong><br>「検索」「保存した条件」ボタンをサイドバー最下部にスティッキー表示。フォームが長くてもスクロール不要でいつでも押せる配置に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>初期検索画面で「空室状況・入居条件」を非表示に</strong><br>検索前の全画面表示時は「施設種別」のみ表示。検索後に空室・入居条件フィルターが展開する設計に変更し、最初の一歩のハードルを下げた。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：基本料金セクション強化</strong><br>「基本料金（施設への直接支払い）」として入居一時金・月額利用料・食費・管理費を整理。施設側が入力したデータを見やすいカード形式で表示。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：介護費用の目安（介護度別）を追加</strong><br>要介護1〜5それぞれの月額介護費用目安（1.6〜2.8万円）を表で表示。「これは施設に払うお金ではなく介護保険で支払う費用です」という説明付きで、家族が混乱しないよう配慮。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：その他費用リストを追加</strong><br>おむつ代・洗濯代・散髪代・医療費・日用品・被服費など、月額料金に含まれない追加費用の目安を一覧表示。入居検討時の総コスト計算に役立てられる。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：月々の合計目安を大きく表示</strong><br>基本料金＋介護費用＋その他の合計から算出した「月々の目安：〇〇〜〇〇万円」を大きなカードで表示。家族が一番気にする数字を一目でわかるように。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：最寄駅を沿線別に複数表示・路線名を全表示</strong><br>複数路線・駅名を「🚉 阪急宝塚線　服部天神駅　徒歩5分」形式で1行ずつ表示。すべての駅エントリーに路線名が含まれるよう統一。Firestoreの stations[] 配列と旧形式（station / stationLine / stationDistance）の両方に対応。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>施設詳細「検索に戻る」ボタンが初期画面に戻る問題を修正</strong><br>施設詳細ページから「← 検索に戻る」を押すと検索結果一覧に戻るよう修正（従来は検索条件がリセットされた初期画面に遷移していた）。ブラウザの history.back() を利用し、検索結果・スクロール位置を保持して戻れるように。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026/6/17 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月17日</div>
+          <div class="cl-subtitle">検索UX大幅改善・デザイン全面刷新・ロゴ・スケルトンローディング・フィルターチップ</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>検索画面：フルページ検索UI</strong><br>初期表示は画面いっぱいに検索フォームを表示。検索後は左サイドバーに収まり、右に結果がスライドイン表示されます。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設カードへのチェックボックス＋資料出力ボタン</strong><br>気になる施設にチェックを入れて「📄 資料出力」を押すと、複数施設をまとめた印刷用ページが開きます（PDF保存も可）。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>CSVインポート機能（管理画面）</strong><br>スプレッドシートからエクスポートしたCSVをドラッグ＆ドロップするだけで施設データを一括登録・更新。列のマッピングは自動判定＋手動調整可能。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>都道府県フィルターが効かない不具合を修正</strong><br>大阪府で検索しても施設が表示されなかった問題を修正。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細ページの「有料/無料プラン」表記を削除</strong><br>「空室状況・連絡先は有料プランで掲載」→「Meets Medicalまでお問い合わせください」に変更。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>文字サイズ・ボタンを全体的に拡大</strong><br>ソーシャルワーカー・ケアマネが使いやすいよう、フォントサイズとタップ領域を大きめに調整。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>CSS全面刷新・スタイリッシュデザインへ</strong><br>カスタムプロパティ（CSS変数）によるカラー・シャドウシステムを導入。施設カードにホバーリフトアニメーション・グラデーション背景・Noto Sans JP フォントを適用し、モダンSaaS UIに刷新。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>アニメーションノイズグラデーション背景</strong><br>フルページ検索モード時の背景に、12秒周期で動く暗いグラデーション＋SVGノイズテクスチャオーバーレイを実装。検索画面に高級感のある雰囲気を演出。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>スケルトンローディングアニメーション</strong><br>検索ボタンを押した直後、Firestoreからデータが返ってくる前に5枚のシマーアニメーション付きスケルトンカードを表示。「読み込み中」感を排除し、レスポンスの良いUIを実現。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>アクティブフィルターチップ</strong><br>検索結果の上部に、現在有効な絞り込み条件（都道府県・市区町村・駅名・月額・空室・入居条件・施設種別など）をタグとして表示。各チップの × ボタンで個別クリア、「すべてクリア」で一括リセット可能。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>ロゴ画像の差し替えと背景透明化処理</strong><br>ヘッダー・ヒーローに専用ロゴPNG（建物＋木＋人のアイコン）を採用。Pythonで白背景をフラッドフィル除去し、透過PNG化。ヘッダーの暗いバーとヒーローのグラデーション背景にそのまま溶け込む表示に。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026/6/16 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月16日</div>
+          <div class="cl-subtitle">MTG後の対応・施設詳細ページ刷新</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細ページを全面リニューアル</strong><br>施設ページをクリックすると、入居時費用・月額費用・空室状況・アクセス・入居条件・連絡先・タグ・備考が一覧表示。印刷・PDFボタン付き。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>アカウント申請ページ（公開）</strong><br>病院・ケアマネ向けのアカウント申請フォームを新設。承認は管理者が行い、招待メールを送信する流れ。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>検索ログの蓄積・管理画面での確認</strong><br>誰がいつどのような条件で検索したかを自動記録。管理画面「📋 検索履歴」タブで確認可能。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>こだわり・タグのパネルを非表示に</strong><br>検索データが整うまで、タグ絞り込みパネルを非表示に変更（将来的に復活予定）。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>初期検索の表示ロジック変更</strong><br>以前は画面を開くと全件表示されていた動作を廃止。「検索ボタンを押してから結果が表示される」設計に変更。</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
   <!-- v2新機能まとめ -->
   <div class="sec" style="margin-top:40px">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">★</div>
-      <div class="sec-title">v2.0 で追加・変更されたこと</div>
+      <div class="sec-title">v2.2 で追加・変更されたこと</div>
     </div>
     <div class="whats-new">
-      <h3>🆕 v1.x → v2.0 の主な変更点</h3>
+      <h3>🆕 v1.x → v2.2 の主な変更点</h3>
       <div class="new-grid">
         <div class="new-item">
           <div class="new-item-title">🔐 ログイン認証の追加</div>
@@ -344,7 +507,7 @@
       <div class="tool-card">
         <div class="tool-card-hd">
           <div class="tool-badge badge-public">病院・ケアマネ向け</div>
-          <div class="tool-title">空き状況検索</div>
+          <div class="tool-title">施設検索</div>
           <div class="tool-desc">3カラムレイアウト（フィルターサイドバー / こだわりタグ列 / 施設カード一覧）。エリア・施設種別・費用・入居条件・こだわりタグで絞り込み可能。ログインユーザー名をヘッダーに表示。検索条件の保存・復元機能付き。</div>
         </div>
         <div class="tool-card-body">
@@ -429,7 +592,7 @@
   <div class="sec">
     <div class="sec-hd">
       <div class="sec-num">2</div>
-      <div class="sec-title">アカウント登録フロー（v2.0新機能）</div>
+      <div class="sec-title">アカウント登録フロー（v2.1新機能）</div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
@@ -537,10 +700,10 @@
       <table class="spec-table">
         <tr><th>項目</th><th>内容</th></tr>
         <tr><td>ホスティング</td><td>Firebase Hosting — <code>kaigo-link-dev-59bc5.web.app</code>（自動デプロイ設定：GitHub Actions 連携済み）</td></tr>
-        <tr><td>認証</td><td>Firebase Authentication — メール/パスワード認証。3ロール（admin / hospital / facility）<span class="diff-badge">v2.0 NEW</span></td></tr>
+        <tr><td>認証</td><td>Firebase Authentication — メール/パスワード認証。3ロール（admin / hospital / facility）<span class="diff-badge">v2.1 NEW</span></td></tr>
         <tr><td>データベース</td><td>Firebase Firestore — コレクション: <code>facilities</code> / <code>corporations</code> / <code>users</code> / <code>applications</code></td></tr>
         <tr><td>写真保存</td><td>Firebase Storage — パス: <code>facilities/【施設ID】/photo.jpg</code></td></tr>
-        <tr><td>フロントエンド</td><td>HTML + CSS + Vanilla JavaScript。新規ページは Tailwind CSS（CDN）+ Noto Sans JP フォント<span class="diff-badge">v2.0 NEW</span></td></tr>
+        <tr><td>フロントエンド</td><td>HTML + CSS + Vanilla JavaScript。新規ページは Tailwind CSS（CDN）+ Noto Sans JP フォント<span class="diff-badge">v2.1 NEW</span></td></tr>
         <tr><td>外部ライブラリ</td><td>Firebase SDK v10.7.1、QRCode.js v1.0.0、Tailwind CSS（CDN）</td></tr>
         <tr><td>対応ブラウザ</td><td>Chrome・Safari・Edge 最新版、iOS Safari、Android Chrome</td></tr>
         <tr><td>プロジェクトID</td><td><code>kaigo-link-dev-59bc5</code></td></tr>
@@ -558,7 +721,7 @@
 
     <!-- corporations -->
     <div class="field-group">
-      <div class="field-group-hd purple">corporations（法人・運営母体）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.0 NEW</span></div>
+      <div class="field-group-hd purple">corporations（法人・運営母体）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
       <div class="field-list">
         <div class="field-item"><div class="field-name">name</div><div class="field-desc">法人名・運営母体名（例：社会福祉法人○○会）</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">contactEmail</div><div class="field-desc">担当者メールアドレス（任意）</div><div class="field-type">string</div></div>
@@ -568,7 +731,7 @@
 
     <!-- users -->
     <div class="field-group">
-      <div class="field-group-hd purple">users（ユーザーアカウント）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.0 NEW</span></div>
+      <div class="field-group-hd purple">users（ユーザーアカウント）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
       <div class="field-list">
         <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者名</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス</div><div class="field-type">string</div></div>
@@ -580,7 +743,7 @@
 
     <!-- applications -->
     <div class="field-group">
-      <div class="field-group-hd purple">applications（アカウント申請）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.0 NEW</span></div>
+      <div class="field-group-hd purple">applications（アカウント申請）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
       <div class="field-list">
         <div class="field-item"><div class="field-name">organizationName</div><div class="field-desc">病院名・施設名・法人名</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者氏名</div><div class="field-type">string</div></div>
@@ -597,7 +760,7 @@
     <div class="field-group">
       <div class="field-group-hd">facilities（施設情報）</div>
       <div class="field-list">
-        <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">法人ID（どの法人が管理するかの紐づけ）<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.0 NEW</span></div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">法人ID（どの法人が管理するかの紐づけ）<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.1 NEW</span></div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">name</div><div class="field-desc">施設名</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">type</div><div class="field-desc">施設種別（特養 / 老健 / グループホーム / サ高住 / 介護付有料 / 住宅型有料）</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">prefecture</div><div class="field-desc">都道府県（大阪府 など）</div><div class="field-type">string</div></div>
@@ -795,7 +958,7 @@
     <table class="spec-table">
       <tr><th>項目</th><th>内容</th></tr>
       <tr>
-        <td>アカウント管理<span class="diff-badge">v2.0</span></td>
+        <td>アカウント管理<span class="diff-badge">v2.1</span></td>
         <td>管理者ダッシュボードのユーザー管理タブから全操作可能。Firebase コンソールを操作する必要はありません。</td>
       </tr>
       <tr>
@@ -1121,7 +1284,7 @@
 </div>
 
 <div class="footer">
-  介護施設空室検索システム v2.0<br>
+  介護施設検索システム v2.2<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>
