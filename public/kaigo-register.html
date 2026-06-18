@@ -186,10 +186,15 @@
       <input class="f-inp" id="r-area" type="text" placeholder="住所入力後に自動判定（手動入力も可）">
       <div class="f-hint">住所を入力すると自動でエリアを判定します</div>
     </div>
+    <div class="f-grp">
+      <label class="f-lbl">路線名</label>
+      <input class="f-inp" id="r-station-line" type="text" placeholder="例）阪急宝塚線、JR東海道線、大阪メトロ谷町線">
+      <div class="f-hint">複数路線は「、」で区切って入力可</div>
+    </div>
     <div class="f-grid2">
       <div class="f-grp">
         <label class="f-lbl">最寄り駅</label>
-        <input class="f-inp" id="r-station" type="text" placeholder="例）阪急庄内駅">
+        <input class="f-inp" id="r-station" type="text" placeholder="例）庄内駅">
       </div>
       <div class="f-grp">
         <label class="f-lbl">駅からの距離</label>
@@ -537,6 +542,7 @@ function initEditMode() {
     document.getElementById('r-type').value           = d.type || '';
     document.getElementById('r-address').value        = d.address || '';
     document.getElementById('r-area').value           = d.area || '';
+    document.getElementById('r-station-line').value   = d.stationLine || '';
     document.getElementById('r-station').value        = d.station || '';
     document.getElementById('r-distance').value       = d.stationDistance || '';
     document.getElementById('r-totalRooms').value      = d.totalRooms || '';
@@ -629,6 +635,7 @@ function collectFormData() {
     city:              document.getElementById('r-city').value,
     area:              document.getElementById('r-area').value.trim(),
     address:           document.getElementById('r-address').value.trim(),
+    stationLine:       document.getElementById('r-station-line').value.trim(),
     station:           document.getElementById('r-station').value.trim(),
     stationDistance:   document.getElementById('r-distance').value.trim(),
     totalRooms:        parseInt(document.getElementById('r-totalRooms').value) || null,

@@ -104,13 +104,13 @@
     .other-fee-item-val { font-size:12px; color:var(--g500); text-align:right; }
 
     /* 月々の目安（大きく表示） */
-    .monthly-est-card { background:linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius:16px; padding:24px; margin-bottom:18px; border:2px solid #a7f3d0; text-align:center; box-shadow:0 4px 16px rgba(5,150,105,.15); }
-    .monthly-est-label { font-size:13px; font-weight:700; color:var(--brand-d); margin-bottom:8px; }
-    .monthly-est-num { font-size:52px; font-weight:900; color:var(--brand-d); line-height:1; letter-spacing:-2px; }
-    .monthly-est-unit { font-size:20px; font-weight:700; color:var(--brand); }
-    .monthly-est-sub { font-size:12px; color:var(--g500); margin-top:10px; line-height:1.6; }
-    .monthly-est-breakdown { display:flex; justify-content:center; gap:16px; margin-top:12px; flex-wrap:wrap; }
-    .monthly-est-bd-item { font-size:12px; color:var(--g600); background:rgba(255,255,255,.6); border-radius:6px; padding:4px 10px; }
+    .monthly-est-card { background:linear-gradient(135deg, #047857, #059669); border-radius:18px; padding:28px 24px; margin-bottom:18px; border:none; text-align:center; box-shadow:0 8px 32px rgba(5,150,105,.3); }
+    .monthly-est-label { font-size:13px; font-weight:700; color:rgba(255,255,255,.8); margin-bottom:6px; }
+    .monthly-est-num { font-size:60px; font-weight:900; color:white; line-height:1; letter-spacing:-2px; }
+    .monthly-est-unit { font-size:22px; font-weight:700; color:rgba(255,255,255,.9); }
+    .monthly-est-sub { font-size:11px; color:rgba(255,255,255,.65); margin-top:12px; line-height:1.7; }
+    .monthly-est-breakdown { display:flex; justify-content:center; gap:10px; margin-top:14px; flex-wrap:wrap; }
+    .monthly-est-bd-item { font-size:12px; color:rgba(255,255,255,.85); background:rgba(255,255,255,.15); border-radius:6px; padding:5px 12px; }
 
     /* SECTION CARD */
     .sec-card { background:white; border-radius:14px; padding:22px 24px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-bottom:14px; border:1px solid var(--g200); }
@@ -278,64 +278,58 @@ function render(doc) {
   </div>`;
 
   // ── ② 介護費用の説明 ─────────────────────────────────────
-  const careFeeCard = `
-  <div class="care-fee-card">
-    <div class="sec-hd">🏥 介護費用の目安（介護保険自己負担分）</div>
-    <div class="care-fee-desc">
-      施設費用とは別に、介護サービスを利用する場合は<strong>介護保険の自己負担分（1〜3割）</strong>が毎月かかります。
-      負担割合は所得によって異なります。以下は<strong>1割負担の場合</strong>の目安です。
-    </div>
-    <table class="care-fee-table">
-      <thead><tr><th>介護度</th><th>サービス種別</th><th style="text-align:right">月の目安（1割負担）</th></tr></thead>
+  // ── ③ 追加費用3項目＋月々合計 ──────────────────────────
+  // 介護費用（1割負担）: 1.6〜2.8万円 / 医療費: 0.3〜1.0万円 / 生活費: 1.0〜3.0万円
+  const estMin = total ? Math.round((total + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
+  const estMax = total ? Math.round((total + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
+
+  const costBreakdownCard = `
+  <div class="sec-card">
+    <div class="sec-hd">💴 月々にかかる費用の内訳目安</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:#ecfdf5;border-bottom:2px solid #a7f3d0">
+          <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:800;color:#047857;width:44%">項目</th>
+          <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:800;color:#047857">内容</th>
+          <th style="padding:9px 14px;text-align:right;font-size:11px;font-weight:800;color:#047857;white-space:nowrap">月額目安</th>
+        </tr>
+      </thead>
       <tbody>
-        <tr><td>要介護1</td><td>身体介護・生活援助など</td><td>約 1.6万円</td></tr>
-        <tr><td>要介護2</td><td>身体介護・生活援助など</td><td>約 1.9万円</td></tr>
-        <tr><td>要介護3</td><td>身体介護・生活援助など</td><td>約 2.2万円</td></tr>
-        <tr><td>要介護4</td><td>身体介護・生活援助など</td><td>約 2.5万円</td></tr>
-        <tr><td>要介護5</td><td>身体介護・生活援助など</td><td>約 2.8万円</td></tr>
+        ${total != null ? `<tr style="border-bottom:1px solid #e2e8f0">
+          <td style="padding:11px 14px;font-weight:700;color:#1e293b">🏢 施設費用</td>
+          <td style="padding:11px 14px;color:#64748b;font-size:12px">家賃・食費・管理費など（施設への直接支払い）</td>
+          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#1e293b;white-space:nowrap">${total} 万円</td>
+        </tr>` : ''}
+        <tr style="border-bottom:1px solid #e2e8f0;background:#f8fafc">
+          <td style="padding:11px 14px;font-weight:700;color:#1e293b">🏥 介護費用</td>
+          <td style="padding:11px 14px;color:#64748b;font-size:12px">介護保険の自己負担分（1割負担の場合）<br><span style="color:#94a3b8;font-size:11px">要介護1〜5・負担割合により変動</span></td>
+          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#059669;white-space:nowrap">1.6〜2.8 万円</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0">
+          <td style="padding:11px 14px;font-weight:700;color:#1e293b">💊 医療費</td>
+          <td style="padding:11px 14px;color:#64748b;font-size:12px">薬代などの医薬品費（1割負担の場合）<br><span style="color:#94a3b8;font-size:11px">負担割合（1〜3割）により変動</span></td>
+          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#059669;white-space:nowrap">0.3〜1.0 万円</td>
+        </tr>
+        <tr style="border-bottom:2px solid #a7f3d0;background:#f8fafc">
+          <td style="padding:11px 14px;font-weight:700;color:#1e293b">🛒 その他生活費</td>
+          <td style="padding:11px 14px;color:#64748b;font-size:12px">おむつ代・日用品・散髪代・洗濯代など<br><span style="color:#94a3b8;font-size:11px">生活スタイルにより変動</span></td>
+          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#059669;white-space:nowrap">1.0〜3.0 万円</td>
+        </tr>
+        ${estMin ? `<tr style="background:linear-gradient(135deg,#047857,#059669)">
+          <td colspan="2" style="padding:14px 16px;font-size:14px;font-weight:800;color:white">合計目安（月々）</td>
+          <td style="padding:14px 16px;text-align:right;white-space:nowrap">
+            <span style="font-size:28px;font-weight:900;color:white;letter-spacing:-1px">${estMin}〜${estMax}</span>
+            <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9)"> 万円</span>
+          </td>
+        </tr>` : ''}
       </tbody>
     </table>
-    <div class="care-fee-note">※ 施設入所の場合、介護保険の居住費・食費（補足給付対象）は上記とは別の計算になります。ご状況により大きく変わりますので詳しくはお問い合わせください。</div>
+    <div style="font-size:11px;color:#94a3b8;margin-top:10px;line-height:1.7">※ 介護度・負担割合・生活スタイルにより変動します</div>
   </div>`;
 
-  // ── ③ その他かかる費用 ──────────────────────────────────
-  const otherFeeCard = `
-  <div class="sec-card">
-    <div class="sec-hd">📋 その他かかる費用の目安</div>
-    <div class="other-fee-list">
-      <div class="other-fee-item"><span class="other-fee-item-lbl">おむつ代</span><span class="other-fee-item-val">5,000〜15,000円/月</span></div>
-      <div class="other-fee-item"><span class="other-fee-item-lbl">洗濯代</span><span class="other-fee-item-val">2,000〜5,000円/月</span></div>
-      <div class="other-fee-item"><span class="other-fee-item-lbl">散髪代</span><span class="other-fee-item-val">2,000〜4,000円/月</span></div>
-      <div class="other-fee-item"><span class="other-fee-item-lbl">医療費（通院等）</span><span class="other-fee-item-val">3,000〜10,000円/月</span></div>
-      <div class="other-fee-item"><span class="other-fee-item-lbl">日用品・レク費</span><span class="other-fee-item-val">2,000〜5,000円/月</span></div>
-      <div class="other-fee-item"><span class="other-fee-item-lbl">被服費</span><span class="other-fee-item-val">1,000〜3,000円/月</span></div>
-    </div>
-    <div style="font-size:11px;color:var(--g400);margin-top:10px">※ 施設・ご利用状況により異なります。目安としてご参考ください。</div>
-  </div>`;
-
-  // ── ④ 月々の総合目安 ────────────────────────────────────
-  const estBase = total ?? 0;
-  const estCare = 2.2; // 要介護3目安（1割）
-  const estOther = 2.0; // その他目安
-  const estMin = total ? Math.round((estBase + 1.6 + 1.4) * 10) / 10 : null;
-  const estMax = total ? Math.round((estBase + 2.8 + 3.5) * 10) / 10 : null;
-
-  const monthlyEstCard = (estMin && estMax) ? `
-  <div class="monthly-est-card">
-    <div class="monthly-est-label">月々にかかる費用の目安（総合）</div>
-    <div style="margin:8px 0">
-      <span class="monthly-est-num">${estMin}</span>
-      <span class="monthly-est-unit">万円〜</span>
-      <span class="monthly-est-num">${estMax}</span>
-      <span class="monthly-est-unit">万円</span>
-    </div>
-    <div class="monthly-est-breakdown">
-      <span class="monthly-est-bd-item">施設費用 ${total}万円</span>
-      <span class="monthly-est-bd-item">介護保険 1.6〜2.8万円</span>
-      <span class="monthly-est-bd-item">その他 1.4〜3.5万円</span>
-    </div>
-    <div class="monthly-est-sub">※ 介護度・ご利用サービス・所得区分などにより大きく変動します。<br>詳しくはMeets Medicalまでお問い合わせください。</div>
-  </div>` : '';
+  const careFeeCard = '';
+  const otherFeeCard = '';
+  const monthlyEstCard = '';
 
   // ── 入居条件 ──────────────────────────────────────────────
   function condBadge(lbl, val) {
@@ -380,11 +374,6 @@ function render(doc) {
         </div>
       </div>
 
-      ${feeCard}
-      ${monthlyEstCard}
-      ${careFeeCard}
-      ${otherFeeCard}
-
       <div class="sec-card">
         <div class="sec-hd">📍 アクセス・所在地</div>
         <div class="info-rows">
@@ -393,6 +382,27 @@ function render(doc) {
           ${d.city    ? `<div class="info-row"><span class="info-lbl">エリア</span><span class="info-val">${d.prefecture||''} ${d.city||''}</span></div>` : ''}
         </div>
       </div>
+
+      ${estMin ? `
+      <div style="background:linear-gradient(135deg,#047857,#059669);border-radius:14px;padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 4px 18px rgba(5,150,105,.25)">
+        <div>
+          <div style="font-size:12px;color:rgba(255,255,255,.75);font-weight:600;margin-bottom:3px">月々の費用（目安・すべて含む）</div>
+          <div>
+            <span style="font-size:38px;font-weight:900;color:white;line-height:1;letter-spacing:-1px">約 ${estMin}〜${estMax}</span>
+            <span style="font-size:18px;font-weight:700;color:rgba(255,255,255,.9)"> 万円</span>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:12px 16px;font-size:12px;color:white;line-height:1.7;text-align:center">
+          空室状況・連絡先は<br><strong>Meets Medical</strong>までお問い合わせください
+        </div>
+      </div>` : `
+      <div style="background:var(--g50);border-radius:14px;padding:16px 20px;margin-bottom:14px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="font-size:13px;color:var(--g500)">月々の費用目安は基本料金が入力されると表示されます</div>
+        <div style="font-size:12px;color:var(--g500);line-height:1.7;text-align:right">空室状況・連絡先は<br><strong>Meets Medical</strong>までお問い合わせください</div>
+      </div>`}
+
+      ${feeCard}
+      ${costBreakdownCard}
 
       <div class="sec-card">
         <div class="sec-hd">✅ 入居条件</div>
@@ -448,10 +458,26 @@ function render(doc) {
         </div>
       </div>
 
+      ${estMin ? `
+      <div style="background:linear-gradient(135deg,#047857,#059669);border-radius:14px;padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 4px 18px rgba(5,150,105,.25)">
+        <div>
+          <div style="font-size:12px;color:rgba(255,255,255,.75);font-weight:600;margin-bottom:3px">月々の費用（目安・すべて含む）</div>
+          <div>
+            <span style="font-size:38px;font-weight:900;color:white;line-height:1;letter-spacing:-1px">約 ${estMin}〜${estMax}</span>
+            <span style="font-size:18px;font-weight:700;color:rgba(255,255,255,.9)"> 万円</span>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:12px 16px;font-size:12px;color:white;line-height:1.7;text-align:center">
+          空室状況・連絡先は<br><strong>Meets Medical</strong>までお問い合わせください
+        </div>
+      </div>` : `
+      <div style="background:var(--g50);border-radius:14px;padding:16px 20px;margin-bottom:14px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="font-size:13px;color:var(--g500)">月々の費用目安は基本料金が入力されると表示されます</div>
+        <div style="font-size:12px;color:var(--g500);line-height:1.7;text-align:right">空室状況・連絡先は<br><strong>Meets Medical</strong>までお問い合わせください</div>
+      </div>`}
+
       ${feeCard}
-      ${monthlyEstCard}
-      ${careFeeCard}
-      ${otherFeeCard}
+      ${costBreakdownCard}
 
       <div class="lock-card">
         <div class="lock-icon">🔒</div>
