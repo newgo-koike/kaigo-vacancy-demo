@@ -31,7 +31,13 @@
     .delivery-meta-item { font-size:12px; color:var(--g400); }
     .delivery-meta-item strong { color:white; display:block; font-size:13px; margin-bottom:2px; }
 
-    .container { max-width:1280px; margin:0 auto; padding:0 40px 80px; }
+    .container { max-width:1600px; margin:0 auto; padding:0 40px 80px; }
+    .two-pane { display:grid; grid-template-columns:380px 1fr; gap:40px; align-items:start; margin-top:40px; }
+    .pane-left { position:sticky; top:24px; max-height:calc(100vh - 48px); overflow-y:auto; padding-right:4px; scrollbar-width:thin; scrollbar-color:var(--g300) transparent; }
+    .pane-left::-webkit-scrollbar { width:4px; }
+    .pane-left::-webkit-scrollbar-thumb { background:var(--g300); border-radius:4px; }
+    .pane-right > .sec:first-child { margin-top:0; }
+    @media(max-width:1100px){ .two-pane { grid-template-columns:1fr; } .pane-left { position:static; max-height:none; } }
     .sec { margin-top:64px; }
     .sec-hd { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
     .sec-num { width:40px; height:40px; background:var(--brand); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:white; flex-shrink:0; box-shadow:0 2px 10px rgba(13,148,136,.3); }
@@ -192,12 +198,12 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.2</div>
+  <div class="v2-badge">✨ v2.3</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.2</p>
+  <p>納品書・仕様書・操作マニュアル　v2.3</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
-    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月18日</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月19日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
     <div class="delivery-meta-item"><strong>システム名</strong>介護施設検索システム</div>
     <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
@@ -205,9 +211,13 @@
 </div>
 
 <div class="container">
+<div class="two-pane">
+
+<!-- ═══ LEFT: アーカイブ ══════════════════════════════════════ -->
+<div class="pane-left">
 
   <!-- CHANGELOG -->
-  <div class="sec" style="margin-top:40px">
+  <div class="sec">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">📅</div>
       <div class="sec-title">アップデート履歴</div>
@@ -231,15 +241,47 @@
       .cl-txt strong { color:var(--g900); }
     </style>
 
+    <!-- 2026/6/19 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月19日</div>
+          <div class="cl-subtitle">検索→結果遷移アニメーションをスムーズ化</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">改善</span>
+          <div class="cl-txt"><strong>検索ボタン押下後の画面切替がなめらかに</strong><br>全画面検索フォームから左サイドバー＋結果表示へ切り替わる際のカクつきを解消。フェードアウト→レイアウト切替→フェードイン の3ステップで視覚的に滑らかな遷移を実現。</div>
+        </div>
+      </div>
+    </div>
+
     <!-- 2026/6/18 -->
     <div class="cl-day">
       <div class="cl-day-hd">
         <div>
           <div class="cl-date">2026年6月18日</div>
-          <div class="cl-subtitle">検索画面・施設詳細デザイン全面刷新・費用情報強化・沿線対応</div>
+          <div class="cl-subtitle">費用内訳表・PDF印刷・登録フォーム・ロックカード削除ほか</div>
         </div>
       </div>
       <div class="cl-items">
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細：費用内訳を収支表スタイルに刷新</strong><br>「施設費用・介護費用・医療費・その他生活費」を項目／内容／月額目安の3列テーブルで表示。合計行をグリーングラデーションで強調し、費用の全体像が一目でわかるデザインに変更。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>PDF出力をA4大文字レイアウトに最適化</strong><br>印刷用ページをA4縦・余白ゼロ・大きなフォントサイズに再設計。高齢の家族が紙で確認する場面を想定し、1施設1枚に収まる視認性の高いレイアウトに。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設登録フォームに路線名入力欄を追加</strong><br>最寄駅情報に「路線名」テキスト欄（stationLine）を追加。「阪急宝塚線」「JR東海道線」など複数路線を「、」区切りで入力でき、検索時に路線名でのフリーワード検索が可能に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細ページのロックカード（🔒）を削除</strong><br>有料プラン誘導のロックブロックを完全削除。ページをシンプルに整理し、費用情報に集中できるレイアウトに。</div>
+        </div>
         <div class="cl-item changed">
           <span class="cl-tag changed">変更</span>
           <div class="cl-txt"><strong>検索画面：白背景＋やわらかい配色に刷新</strong><br>ダークグラデーション＋ノイズテクスチャだった検索画面を、白背景＋エメラルドグリーン＆ピンクのやわらかい色調に変更。ソーシャルワーカー・ケアマネが使いやすい明るい印象に。</div>
@@ -369,8 +411,13 @@
 
   </div>
 
+</div><!-- /pane-left -->
+
+<!-- ═══ RIGHT: その他セクション ═══════════════════════════════ -->
+<div class="pane-right">
+
   <!-- v2新機能まとめ -->
-  <div class="sec" style="margin-top:40px">
+  <div class="sec" style="margin-top:0">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">★</div>
       <div class="sec-title">v2.2 で追加・変更されたこと</div>
@@ -992,8 +1039,6 @@
     </table>
   </div>
 
-</div>
-
   <!-- ⑨ 施設データ収集・入力フロー（兵頭さん向け） -->
   <div class="sec">
     <div class="sec-hd">
@@ -1281,7 +1326,9 @@
     </div>
   </div>
 
-</div>
+</div><!-- /pane-right -->
+</div><!-- /two-pane -->
+</div><!-- /container -->
 
 <div class="footer">
   介護施設検索システム v2.2<br>

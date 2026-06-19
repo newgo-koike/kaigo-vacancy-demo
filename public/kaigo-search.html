@@ -66,7 +66,7 @@
     .sb-sec-cond { display:none !important; }
     .body-wrap.search-only .sb-action-area { position:static; grid-column:1/-1; padding:20px 28px 28px; border-top:1px solid var(--g100); }
     .body-wrap.search-only .sb-action-area .sb-search-btn { font-size:18px; padding:16px; border-radius:13px; }
-    .body-wrap.search-only .main { display:none; }
+    .body-wrap.search-only .main { flex:0 0 0; min-width:0; overflow:hidden; opacity:0; pointer-events:none; }
 
     /* ヒーロー */
     .search-hero { display:none; width:100%; max-width:1120px; padding:48px 32px 24px; }
@@ -99,9 +99,8 @@
     .hero-sub { font-size:15px; color:var(--g500); line-height:1.8; }
 
     /* アニメーション */
-    .sidebar { transition:all .32s cubic-bezier(.4,0,.2,1); }
-    .main.fade-in { animation:fadeIn .3s ease; }
-    @keyframes fadeIn { from{opacity:0;transform:translateX(14px)} to{opacity:1;transform:none} }
+    .main.fade-in { animation:fadeIn .38s cubic-bezier(.4,0,.2,1) both; }
+    @keyframes fadeIn { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:none} }
 
     /* ═══ SIDEBAR（通常モード） ══════════════════════════════ */
     .sidebar { width:268px; min-width:268px; background:white; border-right:1px solid var(--g200); overflow-y:auto; flex-shrink:0; }
@@ -643,11 +642,43 @@ async function doSearch() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> 検索中...';
 
-  // フルページ→結果モードに即切替してスケルトンを見せる
+  // フルページ→結果モードへスムーズに遷移
   const wrap = document.getElementById('body-wrap');
   if (wrap.classList.contains('search-only')) {
-    wrap.classList.remove('search-only');
-    document.querySelector('.main').classList.add('fade-in');
+    const sidebar = document.querySelector('.sidebar');
+    const main    = document.querySelector('.main');
+    const hero    = document.querySelector('.search-hero');
+
+    // ① 現在の検索UIをフェードアウト（レイアウト変更を隠す）
+    const fadeOut = 'opacity:0;transition:opacity .18s ease;';
+    sidebar.style.cssText = fadeOut;
+    hero.style.cssText    = fadeOut;
+
+    setTimeout(() => {
+      // ② 不可視の状態でレイアウト切替（フレックス方向変更のカクつき回避）
+      wrap.classList.remove('search-only');
+      main.style.cssText = 'opacity:0;transition:none;';
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // ③ サイドバーを新ポジションでフェードイン
+          sidebar.style.cssText = 'opacity:0;transition:none;';
+          requestAnimationFrame(() => {
+            sidebar.style.cssText = 'opacity:1;transition:opacity .28s ease;';
+          });
+
+          // ④ 結果パネルをスライドイン
+          main.classList.add('fade-in');
+          main.style.cssText = '';
+
+          // ⑤ インラインスタイルをクリーンアップ
+          setTimeout(() => {
+            sidebar.style.cssText = '';
+            hero.style.cssText    = '';
+          }, 350);
+        });
+      });
+    }, 190);
   }
   document.getElementById('sort-bar').style.display = 'flex';
   document.getElementById('count-bar').innerHTML = '<span style="color:var(--g400)">検索中...</span>';
@@ -940,9 +971,12 @@ function printSelected() {
   const today = new Date().toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'});
   const isSingle = selected.length === 1;
 
+  function fmtYen(v) { return v != null ? Number(v).toLocaleString('ja-JP') : null; }
+  function toMan(v)  { return v != null ? Math.round(v / 1000) / 10 : null; }
   function feeStr(f) {
-    const init = f.initialFee ? (f.initialFeeAmount != null ? f.initialFeeAmount + '万円' : '要確認') : '0円';
-    const monthly = f.monthlyTotal != null ? f.monthlyTotal + '万円〜' : '—';
+    const init = f.initialFee ? (f.initialFeeAmount != null ? fmtYen(f.initialFeeAmount) + '円' : '要確認') : '0円';
+    const mn = toMan(f.monthlyTotal);
+    const monthly = mn != null ? `約${mn}万円〜` : '—';
     return { init, monthly };
   }
 
@@ -955,8 +989,9 @@ function printSelected() {
     const vac = f.vacancy === 0 ? '満室' : f.vacancy + '室空き';
     const vacColor = f.vacancy === 0 ? '#dc2626' : '#059669';
     const stStr = f.stationSearch.split(' ').slice(0,5).filter(Boolean).join('　') || '—';
-    const estMin = f.monthlyTotal ? Math.round((f.monthlyTotal + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
-    const estMax = f.monthlyTotal ? Math.round((f.monthlyTotal + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
+    const _mn = toMan(f.monthlyTotal);
+    const estMin = _mn ? Math.round((_mn + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
+    const estMax = _mn ? Math.round((_mn + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
 
     body = `
     <!-- 施設名ヘッダー -->
@@ -970,55 +1005,55 @@ function printSelected() {
     ${estMin ? `<div style="background:linear-gradient(135deg,#047857,#059669);border-radius:12px;padding:20px 22px;margin-bottom:14px;text-align:center;box-shadow:0 6px 20px rgba(5,150,105,.3)">
       <div style="font-size:13pt;color:rgba(255,255,255,.8);margin-bottom:6px;font-weight:700">月々にかかる費用の目安（すべて含む）</div>
       <div><span style="font-size:52pt;font-weight:900;color:white;line-height:1;letter-spacing:-2px">${estMin}〜${estMax}</span><span style="font-size:20pt;font-weight:700;color:rgba(255,255,255,.9)"> 万円</span></div>
-      <div style="font-size:10pt;color:rgba(255,255,255,.65);margin-top:6px">施設費用 ${f.monthlyTotal}万円　＋　介護費用 1.6〜2.8万円　＋　医療費 0.3〜1.0万円　＋　生活費 1.0〜3.0万円</div>
+      <div style="font-size:10pt;color:rgba(255,255,255,.65);margin-top:6px">施設費用 ${fmtYen(f.monthlyTotal)}円　＋　介護費用 1.6〜2.8万円　＋　医療費 0.3〜1.0万円　＋　生活費 1.0〜3.0万円</div>
     </div>` : ''}
 
     <!-- 内訳テーブル -->
     <table style="width:100%;border-collapse:collapse;font-size:14pt;margin-bottom:14px">
       <thead>
         <tr style="background:#ecfdf5;border-bottom:2px solid #a7f3d0">
-          <th style="padding:10px 14px;text-align:left;font-size:11pt;color:#047857;width:38%">項目</th>
-          <th style="padding:10px 14px;text-align:left;font-size:11pt;color:#047857">内容</th>
-          <th style="padding:10px 14px;text-align:right;font-size:11pt;color:#047857;white-space:nowrap">月額目安</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10pt;color:#047857;width:22%">項目</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10pt;color:#047857;width:50%">内容</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10pt;color:#047857;white-space:nowrap">月額目安</th>
         </tr>
       </thead>
       <tbody>
         ${f.monthlyTotal != null ? `<tr style="border-bottom:1px solid #e2e8f0">
           <td style="padding:11px 14px;font-weight:700">🏢 施設費用</td>
           <td style="padding:11px 14px;color:#64748b;font-size:12pt">家賃・食費・管理費など</td>
-          <td style="padding:11px 14px;text-align:right;font-weight:800;font-size:15pt;white-space:nowrap">${f.monthlyTotal} 万円</td>
+          <td style="padding:9px 12px;text-align:right;font-weight:800;font-size:13pt;white-space:nowrap">${fmtYen(f.monthlyTotal)} 円</td>
         </tr>` : ''}
         <tr style="border-bottom:1px solid #e2e8f0;background:#f8fafc">
-          <td style="padding:11px 14px;font-weight:700">🏥 介護費用</td>
-          <td style="padding:11px 14px;color:#64748b;font-size:12pt">介護保険の自己負担分<br><span style="font-size:10pt;color:#94a3b8">要介護1〜5・負担割合により変動</span></td>
-          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#059669;font-size:15pt;white-space:nowrap">1.6〜2.8 万円</td>
+          <td style="padding:9px 12px;font-weight:700">🏥 介護費用</td>
+          <td style="padding:9px 12px;color:#64748b;font-size:11pt">介護保険の自己負担分<br><span style="font-size:9pt;color:#94a3b8">要介護1〜5・負担割合により変動</span></td>
+          <td style="padding:9px 12px;text-align:right;font-weight:800;color:#059669;font-size:13pt;white-space:nowrap">1.6〜2.8 万円</td>
         </tr>
         <tr style="border-bottom:1px solid #e2e8f0">
-          <td style="padding:11px 14px;font-weight:700">💊 医療費</td>
-          <td style="padding:11px 14px;color:#64748b;font-size:12pt">薬代など<br><span style="font-size:10pt;color:#94a3b8">負担割合（1〜3割）により変動</span></td>
-          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#059669;font-size:15pt;white-space:nowrap">0.3〜1.0 万円</td>
+          <td style="padding:9px 12px;font-weight:700">💊 医療費</td>
+          <td style="padding:9px 12px;color:#64748b;font-size:11pt">薬代など<br><span style="font-size:9pt;color:#94a3b8">負担割合（1〜3割）により変動</span></td>
+          <td style="padding:9px 12px;text-align:right;font-weight:800;color:#059669;font-size:13pt;white-space:nowrap">0.3〜1.0 万円</td>
         </tr>
         <tr style="border-bottom:2px solid #a7f3d0;background:#f8fafc">
-          <td style="padding:11px 14px;font-weight:700">🛒 その他生活費</td>
-          <td style="padding:11px 14px;color:#64748b;font-size:12pt">おむつ代・日用品・散髪代など</td>
-          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#059669;font-size:15pt;white-space:nowrap">1.0〜3.0 万円</td>
+          <td style="padding:9px 12px;font-weight:700">🛒 その他生活費</td>
+          <td style="padding:9px 12px;color:#64748b;font-size:11pt">おむつ代・日用品・散髪代など</td>
+          <td style="padding:9px 12px;text-align:right;font-weight:800;color:#059669;font-size:13pt;white-space:nowrap">1.0〜3.0 万円</td>
         </tr>
       </tbody>
     </table>
 
     <!-- 住所・アクセス -->
-    <table style="width:100%;border-collapse:collapse;font-size:13pt;margin-bottom:14px;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden">
+    <table style="width:100%;border-collapse:collapse;font-size:11pt;margin-bottom:10px;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden">
       <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0">
-        <td style="padding:10px 14px;font-weight:700;color:#475569;width:110px;white-space:nowrap">📍 住所</td>
-        <td style="padding:10px 14px">${f.addr || f.city || '—'}</td>
+        <td style="padding:8px 12px;font-weight:700;color:#475569;width:100px;white-space:nowrap">📍 住所</td>
+        <td style="padding:8px 12px">${f.addr || f.city || '—'}</td>
       </tr>
       <tr>
-        <td style="padding:10px 14px;font-weight:700;color:#475569;white-space:nowrap">🚉 最寄り</td>
-        <td style="padding:10px 14px">${stStr}</td>
+        <td style="padding:8px 12px;font-weight:700;color:#475569;white-space:nowrap">🚉 最寄り</td>
+        <td style="padding:8px 12px">${stStr}</td>
       </tr>
       <tr style="background:#f8fafc">
-        <td style="padding:10px 14px;font-weight:700;color:#475569;white-space:nowrap">💴 入居時費用</td>
-        <td style="padding:10px 14px">${init}</td>
+        <td style="padding:8px 12px;font-weight:700;color:#475569;white-space:nowrap">💴 入居時費用</td>
+        <td style="padding:8px 12px">${init}</td>
       </tr>
     </table>
 
