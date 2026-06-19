@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.2 | 介護施設検索システム</title>
+  <title>納品書 v2.3 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -246,13 +246,33 @@
       <div class="cl-day-hd">
         <div>
           <div class="cl-date">2026年6月19日</div>
-          <div class="cl-subtitle">検索→結果遷移アニメーションをスムーズ化</div>
+          <div class="cl-subtitle">一括インポートツール・施設詳細整備・納品書v2・UI改善</div>
         </div>
       </div>
       <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設データ一括インポートツール（158施設対応）</strong><br>豊中市の実施設データ158件（介護付17・住宅型46・サ高住38・GH29・特養14・老健10・高齢者住宅4）をFirestoreに一括投入するツールを追加。管理者がボタン1つで全施設を登録可能。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>納品書 v2 デザイン全面刷新（本ページ）</strong><br>Inter + Noto Sans JP フォント採用、グラデーションヘッダー（ダークネイビー→ダークグリーン）、赤バッジ・ステータスインジケーターなど全体デザインをリニューアル。アップデート履歴を日付別に見やすく整理。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細ページ（kaigo-facility-view.html）整備完了</strong><br>Noto Sans JP フォント導入・CSS変数整理・タイトル統一。費用内訳・介護費用目安・月々合計表示などの情報を整備し、病院・ケアマネが施設を検討する際に必要な情報がすべて揃う状態に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索画面カラースキームリニューアル（エメラルド緑）</strong><br>ブランドカラーをエメラルドグリーン（#059669）に統一し、シャドウ変数（--sh1/2/3/sh-brand）を体系化。ピンクアクセントも整理し、全体の視覚的一貫性を向上。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>空室更新ページ（kaigo-manage.html）に Firebase Auth 認証ガード追加</strong><br>未ログイン状態でURLを直接開いた場合、自動的にログイン画面へリダイレクト。認証前のコンテンツ表示を防ぐ visibility:hidden 対応も追加。</div>
+        </div>
         <div class="cl-item fixed">
           <span class="cl-tag fixed">改善</span>
-          <div class="cl-txt"><strong>検索ボタン押下後の画面切替がなめらかに</strong><br>全画面検索フォームから左サイドバー＋結果表示へ切り替わる際のカクつきを解消。フェードアウト→レイアウト切替→フェードイン の3ステップで視覚的に滑らかな遷移を実現。</div>
+          <div class="cl-txt"><strong>検索ボタン押下後の画面切替をスムーズ化</strong><br>全画面検索フォームから左サイドバー＋結果表示へ切り替わる際のカクつきを解消。フェードアウト→レイアウト切替→フェードイン の3ステップで視覚的に滑らかな遷移を実現。</div>
         </div>
       </div>
     </div>
@@ -420,10 +440,10 @@
   <div class="sec" style="margin-top:0">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">★</div>
-      <div class="sec-title">v2.2 で追加・変更されたこと</div>
+      <div class="sec-title">v2.3 で追加・変更されたこと</div>
     </div>
     <div class="whats-new">
-      <h3>🆕 v1.x → v2.2 の主な変更点</h3>
+      <h3>🆕 v1.x → v2.3 の主な変更点</h3>
       <div class="new-grid">
         <div class="new-item">
           <div class="new-item-title">🔐 ログイン認証の追加</div>
@@ -1331,7 +1351,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  介護施設検索システム v2.2<br>
+  介護施設検索システム v2.3<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>
