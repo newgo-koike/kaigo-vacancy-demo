@@ -383,6 +383,17 @@ function render(doc) {
   const otherFeeCard = '';
   const monthlyEstCard = '';
 
+  // ── ④ 費用に関する詳細（feeNotes） ──────────────────────────
+  const feeNotesCard = d.feeNotes ? `
+  <div class="sec-card" style="border-left:4px solid #d97706;background:#fffbeb">
+    <div class="sec-hd" style="color:#92400e">📋 費用に関する詳細</div>
+    <div style="font-size:13px;color:#78350f;line-height:1.9">
+      ${d.feeNotes.split(/\n/).map(line => line.trim()).filter(Boolean).map(line =>
+        `<div style="padding:3px 0;border-bottom:1px solid #fde68a;last-child:border-none">${line}</div>`
+      ).join('')}
+    </div>
+  </div>` : '';
+
   // ── 入居条件 ──────────────────────────────────────────────
   function condBadge(lbl, val) {
     if (!val) return `<span class="cond-badge cond-na">${lbl}：未入力</span>`;
@@ -455,6 +466,7 @@ function render(doc) {
 
       ${feeCard}
       ${costBreakdownCard}
+      ${feeNotesCard}
 
       <div class="sec-card cond-section">
         <div class="sec-hd">✅ 入居条件</div>
@@ -530,6 +542,7 @@ function render(doc) {
 
       ${feeCard}
       ${costBreakdownCard}
+      ${feeNotesCard}
 
       <div class="foot-note">
         このページは介護施設検索システムの施設情報ページです。<br>
