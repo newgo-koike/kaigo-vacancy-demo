@@ -211,6 +211,26 @@
       .sec-card table th { padding:5px 8px !important; font-size:10px !important; }
       .sec-card table td { padding:5px 8px !important; font-size:11px !important; }
       .sec-card table td[style*="font-size:28px"] { font-size:18px !important; }
+
+      /* 印刷時の文字色を強制的に黒系に統一 */
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .sec-hd { color: #1e293b !important; }
+      .info-lbl { color: #374151 !important; }
+      .info-val { color: #111827 !important; }
+      .fee-section-hd, .fee-big-unit, .fee-sub-item,
+      .fee-col-lbl, .fee-col-unit, .fee-note { color: #374151 !important; }
+      /* テーブル内の説明テキスト（グレーinlineスタイル）を上書き */
+      .sec-card table td { color: #1e293b !important; }
+      /* 合計行（グラデ）：印刷でも色を出す */
+      .sec-card table tr[style*="linear-gradient"] td { color: #fff !important; }
+      /* 金額・数値（白文字の行）は白のまま、その他は黒に */
+      .sec-card table td[style*="color:#64748b"] { color: #374151 !important; }
+      .sec-card table td[style*="color:#94a3b8"] { color: #6b7280 !important; }
+      /* 月々バナーの文字色 */
+      .monthly-banner * { color: #fff !important; }
+      /* 費用に関する詳細セクション */
+      .sec-card[style*="border-left:4px solid #d97706"] { background: #fffbeb !important; }
+      .sec-card[style*="border-left:4px solid #d97706"] * { color: #78350f !important; }
     }
     .print-only { display:none; }
     .print-hd { font-size:11px; color:var(--g400); text-align:right; margin-bottom:12px; }
