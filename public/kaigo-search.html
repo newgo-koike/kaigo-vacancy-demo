@@ -389,7 +389,7 @@
       </div>
       <div class="f-grp">
         <label class="f-lbl">市区町村</label>
-        <select class="f-sel" id="q-city">
+        <select class="f-sel" id="q-city" onchange="liveFilter()">
           <option value="">すべて</option>
           <option value="豊中市">豊中市</option>
           <option value="吹田市">吹田市</option>
@@ -399,8 +399,8 @@
         </select>
       </div>
       <div class="f-grp">
-        <label class="f-lbl">駅名（フリー検索）</label>
-        <input class="f-inp" id="q-station" type="text" placeholder="例：服部天神">
+        <label class="f-lbl">フリー検索（施設名・駅名・住所など）</label>
+        <input class="f-inp" id="q-station" type="text" placeholder="例：さくらヴィラ、服部天神、豊中市" oninput="liveFilter()">
         <div class="f-hint">路線名・駅名どちらでも検索できます</div>
       </div>
     </div>
@@ -605,6 +605,7 @@ function updateCityOptions() {
   const sel = document.getElementById('q-city');
   sel.innerHTML = '<option value="">すべて</option>' +
     cities.map(c => `<option value="${c}">${c}</option>`).join('');
+  liveFilter();
 }
 
 // ── ラジオチップ同期 ───────────────────────────────────────
@@ -769,7 +770,7 @@ function liveFilter() {
   const list = base.filter(f => {
     if (pref    && f.prefecture !== pref) return false;
     if (city    && f.city !== city) return false;
-    if (station && !f.stationSearch.includes(station)) return false;
+    if (station && !f.searchText.includes(station)) return false;
     if (initFee === 'yes' && !f.initialFee) return false;
     if (initFee === 'no'  &&  f.initialFee) return false;
     if (types.length && !types.includes(f.type)) return false;
@@ -794,14 +795,20 @@ function mapDoc(doc) {
   const upd = d.updatedAt ? d.updatedAt.toDate() : new Date();
   const daysAgo = Math.floor((new Date() - upd) / 86400000);
 
-  const rent  = d.rent          ?? null;
-  const mgmt  = d.managementFee ?? null;
-  const meal  = d.mealFee       ?? null;
-  const other = d.otherFee      ?? null;
-  const hasBreakdown = rent !== null || mgmt !== null || meal !== null;
-  const monthlyTotal = hasBreakdown
-    ? Math.round(((rent||0) + (mgmt||0) + (meal||0) + (other||0)) * 10) / 10
+  const rentYen  = d.rent          ?? null;
+  const mgmtYen  = d.managementFee ?? null;
+  const mealYen  = d.mealFee       ?? null;
+  const otherYen = d.otherFee      ?? null;
+  const hasBreakdown = rentYen !== null || mgmtYen !== null || mealYen !== null;
+  const w = v => v != null ? Math.round(v / 10000 * 10) / 10 : null;
+  const rent  = w(rentYen);
+  const mgmt  = w(mgmtYen);
+  const meal  = w(mealYen);
+  const other = w(otherYen);
+  const monthlyTotalYen = hasBreakdown
+    ? (rentYen||0) + (mgmtYen||0) + (mealYen||0) + (otherYen||0)
     : (d.monthlyFee ?? null);
+  const monthlyTotal = monthlyTotalYen != null ? Math.round(monthlyTotalYen / 10000 * 10) / 10 : null;
 
   const PREFS = ['大阪府','兵庫県','京都府','奈良県'];
   const prefecture = d.prefecture ||
@@ -835,11 +842,25 @@ function mapDoc(doc) {
     plan: d.plan || 'free',
     photoUrl: d.photoUrl || null,
     initialFee: d.initialFee ?? false,
-    initialFeeAmount: d.initialFeeAmount ?? null,
+    initialFeeAmount: w(d.initialFeeAmount ?? null),
+    initialFeeAmountYen: d.initialFeeAmount ?? null,
+    depositAmount: w(d.depositAmount ?? null),
+    depositAmountYen: d.depositAmount ?? null,
     rent, mgmt, meal, other, hasBreakdown,
+    rentYen, mgmtYen, mealYen, otherYen,
     monthlyTotal,
+    monthlyTotalYen,
     updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
     daysAgo,
+    searchText: [
+      d.name, d.type, d.address, d.area, d.city, prefecture,
+      d.station, d.stationLine, d.stationDistance,
+      ...(d.stations||[]).flatMap(s=>[s.line,s.name]),
+      ...(d.buses||[]).flatMap(b=>[b.route,b.stop]),
+      ...(d.features||[]),
+      d.vacancyNotes, d.feeNotes, d.campaign,
+      d.seikatsuHogo, d.mimonHosho, d.kaigoNintei,
+    ].filter(Boolean).join(' '),
   };
 }
 
@@ -884,9 +905,8 @@ function cardHTML(f) {
     f.station ? `🚉 ${f.station}` : '',
   ].filter(Boolean);
 
-  const initAmt = f.initialFee
-    ? (f.initialFeeAmount != null ? f.initialFeeAmount : '─')
-    : '0';
+  const totalInitialWan = (f.initialFeeAmount || 0) + (f.depositAmount || 0);
+  const initAmt = totalInitialWan > 0 ? totalInitialWan : '0';
   const feeItems = [
     {lbl:'賃料',   val:f.rent},
     {lbl:'管理費', val:f.mgmt},
@@ -974,8 +994,9 @@ function printSelected() {
   function fmtYen(v) { return v != null ? Number(v).toLocaleString('ja-JP') : null; }
   function toMan(v)  { return v != null ? Math.round(v / 1000) / 10 : null; }
   function feeStr(f) {
-    const init = f.initialFee ? (f.initialFeeAmount != null ? fmtYen(f.initialFeeAmount) + '円' : '要確認') : '0円';
-    const mn = toMan(f.monthlyTotal);
+    const totalInitYen = (f.initialFeeAmountYen || 0) + (f.depositAmountYen || 0);
+    const init = totalInitYen > 0 ? fmtYen(totalInitYen) + '円' : '0円';
+    const mn = f.monthlyTotal;
     const monthly = mn != null ? `約${mn}万円〜` : '—';
     return { init, monthly };
   }
@@ -983,113 +1004,125 @@ function printSelected() {
   let body = '';
 
   if (isSingle) {
-    // ── 1件：A4びちびち・大きめ文字 ──
+    // ── 1件：白黒印刷対応・月額費用を中央ヒーロー表示 ──
     const f = selected[0];
     const { init, monthly } = feeStr(f);
     const vac = f.vacancy === 0 ? '満室' : f.vacancy + '室空き';
-    const vacColor = f.vacancy === 0 ? '#dc2626' : '#059669';
-    const stStr = f.stationSearch.split(' ').slice(0,5).filter(Boolean).join('　') || '—';
-    const _mn = toMan(f.monthlyTotal);
+    const stStr = f.stationSearch.split(' ').slice(0,5).filter(Boolean).join('  ') || '—';
+    const _mn = f.monthlyTotal;
     const estMin = _mn ? Math.round((_mn + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
     const estMax = _mn ? Math.round((_mn + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
+    const breakdownItems = [
+      {lbl:'賃料',   val:f.rentYen},
+      {lbl:'管理費', val:f.mgmtYen},
+      {lbl:'食費',   val:f.mealYen},
+      {lbl:'その他', val:f.otherYen},
+    ].filter(i => i.val != null);
 
     body = `
-    <!-- 施設名ヘッダー -->
-    <div style="background:#0d9488;border-radius:12px;padding:18px 22px;margin-bottom:14px">
-      <div style="font-size:12pt;color:rgba(255,255,255,.75);margin-bottom:4px">${f.type}</div>
-      <div style="font-size:26pt;font-weight:900;color:white;line-height:1.1">${f.name}</div>
-      <div style="margin-top:8px;font-size:13pt;font-weight:700;color:white;background:rgba(255,255,255,.15);display:inline-block;padding:4px 14px;border-radius:6px">空室：<span style="color:${f.vacancy === 0 ? '#fca5a5' : '#a7f3d0'}">${vac}</span></div>
+    <!-- ヘッダー：施設名 -->
+    <div style="border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+      <div style="font-size:22pt;font-weight:900;letter-spacing:-.4px;line-height:1.1">${f.name}</div>
+      <div style="font-size:10pt;border:1.5px solid #000;padding:2px 8px;border-radius:3px;font-weight:700;white-space:nowrap">${f.type}</div>
+      <div style="margin-left:auto;font-size:10pt;font-weight:700;white-space:nowrap">空室: ${vac}</div>
     </div>
 
-    <!-- 月々合計（どーん） -->
-    ${estMin ? `<div style="background:linear-gradient(135deg,#047857,#059669);border-radius:12px;padding:20px 22px;margin-bottom:14px;text-align:center;box-shadow:0 6px 20px rgba(5,150,105,.3)">
-      <div style="font-size:13pt;color:rgba(255,255,255,.8);margin-bottom:6px;font-weight:700">月々にかかる費用の目安（すべて含む）</div>
-      <div><span style="font-size:52pt;font-weight:900;color:white;line-height:1;letter-spacing:-2px">${estMin}〜${estMax}</span><span style="font-size:20pt;font-weight:700;color:rgba(255,255,255,.9)"> 万円</span></div>
-      <div style="font-size:10pt;color:rgba(255,255,255,.65);margin-top:6px">施設費用 ${fmtYen(f.monthlyTotal)}円　＋　介護費用 1.6〜2.8万円　＋　医療費 0.3〜1.0万円　＋　生活費 1.0〜3.0万円</div>
-    </div>` : ''}
+    <!-- アクセス（コンパクト1行） -->
+    <div style="font-size:9.5pt;color:#333;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;">
+      <span>住所: ${f.addr || f.city || '—'}</span>
+      ${stStr !== '—' ? `<span>最寄り: ${stStr}</span>` : ''}
+      <span>入居時費用: ${init}</span>
+    </div>
 
-    <!-- 内訳テーブル -->
-    <table style="width:100%;border-collapse:collapse;font-size:14pt;margin-bottom:14px">
+    <!-- HERO：月々の合計費用（最大強調・中央） -->
+    <div style="border:4px solid #000;border-radius:6px;padding:30px 20px 26px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:10pt;font-weight:700;letter-spacing:.1em;margin-bottom:18px;">月々の合計費用（目安・すべて含む）</div>
+      ${estMin ? `
+        <div style="font-size:86pt;font-weight:900;line-height:1;letter-spacing:-4px;text-align:center;">${Math.round(estMin)}<span style="font-size:40pt;letter-spacing:-1px;">〜${Math.round(estMax)}</span></div>
+        <div style="font-size:30pt;font-weight:900;margin-top:4px;text-align:center;">万円</div>
+        <div style="font-size:8pt;color:#555;margin-top:14px;">施設費用 ＋ 介護費用 ＋ 医療費 ＋ その他生活費</div>
+      ` : f.monthlyTotalYen != null ? `
+        <div style="font-size:8pt;color:#888;margin-bottom:8px;">（介護費・医療費等は含まず、施設費用のみ）</div>
+        <div style="font-size:72pt;font-weight:900;line-height:1;letter-spacing:-3px;text-align:center;">${fmtYen(f.monthlyTotalYen)}</div>
+        <div style="font-size:26pt;font-weight:900;margin-top:4px;text-align:center;">円</div>
+      ` : `
+        <div style="font-size:32pt;font-weight:900;color:#666;line-height:1;">─</div>
+        <div style="font-size:8.5pt;color:#999;margin-top:8px;">費用データなし（施設にお問い合わせください）</div>
+      `}
+    </div>
+
+    <!-- 費用内訳テーブル -->
+    <table style="width:100%;border-collapse:collapse;font-size:10.5pt;margin-bottom:14px;">
       <thead>
-        <tr style="background:#ecfdf5;border-bottom:2px solid #a7f3d0">
-          <th style="padding:8px 12px;text-align:left;font-size:10pt;color:#047857;width:22%">項目</th>
-          <th style="padding:8px 12px;text-align:left;font-size:10pt;color:#047857;width:50%">内容</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10pt;color:#047857;white-space:nowrap">月額目安</th>
+        <tr style="background:#e8e8e8;">
+          <th style="padding:5px 10px;text-align:left;border:1px solid #999;width:22%;font-size:9pt;">費用の種類</th>
+          <th style="padding:5px 10px;text-align:left;border:1px solid #999;font-size:9pt;">内容</th>
+          <th style="padding:5px 10px;text-align:right;border:1px solid #999;white-space:nowrap;font-size:9pt;width:22%;">月額目安</th>
         </tr>
       </thead>
       <tbody>
-        ${f.monthlyTotal != null ? `<tr style="border-bottom:1px solid #e2e8f0">
-          <td style="padding:11px 14px;font-weight:700">🏢 施設費用</td>
-          <td style="padding:11px 14px;color:#64748b;font-size:12pt">家賃・食費・管理費など</td>
-          <td style="padding:9px 12px;text-align:right;font-weight:800;font-size:13pt;white-space:nowrap">${fmtYen(f.monthlyTotal)} 円</td>
+        ${f.monthlyTotalYen != null ? `<tr>
+          <td style="padding:7px 10px;font-weight:700;border:1px solid #ccc;">施設費用</td>
+          <td style="padding:7px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">家賃・食費・管理費など（施設への直接支払い）</td>
+          <td style="padding:7px 10px;text-align:right;font-weight:800;font-size:12pt;border:1px solid #ccc;white-space:nowrap;">${fmtYen(f.monthlyTotalYen)} 円</td>
         </tr>` : ''}
-        <tr style="border-bottom:1px solid #e2e8f0;background:#f8fafc">
-          <td style="padding:9px 12px;font-weight:700">🏥 介護費用</td>
-          <td style="padding:9px 12px;color:#64748b;font-size:11pt">介護保険の自己負担分<br><span style="font-size:9pt;color:#94a3b8">要介護1〜5・負担割合により変動</span></td>
-          <td style="padding:9px 12px;text-align:right;font-weight:800;color:#059669;font-size:13pt;white-space:nowrap">1.6〜2.8 万円</td>
+        <tr style="background:#f5f5f5;">
+          <td style="padding:6px 10px;font-weight:700;border:1px solid #ccc;">介護費用</td>
+          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">介護保険の自己負担分（1割負担の場合）<br><span style="font-size:8pt;color:#666;">要介護1〜5・負担割合により変動</span></td>
+          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">1.6〜2.8 万円</td>
         </tr>
-        <tr style="border-bottom:1px solid #e2e8f0">
-          <td style="padding:9px 12px;font-weight:700">💊 医療費</td>
-          <td style="padding:9px 12px;color:#64748b;font-size:11pt">薬代など<br><span style="font-size:9pt;color:#94a3b8">負担割合（1〜3割）により変動</span></td>
-          <td style="padding:9px 12px;text-align:right;font-weight:800;color:#059669;font-size:13pt;white-space:nowrap">0.3〜1.0 万円</td>
+        <tr>
+          <td style="padding:6px 10px;font-weight:700;border:1px solid #ccc;">医療費</td>
+          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">薬代などの医薬品費（1割負担の場合）<br><span style="font-size:8pt;color:#666;">負担割合（1〜3割）により変動</span></td>
+          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">0.3〜1.0 万円</td>
         </tr>
-        <tr style="border-bottom:2px solid #a7f3d0;background:#f8fafc">
-          <td style="padding:9px 12px;font-weight:700">🛒 その他生活費</td>
-          <td style="padding:9px 12px;color:#64748b;font-size:11pt">おむつ代・日用品・散髪代など</td>
-          <td style="padding:9px 12px;text-align:right;font-weight:800;color:#059669;font-size:13pt;white-space:nowrap">1.0〜3.0 万円</td>
+        <tr style="background:#f5f5f5;">
+          <td style="padding:6px 10px;font-weight:700;border:1px solid #ccc;">その他生活費</td>
+          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">おむつ代・日用品・散髪代・洗濯代など<br><span style="font-size:8pt;color:#666;">生活スタイルにより変動</span></td>
+          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">1.0〜3.0 万円</td>
         </tr>
       </tbody>
     </table>
 
-    <!-- 住所・アクセス -->
-    <table style="width:100%;border-collapse:collapse;font-size:11pt;margin-bottom:10px;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden">
-      <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0">
-        <td style="padding:8px 12px;font-weight:700;color:#475569;width:100px;white-space:nowrap">📍 住所</td>
-        <td style="padding:8px 12px">${f.addr || f.city || '—'}</td>
-      </tr>
-      <tr>
-        <td style="padding:8px 12px;font-weight:700;color:#475569;white-space:nowrap">🚉 最寄り</td>
-        <td style="padding:8px 12px">${stStr}</td>
-      </tr>
-      <tr style="background:#f8fafc">
-        <td style="padding:8px 12px;font-weight:700;color:#475569;white-space:nowrap">💴 入居時費用</td>
-        <td style="padding:8px 12px">${init}</td>
-      </tr>
-    </table>
-
-    <div style="font-size:9pt;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px">※ 月々の目安は介護度・負担割合・生活スタイルにより変動します。</div>`;
+    <div style="font-size:8pt;color:#666;padding-top:6px;border-top:1px solid #ccc;">※ 月々の目安は介護度・負担割合・生活スタイルにより変動します。空室状況は Meets Medical へお問い合わせください。</div>`;
   } else {
-    // ── 複数件：横並び比較テーブル ──
+    // ── 複数件：横並び比較テーブル（白黒印刷対応） ──
     const heads = selected.map(f => {
-      const vac = f.vacancy === 0 ? '<span style="color:#dc2626">満室</span>' : `<span style="color:#059669">${f.vacancy}室空き</span>`;
-      return `<th style="padding:10px 12px;background:#0d9488;color:white;font-size:13px;min-width:140px;text-align:left">
-        <div style="font-size:10px;opacity:.8;margin-bottom:2px">${f.type}</div>
-        <div style="font-size:14px;font-weight:800">${f.name}</div>
-        <div style="font-size:11px;margin-top:4px;opacity:.9">${vac}</div>
+      const vac = f.vacancy === 0 ? '満室' : `${f.vacancy}室空き`;
+      return `<th style="padding:8px 10px;background:#222;color:#fff;font-size:11px;min-width:130px;text-align:left;border:1px solid #000;">
+        <div style="font-size:9px;opacity:.8;margin-bottom:2px;">${f.type}</div>
+        <div style="font-size:12px;font-weight:800;">${f.name}</div>
+        <div style="font-size:9px;margin-top:3px;">空室: ${vac}</div>
       </th>`;
     }).join('');
 
     const rows2 = [
-      ['月々目安', f => {
-        const { monthly } = feeStr(f);
-        return `<strong style="font-size:18px;color:#059669">${monthly}</strong>`;
+      ['月額費用（施設）', f => {
+        return f.monthlyTotalYen != null
+          ? `<strong style="font-size:14px;">${fmtYen(f.monthlyTotalYen)} 円</strong>`
+          : '—';
+      }],
+      ['月々合計目安', f => {
+        const mn = f.monthlyTotal;
+        const eMin = mn ? Math.round((mn + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
+        const eMax = mn ? Math.round((mn + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
+        return eMin ? `<strong style="font-size:13px;">${eMin}〜${eMax} 万円</strong>` : '—';
       }],
       ['入居時費用', f => feeStr(f).init],
-      ['月額基本料', f => f.monthlyTotal != null ? f.monthlyTotal + '万円' : '—'],
       ['住所', f => f.addr || f.city || '—'],
-      ['最寄り', f => '🚉 ' + (f.stationSearch.split(' ').slice(0,3).filter(Boolean).join('　') || '—')],
+      ['最寄り', f => f.stationSearch.split(' ').slice(0,3).filter(Boolean).join('  ') || '—'],
     ].map(([label, fn], i) => {
-      const bg = i % 2 === 0 ? '#f8fafc' : 'white';
-      const cells = selected.map(f => `<td style="padding:10px 12px;font-size:13px;background:${bg};border-left:1px solid #e2e8f0">${fn(f)}</td>`).join('');
-      return `<tr><td style="padding:10px 12px;font-weight:700;font-size:12px;color:#475569;background:${bg};white-space:nowrap">${label}</td>${cells}</tr>`;
+      const bg = i % 2 === 0 ? '#f0f0f0' : '#fff';
+      const cells = selected.map(f => `<td style="padding:8px 10px;font-size:11px;background:${bg};border:1px solid #ccc;">${fn(f)}</td>`).join('');
+      return `<tr><td style="padding:8px 10px;font-weight:700;font-size:10px;background:${bg};border:1px solid #ccc;white-space:nowrap;">${label}</td>${cells}</tr>`;
     }).join('');
 
     body = `
-    <table style="width:100%;border-collapse:collapse;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden">
-      <thead><tr><th style="padding:10px 12px;background:#0f172a;color:#94a3b8;font-size:11px;text-align:left">比較項目</th>${heads}</tr></thead>
+    <table style="width:100%;border-collapse:collapse;border:2px solid #000;">
+      <thead><tr><th style="padding:8px 10px;background:#444;color:#fff;font-size:10px;text-align:left;border:1px solid #000;">比較項目</th>${heads}</tr></thead>
       <tbody>${rows2}</tbody>
     </table>
-    <div style="margin-top:14px;font-size:11px;color:#94a3b8">※ 月々の目安は基本料金＋介護費用（要介護1〜5）＋その他費用の合計です。実際の費用は施設にご確認ください。</div>`;
+    <div style="margin-top:10px;font-size:9px;color:#555;">※ 月々の目安は施設費用＋介護費用（要介護1〜5）＋その他費用の合計です。実際の費用は施設にご確認ください。</div>`;
   }
 
   const html = `<!DOCTYPE html>
@@ -1102,17 +1135,17 @@ function printSelected() {
     @page { size:${isSingle ? 'A4 portrait' : 'A4 landscape'}; margin:0; }
     * { box-sizing:border-box; margin:0; padding:0; }
     html, body { width:100%; height:100%; }
-    body { font-family:'Noto Sans JP',sans-serif; color:#1e293b; }
+    body { font-family:'Noto Sans JP',sans-serif; color:#000; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     .sheet {
       width:${isSingle ? '210mm' : '297mm'};
       min-height:${isSingle ? '297mm' : '210mm'};
-      padding:12mm;
+      padding:10mm 12mm;
       margin:0 auto;
     }
-    .hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8mm; }
-    .hdr h1 { font-size:12pt; color:#0d9488; font-weight:700; }
-    .hdr .meta { font-size:8pt; color:#94a3b8; }
-    .print-btn { background:#0d9488; color:white; border:none; padding:5px 14px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; }
+    .hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:6mm; border-bottom:1px solid #ccc; padding-bottom:4mm; }
+    .hdr h1 { font-size:10pt; font-weight:700; color:#000; }
+    .hdr .meta { font-size:8pt; color:#555; text-align:right; }
+    .print-btn { background:#000; color:#fff; border:none; padding:5px 14px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; }
     @media print { .print-btn { display:none !important; } }
   </style>
 </head>
@@ -1120,10 +1153,10 @@ function printSelected() {
   <div class="sheet">
     <div class="hdr">
       <div>
-        <h1>🏥 介護施設 資料 — ${selected.length}件</h1>
-        <div class="meta">出力日：${today}　Meets Medical 介護施設検索システム</div>
+        <h1>介護施設 資料 — ${selected.length}件</h1>
       </div>
-      <button class="print-btn" onclick="window.print()">🖨 印刷・PDF</button>
+      <div class="meta">出力日：${today}<br>Meets Medical 介護施設検索システム</div>
+      <button class="print-btn" onclick="window.print()">印刷・PDF</button>
     </div>
     ${body}
   </div>
@@ -1221,7 +1254,7 @@ function renderFilterChips() {
   if (city) chips.push({ label: city, clear: () => { document.getElementById('q-city').value=''; liveFilter(); }});
 
   const station = document.getElementById('q-station').value.trim();
-  if (station) chips.push({ label: `駅: ${station}`, clear: () => { document.getElementById('q-station').value=''; liveFilter(); }});
+  if (station) chips.push({ label: `検索: ${station}`, clear: () => { document.getElementById('q-station').value=''; liveFilter(); }});
 
   const initFee = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
   if (initFee !== 'all') chips.push({ label: initFee === 'yes' ? '初期費用あり' : '初期費用なし', clear: () => {

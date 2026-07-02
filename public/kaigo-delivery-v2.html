@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.3 | 介護施設検索システム</title>
+  <title>納品書 v2.5 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -198,12 +198,12 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.3</div>
+  <div class="v2-badge">✨ v2.5</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.3</p>
+  <p>納品書・仕様書・操作マニュアル　v2.5</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
-    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月19日</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月23日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
     <div class="delivery-meta-item"><strong>システム名</strong>介護施設検索システム</div>
     <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
@@ -240,6 +240,74 @@
       .cl-txt { font-size:13px; color:var(--g700); line-height:1.6; }
       .cl-txt strong { color:var(--g900); }
     </style>
+
+    <!-- 2026/6/23 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月23日</div>
+          <div class="cl-subtitle">施設詳細ページ構成改善・負担割合テーブル追加・印刷A4縦対応</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>介護費用の負担割合テーブル（クリックで展開）</strong><br>「その他かかる費用の目安」内の介護費用行に「▼ 負担割合・要介護度別の目安を見る」ボタンを追加。クリックすると要介護1〜5 × 自己負担1割・2割・3割の公式支給限度額を一覧表示。印刷・PDF時は自動展開して出力。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>費用セクション構成の見直し</strong><br>「月々にかかる費用の内訳目安」→「その他かかる費用の目安」に改名。施設費用行・合計行を削除し、介護費用・医療費・その他生活費の3項目のみ表示。セクション順序を「基本料金 → 費用に関する詳細 → その他かかる費用の目安」に変更。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>介護費用の月額目安を公式データに修正</strong><br>1.6〜2.8万円（誤推計）→ 1.7〜3.6万円（要介護1〜5・1割負担の正確な支給限度額）に修正。「※要介護1の場合」の注記も追加。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>備考・お知らせを箇条書きに変更</strong><br>施設詳細ページ下部の備考欄を、改行区切りのテキストから &lt;ul&gt;&lt;li&gt; の箇条書きリストに変更。複数項目がある場合に視認性が向上。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>印刷・PDF：A4縦1枚レイアウトを再最適化</strong><br>全セクションのフォントサイズ・パディングを圧縮し、負担割合テーブルも含めた全情報がA4縦1枚に収まるよう @media print を全面調整。印刷時は負担割合テーブルを自動展開、ボタンは非表示。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026/6/21-22 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月21日〜22日</div>
+          <div class="cl-subtitle">検索バグ修正・印刷A4最適化・ヘッダー統一・インポート強化</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>月額費用の範囲検索が機能しない問題を修正</strong><br>Firestoreに円単位（例：169,304円）で保存されているデータをフィルターが万円単位（例：15）と直接比較していたため、すべての施設が除外されていた。mapDoc() で全費用を万円に変換し、元の円値は *Yen フィールドとして別途保持するよう修正。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>入居一時金が0円と表示される問題を修正（敷金のみ施設）</strong><br>ボナール豊中など「入居一時金なし・敷金あり」の施設で initialFee フラグのみを参照していたため、敷金（depositAmount）が表示されなかった。initialFeeAmount + depositAmount を合算して表示するよう修正。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>管理画面のデータ投入ボタンが動作しない問題を修正</strong><br>「▶ インポート開始」「⚠ 全施設削除」ボタンのクリックイベントに割り当てられた runImport()・clearAllFacilities() 関数が未定義だった。両関数を新規実装し、進捗をリアルタイムで表示するログ出力機能も追加。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>インポート時の重複チェック（同名施設は自動更新）</strong><br>「▶ インポート開始」実行時に Firestore の同名施設を検索し、存在すれば update・なければ add を自動判別。2回目以降もボタン1つで最新データへ上書き更新できる。削除→再投入の手順が不要に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>印刷・PDF：月々の合計費用を中央に大きくヒーロー表示</strong><br>施設詳細ページ（kaigo-facility-view.html）の印刷レイアウトを改修。「月々の費用（目安・すべて含む）」の金額を緑バナー内に中央揃えで大きく配置。@media print 内の .est-big を 36pt に設定し、ページ全体を A4 一枚に収まるようパディングを最適化。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細ページのヘッダーを検索画面と統一</strong><br>ダークネイビー背景＋絵文字だったヘッダーを、白背景・logo.png・ダークティール文字「介護施設検索」に変更。検索画面と施設詳細画面で統一した見た目を実現。</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 2026/6/19 -->
     <div class="cl-day">
@@ -440,34 +508,30 @@
   <div class="sec" style="margin-top:0">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">★</div>
-      <div class="sec-title">v2.3 で追加・変更されたこと</div>
+      <div class="sec-title">v2.5 で追加・変更されたこと</div>
     </div>
     <div class="whats-new">
-      <h3>🆕 v1.x → v2.3 の主な変更点</h3>
+      <h3>🆕 v2.4 → v2.5 の主な変更点（2026/6/23）</h3>
       <div class="new-grid">
         <div class="new-item">
-          <div class="new-item-title">🔐 ログイン認証の追加</div>
-          <div class="new-item-desc">Firebase Authentication を導入。病院・ケアマネ / 介護施設・法人 / 管理者の3ロールに分けて、それぞれ専用ログイン画面から入室。無許可アクセスを防止。</div>
+          <div class="new-item-title">📋 介護費用の負担割合テーブル</div>
+          <div class="new-item-desc">介護費用行にトグルボタンを追加。クリックで要介護1〜5 × 1割・2割・3割の公式支給限度額テーブルを展開表示。印刷時は自動展開されて出力される。</div>
         </div>
         <div class="new-item">
-          <div class="new-item-title">🏢 法人アカウント管理</div>
-          <div class="new-item-desc">介護法人・運営母体ごとにアカウントを発行。1つのアカウントで複数施設を管理できる「法人ダッシュボード」を追加。1施設のみの法人も同様の仕組みで対応。</div>
+          <div class="new-item-title">🗂 費用セクション構成の見直し</div>
+          <div class="new-item-desc">「月々にかかる費用の内訳目安」→「その他かかる費用の目安」に改名。施設費用・合計行を削除し介護費用・医療費・その他生活費の3項目に絞る。順序：基本料金→費用詳細→その他費用。</div>
         </div>
         <div class="new-item">
-          <div class="new-item-title">📝 アカウント申請フォーム</div>
-          <div class="new-item-desc">病院・ケアマネが自分でアカウントを申請できるフォームを追加。管理者がFirebaseコンソールを操作せずに、管理画面上で承認・アカウント発行・招待メール送信まで完結。</div>
+          <div class="new-item-title">🔢 介護費用の数値を公式データに修正</div>
+          <div class="new-item-desc">1割負担の月額目安を 1.6〜2.8万円（誤）→ 1.7〜3.6万円（要介護1〜5の正確な支給限度額）に修正。「※要介護1の場合」の補足注記も追加。</div>
         </div>
         <div class="new-item">
-          <div class="new-item-title">👤 管理者によるユーザー管理</div>
-          <div class="new-item-desc">管理者ダッシュボードにユーザー管理タブを追加。法人登録・ユーザーアカウント発行・申請承認・招待メール送信がすべて管理画面から操作可能に。</div>
+          <div class="new-item-title">📝 備考を箇条書き表示に変更</div>
+          <div class="new-item-desc">施設詳細ページ下部の備考欄を改行テキストから &lt;ul&gt;&lt;li&gt; の箇条書きリストに変更。複数項目が整理されて読みやすくなった。</div>
         </div>
         <div class="new-item">
-          <div class="new-item-title">🎨 UI刷新（Tailwind CSS）</div>
-          <div class="new-item-desc">新規ページはすべて Tailwind CSS で統一。Noto Sans JP フォント採用。ログイン画面・法人ダッシュボード・申請フォームをモダンデザインで実装。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">💾 検索条件の保存機能</div>
-          <div class="new-item-desc">検索条件（エリア・施設種別・費用・入居条件・タグ）をブラウザに保存。次回ログイン時に自動で復元。「この条件を保存」ボタンで手動保存も可能。</div>
+          <div class="new-item-title">🖨 印刷A4縦1枚に再最適化</div>
+          <div class="new-item-desc">全セクションのフォント・パディングを圧縮し、負担割合テーブルを含む全情報がA4縦1枚に収まるよう @media print を全面調整。印刷プレビューで確認済み。</div>
         </div>
       </div>
     </div>
