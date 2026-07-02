@@ -1,5 +1,6 @@
 .firebaserc
 firebase-debug.log
+.firebase/
 *.xlsx
 worker/
 kaigo-delete-temp.html
