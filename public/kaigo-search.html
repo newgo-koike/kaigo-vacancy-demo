@@ -839,6 +839,11 @@ function mapDoc(doc) {
     seikatsuHogo: d.seikatsuHogo || '',
     mimonHosho: d.mimonHosho || '',
     kaigoNintei: d.kaigoNintei || '',
+    feeNotes: d.feeNotes || '',
+    sourceUrl: d.sourceUrl || '',
+    campaign: d.campaign || '',
+    contactName: d.contactName || '',
+    contactTel: d.contactTel || '',
     plan: d.plan || 'free',
     photoUrl: d.photoUrl || null,
     initialFee: d.initialFee ?? false,
@@ -1019,6 +1024,29 @@ function printSelected() {
       {lbl:'その他', val:f.otherYen},
     ].filter(i => i.val != null);
 
+    // 施設の詳細情報（データがある項目のみ表示）
+    const detailRows = [
+      ['特徴・タグ', (f.features && f.features.length) ? f.features.join('・') : ''],
+      ['生活保護',   f.seikatsuHogo],
+      ['身元保証',   f.mimonHosho],
+      ['介護認定',   f.kaigoNintei],
+      ['空室補足',   f.vacancyNotes],
+      ['キャンペーン', f.campaign],
+      ['費用の詳細', f.feeNotes],
+      ['連絡先担当', f.contactName],
+      ['連絡先TEL', f.contactTel],
+      ['公式サイト', f.sourceUrl],
+    ].filter(([, v]) => v != null && String(v).trim() !== '');
+    const detailTable = detailRows.length ? `
+    <table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:12px;">
+      <tbody>
+        ${detailRows.map(([label, v]) => `<tr>
+          <td style="padding:6px 10px;font-weight:700;border:1px solid #ccc;background:#f5f5f5;white-space:nowrap;width:20%;vertical-align:top;">${label}</td>
+          <td style="padding:6px 10px;border:1px solid #ccc;color:#333;font-size:9pt;line-height:1.6;word-break:break-all;">${v}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` : '';
+
     body = `
     <!-- ヘッダー：施設名 -->
     <div style="border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
@@ -1084,6 +1112,7 @@ function printSelected() {
       </tbody>
     </table>
 
+    ${detailTable}
     <div style="font-size:8pt;color:#666;padding-top:6px;border-top:1px solid #ccc;">※ 月々の目安は介護度・負担割合・生活スタイルにより変動します。空室状況は Meets Medical へお問い合わせください。</div>`;
   } else {
     // ── 複数件：横並び比較テーブル（白黒印刷対応） ──
@@ -1096,26 +1125,52 @@ function printSelected() {
       </th>`;
     }).join('');
 
-    const rows2 = [
-      ['月額費用（施設）', f => {
-        return f.monthlyTotalYen != null
-          ? `<strong style="font-size:14px;">${fmtYen(f.monthlyTotalYen)} 円</strong>`
-          : '—';
-      }],
-      ['月々合計目安', f => {
+    // 比較項目（施設が持つ全情報を網羅。任意項目は「全施設で空」の行のみ自動非表示）
+    const yen = v => v != null ? fmtYen(v) + ' 円' : '—';
+    const txt = v => (v != null && String(v).trim() !== '') ? String(v) : '—';
+    const rowDefs = [
+      ['月額費用（施設・合計）', f => f.monthlyTotalYen != null ? `<strong style="font-size:13px;">${fmtYen(f.monthlyTotalYen)} 円</strong>` : '—', true],
+      ['　└ 賃料',   f => yen(f.rentYen)],
+      ['　└ 管理費', f => yen(f.mgmtYen)],
+      ['　└ 食費',   f => yen(f.mealYen)],
+      ['　└ その他', f => yen(f.otherYen)],
+      ['月々合計目安（介護等込）', f => {
         const mn = f.monthlyTotal;
         const eMin = mn ? Math.round((mn + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
         const eMax = mn ? Math.round((mn + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
-        return eMin ? `<strong style="font-size:13px;">${eMin}〜${eMax} 万円</strong>` : '—';
-      }],
-      ['入居時費用', f => feeStr(f).init],
-      ['住所', f => f.addr || f.city || '—'],
-      ['最寄り', f => f.stationSearch.split(' ').slice(0,3).filter(Boolean).join('  ') || '—'],
-    ].map(([label, fn], i) => {
-      const bg = i % 2 === 0 ? '#f0f0f0' : '#fff';
-      const cells = selected.map(f => `<td style="padding:8px 10px;font-size:11px;background:${bg};border:1px solid #ccc;">${fn(f)}</td>`).join('');
-      return `<tr><td style="padding:8px 10px;font-weight:700;font-size:10px;background:${bg};border:1px solid #ccc;white-space:nowrap;">${label}</td>${cells}</tr>`;
-    }).join('');
+        return eMin ? `<strong style="font-size:12px;">${eMin}〜${eMax} 万円</strong>` : '—';
+      }, true],
+      ['入居時費用（合計）', f => feeStr(f).init, true],
+      ['　└ 一時金', f => yen(f.initialFeeAmountYen)],
+      ['　└ 敷金',   f => yen(f.depositAmountYen)],
+      ['住所',       f => txt(f.addr || f.city)],
+      ['エリア',     f => txt(f.area)],
+      ['最寄り・アクセス', f => txt(f.stationSearch.split(' ').filter(Boolean).join('　'))],
+      ['特徴・タグ', f => (f.features && f.features.length) ? f.features.join('・') : '—'],
+      ['空室補足',   f => txt(f.vacancyNotes)],
+      ['生活保護',   f => txt(f.seikatsuHogo)],
+      ['身元保証',   f => txt(f.mimonHosho)],
+      ['介護認定',   f => txt(f.kaigoNintei)],
+      ['キャンペーン', f => txt(f.campaign)],
+      ['費用の詳細', f => { const v = txt(f.feeNotes); return v === '—' ? '—' : `<span style="font-size:9px;color:#333;line-height:1.5;">${v}</span>`; }],
+      ['連絡先担当', f => txt(f.contactName)],
+      ['連絡先TEL', f => txt(f.contactTel)],
+      ['公式サイト', f => f.sourceUrl ? `<span style="font-size:8px;word-break:break-all;color:#333;">${f.sourceUrl}</span>` : '—'],
+      ['最終更新',   f => txt(f.updated)],
+    ];
+
+    const rows2 = rowDefs
+      .map(([label, fn, always]) => {
+        const vals = selected.map(fn);
+        const allEmpty = vals.every(v => v === '—');
+        return (allEmpty && !always) ? null : { label, vals };
+      })
+      .filter(Boolean)
+      .map((row, i) => {
+        const bg = i % 2 === 0 ? '#f0f0f0' : '#fff';
+        const cells = row.vals.map(v => `<td style="padding:6px 9px;font-size:11px;background:${bg};border:1px solid #ccc;vertical-align:top;">${v}</td>`).join('');
+        return `<tr><td style="padding:6px 9px;font-weight:700;font-size:10px;background:${bg};border:1px solid #ccc;white-space:nowrap;vertical-align:top;">${row.label}</td>${cells}</tr>`;
+      }).join('');
 
     body = `
     <table style="width:100%;border-collapse:collapse;border:2px solid #000;">
