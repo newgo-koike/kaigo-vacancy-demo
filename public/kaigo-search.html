@@ -1135,7 +1135,7 @@ function printSelected() {
     // ── 複数件：横並び比較テーブル（白黒印刷対応） ──
     const heads = selected.map(f => {
       const vac = f.vacancy === 0 ? '満室' : `${f.vacancy}室空き`;
-      return `<th style="padding:8px 10px;background:#222;color:#fff;font-size:11px;min-width:130px;text-align:left;border:1px solid #000;">
+      return `<th style="padding:8px 10px;background:#222;color:#fff;font-size:11px;text-align:left;border:1px solid #000;word-break:break-word;">
         <div style="font-size:9px;opacity:.8;margin-bottom:2px;">${f.type}</div>
         <div style="font-size:12px;font-weight:800;">${f.name}</div>
         <div style="font-size:9px;margin-top:3px;">空室: ${vac}</div>
@@ -1185,13 +1185,13 @@ function printSelected() {
       .filter(Boolean)
       .map((row, i) => {
         const bg = i % 2 === 0 ? '#f0f0f0' : '#fff';
-        const cells = row.vals.map(v => `<td style="padding:6px 9px;font-size:11px;background:${bg};border:1px solid #ccc;vertical-align:top;">${v}</td>`).join('');
+        const cells = row.vals.map(v => `<td style="padding:6px 9px;font-size:11px;background:${bg};border:1px solid #ccc;vertical-align:top;word-break:break-word;">${v}</td>`).join('');
         return `<tr><td style="padding:6px 9px;font-weight:700;font-size:10px;background:${bg};border:1px solid #ccc;white-space:nowrap;vertical-align:top;">${row.label}</td>${cells}</tr>`;
       }).join('');
 
     body = `
-    <table style="width:100%;border-collapse:collapse;border:2px solid #000;">
-      <thead><tr><th style="padding:8px 10px;background:#444;color:#fff;font-size:10px;text-align:left;border:1px solid #000;">比較項目</th>${heads}</tr></thead>
+    <table style="width:100%;border-collapse:collapse;border:2px solid #000;table-layout:fixed;">
+      <thead><tr><th style="padding:8px 10px;background:#444;color:#fff;font-size:10px;text-align:left;border:1px solid #000;width:150px;">比較項目</th>${heads}</tr></thead>
       <tbody>${rows2}</tbody>
     </table>
     <div style="margin-top:10px;font-size:9px;color:#555;">※ 月々の目安は施設費用＋介護費用（要介護1〜5）＋その他費用の合計です。実際の費用は施設にご確認ください。</div>`;
