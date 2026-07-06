@@ -8,14 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
-      theme: { extend: { fontFamily: { sans:['"Noto Sans JP"','sans-serif'] }, colors: { brand:{ DEFAULT:'#0d9488', dark:'#0f766e', light:'#f0fdfa' } } } }
+      theme: { extend: { fontFamily: { sans:['"Noto Sans JP"','sans-serif'] }, colors: { brand:{ DEFAULT:'#5fb0de', dark:'#2c7ba6', light:'#e4f2fa' } } } }
     }
   </script>
 </head>
 <body class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-5 font-sans">
 
   <div class="flex items-center gap-3 mb-7">
-    <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center text-xl">🏥</div>
+    <div class="w-10 h-10 bg-white border-2 border-[#2b2b2b] rounded-lg flex items-center justify-center text-xl">🏥</div>
     <div>
       <div class="text-base font-bold text-slate-900">介護施設空室検索システム</div>
       <div class="text-xs text-slate-400 tracking-widest">Powered by Meets Medical</div>
@@ -23,7 +23,7 @@
   </div>
 
   <!-- 送信完了 -->
-  <div id="done-view" class="hidden bg-white rounded-2xl shadow-lg border border-slate-200 w-full max-w-md p-8 text-center">
+  <div id="done-view" class="hidden bg-white rounded-2xl border-2 border-[#2b2b2b] w-full max-w-md p-8 text-center">
     <div class="text-4xl mb-4">✅</div>
     <div class="text-lg font-bold text-slate-800 mb-2">申請を受け付けました</div>
     <div class="text-sm text-slate-500 leading-relaxed mb-6">
@@ -35,7 +35,7 @@
   </div>
 
   <!-- 申請フォーム -->
-  <div id="form-view" class="bg-white rounded-2xl shadow-lg border border-slate-200 w-full max-w-md p-7">
+  <div id="form-view" class="bg-white rounded-2xl border-2 border-[#2b2b2b] w-full max-w-md p-7">
     <h2 class="text-lg font-bold text-slate-800 mb-1">アカウント申請</h2>
     <p class="text-xs text-slate-400 mb-6 leading-relaxed">
       下記フォームにご記入ください。Meets Medical担当者が内容を確認のうえ、アカウントを発行いたします。
@@ -47,32 +47,32 @@
       <div>
         <label class="block text-xs font-medium text-slate-600 mb-1.5">病院名・施設名・法人名 <span class="text-red-400">*</span></label>
         <input id="a-org" type="text" placeholder="例：豊中記念病院"
-          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+          class="w-full px-4 py-3 border-2 border-[#e7e7e3] rounded-full text-sm outline-none font-sans text-slate-800 focus:border-[#5fb0de] transition-colors">
       </div>
       <div>
         <label class="block text-xs font-medium text-slate-600 mb-1.5">担当者氏名 <span class="text-red-400">*</span></label>
         <input id="a-name" type="text" placeholder="例：田中 花子"
-          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+          class="w-full px-4 py-3 border-2 border-[#e7e7e3] rounded-full text-sm outline-none font-sans text-slate-800 focus:border-[#5fb0de] transition-colors">
       </div>
       <div>
         <label class="block text-xs font-medium text-slate-600 mb-1.5">メールアドレス <span class="text-red-400">*</span></label>
         <input id="a-email" type="email" placeholder="example@hospital.jp"
-          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+          class="w-full px-4 py-3 border-2 border-[#e7e7e3] rounded-full text-sm outline-none font-sans text-slate-800 focus:border-[#5fb0de] transition-colors">
       </div>
       <div>
         <label class="block text-xs font-medium text-slate-600 mb-1.5">電話番号（任意）</label>
         <input id="a-tel" type="tel" placeholder="06-1234-5678"
-          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors">
+          class="w-full px-4 py-3 border-2 border-[#e7e7e3] rounded-full text-sm outline-none font-sans text-slate-800 focus:border-[#5fb0de] transition-colors">
       </div>
       <div>
         <label class="block text-xs font-medium text-slate-600 mb-1.5">ご要望・メッセージ（任意）</label>
         <textarea id="a-msg" rows="3" placeholder="利用目的や担当エリアなど"
-          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm outline-none font-sans text-slate-800 focus:border-brand transition-colors resize-none"></textarea>
+          class="w-full px-4 py-3 border-2 border-[#e7e7e3] rounded-full text-sm outline-none font-sans text-slate-800 focus:border-[#5fb0de] transition-colors resize-none"></textarea>
       </div>
     </div>
 
     <button id="submitBtn" onclick="submitApply()"
-      class="mt-5 w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl text-base transition-colors shadow-md">
+      class="mt-5 w-full py-3.5 bg-[#e88494] hover:bg-[#e0707f] text-white font-black rounded-full border-2 border-[#2b2b2b] text-base transition-colors shadow-md">
       申請する
     </button>
 

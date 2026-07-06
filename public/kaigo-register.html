@@ -6,9 +6,9 @@
   <title>施設登録 | Meets Medical</title>
   <style>
     :root {
-      --brand:#0d9488; --brand-d:#0f766e;
-      --brand-l:#f0fdfa;
-      --ok:#16a34a; --ok-bg:#dcfce7;
+      --brand:#5fb0de; --brand-d:#2c7ba6;
+      --brand-l:#e4f2fa;
+      --ok:#2c7ba6; --ok-bg:#e4f2fa;
       --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
       --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
       --g800:#1e293b; --g900:#0f172a;
@@ -40,7 +40,7 @@
     .f-req { color:#ef4444; }
     .f-hint { font-size:10px; color:var(--g400); margin-top:3px; }
     .f-inp,.f-ta,.f-sel { width:100%; padding:10px 12px; border:1.5px solid var(--g200); border-radius:9px; font-size:14px; outline:none; font-family:inherit; color:var(--g800); transition:border-color .15s,box-shadow .15s; background:white; }
-    .f-inp:focus,.f-ta:focus,.f-sel:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+    .f-inp:focus,.f-ta:focus,.f-sel:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(95,176,222,.1); }
     .f-ta { resize:vertical; min-height:70px; }
     .f-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
@@ -77,13 +77,13 @@
     .v-inp:focus { border-color:var(--brand); }
 
     /* ボタン */
-    .reg-btn { width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:var(--r); font-size:17px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .12s; box-shadow:0 4px 14px rgba(13,148,136,.3); margin-top:4px; }
+    .reg-btn { width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:var(--r); font-size:17px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s,transform .12s; box-shadow:0 4px 14px rgba(95,176,222,.3); margin-top:4px; }
     .reg-btn:hover:not(:disabled) { background:var(--brand-d); transform:translateY(-1px); }
     .reg-btn:disabled { background:var(--g400); cursor:not-allowed; transform:none; box-shadow:none; }
 
     /* 完了画面 */
     .success-wrap { display:none; }
-    .success-hero { background:linear-gradient(135deg,#064e3b,#0d9488); border-radius:var(--r-lg); padding:28px 24px; margin-bottom:16px; text-align:center; }
+    .success-hero { background:linear-gradient(135deg,#064e3b,#5fb0de); border-radius:var(--r-lg); padding:28px 24px; margin-bottom:16px; text-align:center; }
     .success-ico { font-size:48px; margin-bottom:12px; }
     .success-ttl { font-size:20px; font-weight:900; color:white; margin-bottom:6px; }
     .success-msg { font-size:13px; color:rgba(255,255,255,.85); line-height:1.6; }
@@ -144,7 +144,7 @@
       <input class="f-inp" id="r-name" type="text" placeholder="例）○○グループホーム 庄内" onblur="checkDuplicate()">
       <div id="dup-warn" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:8px;padding:10px 14px;margin-top:8px;font-size:12px;color:#92400e">
         ⚠️ <strong>同名の施設がすでに登録されています。</strong><br>新規登録すると重複します。
-        <a id="dup-link" href="#" target="_blank" style="color:#0d9488;font-weight:700">→ 既存施設の情報を編集する</a>
+        <a id="dup-link" href="#" target="_blank" style="color:#5fb0de;font-weight:700">→ 既存施設の情報を編集する</a>
       </div>
     </div>
     <div class="f-grp">

@@ -9,13 +9,13 @@
   <div class="max-w-2xl mx-auto">
     <h1 class="text-2xl font-bold mb-1">施設データ一括インポート</h1>
     <p class="text-slate-500 text-sm mb-2">豊中市介護情報リスト.csv → Firestore</p>
-    <p class="text-emerald-700 font-bold text-sm mb-5">📦 158 施設（介護付17・住宅型46・サ高住38・GH29・特養14・老健10・高齢者住宅4）</p>
+    <p class="text-[#2c7ba6] font-bold text-sm mb-5">📦 158 施設（介護付17・住宅型46・サ高住38・GH29・特養14・老健10・高齢者住宅4）</p>
 
     <div id="status" class="bg-white rounded-xl border border-slate-200 p-5 mb-4 text-sm space-y-1 min-h-[120px] font-mono text-slate-700 overflow-y-auto max-h-96"></div>
 
     <div class="flex gap-3 flex-wrap">
       <button id="btn-import" onclick="runImport()"
-        class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-colors">
+        class="bg-[#5fb0de] hover:bg-[#2c7ba6] text-white font-bold px-6 py-3 rounded-xl transition-colors">
         ▶ インポート開始
       </button>
       <button onclick="clearAll()"
@@ -84,7 +84,7 @@ async function runImport() {
   }
 
   log('━━━━━━━━━━━━━━━━━━━━━━');
-  log('✅ 完了: ' + ok + ' 件インポートしました', '#059669');
+  log('✅ 完了: ' + ok + ' 件インポートしました', '#2c7ba6');
   btn.disabled=false; btn.textContent='▶ インポート開始';
 }
 

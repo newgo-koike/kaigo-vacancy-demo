@@ -6,11 +6,11 @@
   <title>初回セットアップ | 介護施設システム</title>
   <style>
     :root {
-      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
+      --brand:#5fb0de; --brand-d:#2c7ba6; --brand-l:#e4f2fa;
       --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
       --g400:#94a3b8; --g500:#64748b; --g600:#475569;
       --g700:#334155; --g800:#1e293b; --g900:#0f172a;
-      --ok:#16a34a; --ok-bg:#dcfce7;
+      --ok:#2c7ba6; --ok-bg:#e4f2fa;
       --err:#ef4444; --err-bg:#fef2f2;
       --warn-bg:#fffbeb; --warn:#d97706;
     }
@@ -36,7 +36,7 @@
     .f-grp:last-child { margin-bottom:0; }
     .f-lbl { display:block; font-size:12px; font-weight:600; color:var(--g600); margin-bottom:5px; }
     .f-inp { width:100%; padding:10px 13px; border:1.5px solid var(--g200); border-radius:9px; font-size:14px; outline:none; font-family:inherit; color:var(--g800); transition:border-color .15s; }
-    .f-inp:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+    .f-inp:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(95,176,222,.1); }
     .f-sel { width:100%; padding:10px 13px; border:1.5px solid var(--g200); border-radius:9px; font-size:14px; outline:none; font-family:inherit; color:var(--g800); background:white; transition:border-color .15s; }
     .f-sel:focus { border-color:var(--brand); }
     .f-hint { font-size:11px; color:var(--g400); margin-top:3px; }
@@ -46,7 +46,7 @@
     .role-chip-name { font-weight:700; color:var(--g700); margin-bottom:3px; }
     .role-chip-desc { color:var(--g500); line-height:1.4; }
 
-    .btn { width:100%; padding:13px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s; box-shadow:0 4px 14px rgba(13,148,136,.25); }
+    .btn { width:100%; padding:13px; background:var(--brand); color:white; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s; box-shadow:0 4px 14px rgba(95,176,222,.25); }
     .btn:hover:not(:disabled) { background:var(--brand-d); }
     .btn:disabled { background:var(--g400); cursor:not-allowed; box-shadow:none; }
     .btn-secondary { background:var(--g800); box-shadow:none; margin-top:8px; }
@@ -55,7 +55,7 @@
     .err-msg { display:none; background:var(--err-bg); border:1px solid #fecaca; border-radius:9px; padding:10px 14px; font-size:13px; color:var(--err); margin-bottom:14px; }
     .err-msg.show { display:block; }
 
-    .ok-msg { display:none; background:var(--ok-bg); border:1px solid #bbf7d0; border-radius:9px; padding:12px 14px; font-size:13px; color:var(--ok); margin-bottom:14px; }
+    .ok-msg { display:none; background:var(--ok-bg); border:1px solid #d3ebf7; border-radius:9px; padding:12px 14px; font-size:13px; color:var(--ok); margin-bottom:14px; }
     .ok-msg.show { display:block; }
 
     .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:6px; }
