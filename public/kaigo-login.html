@@ -41,8 +41,8 @@
 
     <!-- フォーム -->
     <div class="mb-4">
-      <label class="block text-xs font-medium text-slate-600 mb-1.5">メールアドレス</label>
-      <input id="emailInp" type="email" placeholder="example@hospital.jp" autocomplete="email"
+      <label class="block text-xs font-medium text-slate-600 mb-1.5">ID</label>
+      <input id="emailInp" type="text" placeholder="発行されたID（例: 1001）" autocomplete="username"
         class="w-full px-4 py-3 border-2 border-[#e7e7e3] rounded-full text-base outline-none font-sans text-[#2b2b2b] focus:border-[#5fb0de] transition-colors">
     </div>
     <div class="mb-5">
@@ -80,11 +80,15 @@ const db   = firebase.firestore();
 auth.onAuthStateChanged(async user => { if (user) await redirectByRole(user); });
 
 async function doLogin() {
-  const email = document.getElementById('emailInp').value.trim();
-  const pass  = document.getElementById('passInp').value;
+  const raw   = document.getElementById('emailInp').value.trim();
+  let   pass  = document.getElementById('passInp').value;
   const btn   = document.getElementById('loginBtn');
   document.getElementById('errMsg').classList.add('hidden');
-  if (!email || !pass) { showErr('メールアドレスとパスワードを入力してください'); return; }
+  if (!raw || !pass) { showErr('IDとパスワードを入力してください'); return; }
+  // ID入力（数字）は内部ダミーメールに変換。管理者の@付きメールはそのまま扱う
+  const email = raw.includes('@') ? raw : `${raw}@meets-medical.jp`;
+  // ID＝パスワード運用: 数字のみ6桁未満は先頭ゼロ埋めして実パスワード(6桁)に合わせる
+  if (/^\d+$/.test(pass) && pass.length < 6) pass = pass.padStart(6, '0');
   btn.disabled = true;
   btn.textContent = '認証中...';
   try {
@@ -121,7 +125,7 @@ function showErr(msg) {
 
 function loginErrMsg(code) {
   if (['auth/user-not-found','auth/wrong-password','auth/invalid-credential'].includes(code))
-    return 'メールアドレスまたはパスワードが正しくありません';
+    return 'IDまたはパスワードが正しくありません';
   if (code === 'auth/too-many-requests')
     return '試行回数が多すぎます。しばらく時間をおいてから再試行してください';
   return 'ログインに失敗しました。もう一度お試しください';
