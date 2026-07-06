@@ -8,11 +8,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --brand:#0d9488; --brand-d:#0f766e; --brand-l:#f0fdfa;
+      --brand:#5fb0de; --brand-d:#2c7ba6; --brand-l:#e4f2fa;
       --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
       --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
       --g800:#1e293b; --g900:#0f172a;
-      --ok:#16a34a; --ok-bg:#dcfce7;
+      --ok:#2c7ba6; --ok-bg:#e4f2fa;
       --amber:#d97706; --amber-bg:#fef3c7;
       --purple:#7c3aed; --purple-bg:#f5f3ff;
       --red:#dc2626; --red-bg:#fee2e2;
@@ -23,10 +23,10 @@
 
     .page-hdr { background:linear-gradient(to right, #0f172a, #0d4f47); padding:56px 0 44px; text-align:center; }
     .page-hdr-logo { display:inline-flex; align-items:center; gap:14px; margin-bottom:20px; }
-    .logo-box { width:56px; height:56px; background:var(--brand); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 16px rgba(13,148,136,.35); }
+    .logo-box { width:56px; height:56px; background:var(--brand); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 16px rgba(95,176,222,.35); }
     .page-hdr h1 { font-size:36px; font-weight:700; color:white; margin-bottom:10px; letter-spacing:-.5px; }
     .page-hdr p { font-size:16px; color:var(--g400); }
-    .v2-badge { display:inline-block; background:linear-gradient(135deg,#0d9488,#7c3aed); color:white; font-size:13px; font-weight:800; padding:4px 14px; border-radius:20px; margin-bottom:14px; letter-spacing:.05em; }
+    .v2-badge { display:inline-block; background:linear-gradient(135deg,#5fb0de,#7c3aed); color:white; font-size:13px; font-weight:800; padding:4px 14px; border-radius:20px; margin-bottom:14px; letter-spacing:.05em; }
     .delivery-meta { display:inline-flex; gap:36px; margin-top:28px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:14px 32px; flex-wrap:wrap; justify-content:center; }
     .delivery-meta-item { font-size:12px; color:var(--g400); }
     .delivery-meta-item strong { color:white; display:block; font-size:13px; margin-bottom:2px; }
@@ -40,11 +40,11 @@
     @media(max-width:1100px){ .two-pane { grid-template-columns:1fr; } .pane-left { position:static; max-height:none; } }
     .sec { margin-top:64px; }
     .sec-hd { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
-    .sec-num { width:40px; height:40px; background:var(--brand); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:white; flex-shrink:0; box-shadow:0 2px 10px rgba(13,148,136,.3); }
+    .sec-num { width:40px; height:40px; background:var(--brand); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:white; flex-shrink:0; box-shadow:0 2px 10px rgba(95,176,222,.3); }
     .sec-title { font-size:24px; font-weight:700; color:var(--g900); }
 
     /* WHAT'S NEW */
-    .whats-new { background:linear-gradient(135deg, #f5f3ff, #f0fdfa); border:1px solid #c4b5fd; border-radius:18px; padding:24px 28px; margin-top:32px; }
+    .whats-new { background:linear-gradient(135deg, #f5f3ff, #e4f2fa); border:1px solid #c4b5fd; border-radius:18px; padding:24px 28px; margin-top:32px; }
     .whats-new h3 { font-size:16px; font-weight:800; color:var(--purple); margin-bottom:14px; }
     .new-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
     @media(max-width:900px){ .new-grid { grid-template-columns:1fr 1fr; } }
@@ -79,7 +79,7 @@
     .role-card { background:white; border-radius:16px; padding:20px 22px; border:1.5px solid var(--g200); box-shadow:0 2px 12px rgba(0,0,0,.05); }
     .role-card.admin { border-color:#fcd34d; background:#fffbeb; }
     .role-card.hospital { border-color:#93c5fd; background:#eff6ff; }
-    .role-card.facility { border-color:#86efac; background:#f0fdf4; }
+    .role-card.facility { border-color:#bfe0f2; background:#eef7fc; }
     .role-title { font-size:14px; font-weight:800; margin-bottom:8px; }
     .role-card.admin .role-title { color:var(--amber); }
     .role-card.hospital .role-title { color:var(--blue); }
@@ -139,13 +139,13 @@
     .data-status-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
     @media(max-width:900px){ .data-status-grid { grid-template-columns:1fr 1fr; } }
     .data-status-card { background:white; border:1px solid var(--g200); border-radius:14px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,.05); }
-    .data-status-card.ok { border-color:#86efac; background:#f0fdf4; }
+    .data-status-card.ok { border-color:#bfe0f2; background:#eef7fc; }
     .data-status-card.warn { border-color:#fcd34d; background:#fffbeb; }
     .data-status-label { font-size:10px; font-weight:700; color:var(--g500); letter-spacing:.06em; margin-bottom:6px; }
-    .data-status-card.ok .data-status-label { color:#166534; }
+    .data-status-card.ok .data-status-label { color:#1f6a92; }
     .data-status-card.warn .data-status-label { color:#92400e; }
     .data-status-value { font-size:24px; font-weight:700; color:var(--g900); }
-    .data-status-card.ok .data-status-value { color:#15803d; }
+    .data-status-card.ok .data-status-value { color:#2c7ba6; }
     .data-status-card.warn .data-status-value { color:#b45309; }
     .data-status-note { font-size:11px; color:var(--g500); margin-top:4px; line-height:1.5; }
 
@@ -153,8 +153,8 @@
     .arch-box { background:white; border-radius:16px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
     .arch-flow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0; }
     .arch-node { background:var(--g100); border-radius:10px; padding:10px 16px; font-size:12px; font-weight:600; color:var(--g700); text-align:center; }
-    .arch-node.hl { background:linear-gradient(135deg, var(--brand), #0e8870); color:white; }
-    .arch-node.hl2 { background:linear-gradient(135deg, #7c3aed, #0d9488); color:white; }
+    .arch-node.hl { background:linear-gradient(135deg, var(--brand), #3f95c4); color:white; }
+    .arch-node.hl2 { background:linear-gradient(135deg, #7c3aed, #5fb0de); color:white; }
     .arch-arrow { color:var(--g400); font-size:16px; }
     .arch-list { display:flex; flex-direction:column; gap:6px; margin-top:14px; }
     .arch-item { display:flex; gap:10px; font-size:13px; align-items:flex-start; }
@@ -165,8 +165,8 @@
     .onboarding-flow { display:flex; flex-direction:column; gap:0; }
     .onboarding-step { display:flex; gap:16px; }
     .onboarding-left { display:flex; flex-direction:column; align-items:center; }
-    .onboarding-circle { width:44px; height:44px; background:linear-gradient(135deg, var(--brand), #0e8870); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; color:white; flex-shrink:0; box-shadow:0 2px 10px rgba(13,148,136,.3); }
-    .onboarding-line { width:2px; background:rgba(13,148,136,.2); flex:1; margin:4px 0; min-height:20px; }
+    .onboarding-circle { width:44px; height:44px; background:linear-gradient(135deg, var(--brand), #3f95c4); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; color:white; flex-shrink:0; box-shadow:0 2px 10px rgba(95,176,222,.3); }
+    .onboarding-line { width:2px; background:rgba(95,176,222,.2); flex:1; margin:4px 0; min-height:20px; }
     .onboarding-content { padding:0 0 28px 0; flex:1; }
     .onboarding-title { font-size:16px; font-weight:800; color:var(--g900); margin-bottom:4px; }
     .onboarding-desc { font-size:13px; color:var(--g600); line-height:1.6; }
@@ -230,16 +230,36 @@
       .cl-subtitle { font-size:12px; color:var(--g400); margin-top:2px; }
       .cl-items { padding:16px 24px; display:flex; flex-direction:column; gap:10px; }
       .cl-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:10px; border:1px solid var(--g100); background:var(--g50); }
-      .cl-item.added   { border-color:#bbf7d0; background:#f0fdf4; }
+      .cl-item.added   { border-color:#d3ebf7; background:#eef7fc; }
       .cl-item.fixed   { border-color:#bfdbfe; background:#eff6ff; }
       .cl-item.changed { border-color:#e9d5ff; background:#f5f3ff; }
       .cl-tag { font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
-      .cl-tag.added   { background:#dcfce7; color:var(--ok); }
+      .cl-tag.added   { background:#e4f2fa; color:var(--ok); }
       .cl-tag.fixed   { background:#dbeafe; color:var(--blue); }
       .cl-tag.changed { background:#ede9fe; color:var(--purple); }
       .cl-txt { font-size:13px; color:var(--g700); line-height:1.6; }
       .cl-txt strong { color:var(--g900); }
     </style>
+
+    <!-- 2026/7/4 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月4日</div>
+          <div class="cl-subtitle">施設データ拡充（吹田市・茨木市を追加／計386施設）・UIデザイン案の提示</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設データを大幅拡充（計386施設）</strong><br>吹田市124件・茨木市104件を新たに投入し、豊中市158件と合わせて計386施設に拡大。豊中市の全施設に管理IDを付与し、データ投入タブの件数ラベルも 158 → 386 に更新。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>UIデザインのリニューアル案を提示（6案・比較用）</strong><br>「AI感を抑えたい」というご要望を踏まえ、参考サイトのトーンを落とし込んだデザイン案を6種類作成。中身のデータ・項目は同じまま、見た目のトーンだけを比較できます。<br><a href="https://kaigo-ui-mockups.surge.sh" target="_blank" style="color:var(--blue);font-weight:700;text-decoration:underline">https://kaigo-ui-mockups.surge.sh</a></div>
+        </div>
+      </div>
+    </div>
 
     <!-- 2026/6/23 -->
     <div class="cl-day">
@@ -332,7 +352,7 @@
         </div>
         <div class="cl-item changed">
           <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>検索画面カラースキームリニューアル（エメラルド緑）</strong><br>ブランドカラーをエメラルドグリーン（#059669）に統一し、シャドウ変数（--sh1/2/3/sh-brand）を体系化。ピンクアクセントも整理し、全体の視覚的一貫性を向上。</div>
+          <div class="cl-txt"><strong>検索画面カラースキームリニューアル（エメラルド緑）</strong><br>ブランドカラーをエメラルドグリーン（#2c7ba6）に統一し、シャドウ変数（--sh1/2/3/sh-brand）を体系化。ピンクアクセントも整理し、全体の視覚的一貫性を向上。</div>
         </div>
         <div class="cl-item added">
           <span class="cl-tag added">追加</span>
@@ -1196,14 +1216,14 @@
       .ux-lane-hd p { font-size:11px; color:rgba(255,255,255,.75); }
       .ux-lane.admin .ux-lane-hd { background:linear-gradient(135deg,#92400e,#d97706); }
       .ux-lane.hospital .ux-lane-hd { background:linear-gradient(135deg,#1e40af,#3b82f6); }
-      .ux-lane.facility .ux-lane-hd { background:linear-gradient(135deg,#065f46,#10b981); }
+      .ux-lane.facility .ux-lane-hd { background:linear-gradient(135deg,#1f6a92,#5fb0de); }
       .ux-steps { padding:16px; background:white; display:flex; flex-direction:column; gap:0; }
       .ux-step { display:flex; gap:12px; }
       .ux-left { display:flex; flex-direction:column; align-items:center; }
       .ux-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:white; flex-shrink:0; }
       .admin .ux-dot { background:#d97706; }
       .hospital .ux-dot { background:#3b82f6; }
-      .facility .ux-dot { background:#10b981; }
+      .facility .ux-dot { background:#5fb0de; }
       .ux-vline { width:2px; background:var(--g100); flex:1; margin:3px 0; min-height:14px; }
       .ux-content { padding:0 0 14px 0; flex:1; }
       .ux-title { font-size:13px; font-weight:700; color:var(--g900); }
@@ -1211,7 +1231,7 @@
       .ux-step:last-child .ux-vline { display:none; }
       .ux-step:last-child .ux-content { padding-bottom:0; }
       .ux-freq { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:6px; vertical-align:middle; }
-      .freq-daily { background:#dcfce7; color:#16a34a; }
+      .freq-daily { background:#e4f2fa; color:#2c7ba6; }
       .freq-weekly { background:#dbeafe; color:#1d4ed8; }
       .freq-once { background:#f1f5f9; color:#64748b; }
     </style>
