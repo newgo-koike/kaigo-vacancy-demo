@@ -311,8 +311,12 @@ function render(doc) {
   const days   = Math.floor((new Date() - upd) / 86400000);
   const updStr = upd.toLocaleDateString('ja-JP');
   const isPaid = d.plan === 'paid';
-  const vacCls = vac === 0 ? 'vac-full' : vac <= 2 ? 'vac-few' : 'vac-ok';
-  const status = vac === 0 ? '現在満室です' : vac <= 2 ? `残り${vac}室 — お早めにご相談ください` : `${vac}室 空きあり`;
+  // ※暫定運用: 空室データ未整備のため空室状況はすべて「要問い合わせ」表示。整備後は false に戻す
+  const VACANCY_INQUIRY = true;
+  const vacCls  = VACANCY_INQUIRY ? 'vac-ok' : vac === 0 ? 'vac-full' : vac <= 2 ? 'vac-few' : 'vac-ok';
+  const status  = VACANCY_INQUIRY ? '空室状況はお問い合わせください' : vac === 0 ? '現在満室です' : vac <= 2 ? `残り${vac}室 — お早めにご相談ください` : `${vac}室 空きあり`;
+  const vacBig  = VACANCY_INQUIRY ? '要' : vac;
+  const vacUnit = VACANCY_INQUIRY ? '問い合わせ' : '室空き';
   // station は stationsArr/stationHtml で代替（後述）
 
   // 費用
@@ -492,8 +496,8 @@ function render(doc) {
       <div class="print-col-l">
       <div class="vac-block ${vacCls}">
         <div class="vac-num">
-          <div class="vac-big">${vac}</div>
-          <div class="vac-unit">室空き</div>
+          <div class="vac-big">${vacBig}</div>
+          <div class="vac-unit">${vacUnit}</div>
         </div>
         <div class="vac-info">
           <div class="vac-status">${status}</div>
