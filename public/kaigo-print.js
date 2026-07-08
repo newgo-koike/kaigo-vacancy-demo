@@ -44,7 +44,7 @@
       campaign: d.campaign || '',
       contactName: d.contactName || '',
       contactTel: d.contactTel || '',
-      initialFeeAmountYen: d.initialFee ? (d.initialFeeAmount ?? null) : (d.initialFeeAmount ?? null),
+      initialFeeAmountYen: d.initialFeeAmount ?? null,
       depositAmountYen: d.depositAmount ?? null,
       rentYen, mgmtYen, mealYen, otherYen,
       monthlyTotal,
