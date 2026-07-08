@@ -179,6 +179,19 @@
 <div id="panel-users" class="hidden flex-1 overflow-y-auto p-6">
   <div class="max-w-2xl mx-auto space-y-6">
 
+    <!-- 病院一覧 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-800">病院一覧</h2>
+          <p class="text-xs text-slate-400 mt-0.5">登録病院と病院コード（ログインIDの先頭4桁）・担当者数</p>
+        </div>
+        <button onclick="loadHospitals()" class="text-xs text-[#2c7ba6] hover:underline">↻ 更新</button>
+      </div>
+      <input class="w-full mb-3 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#5fb0de]" id="hosp-q" type="text" placeholder="病院名・コードで絞り込み..." oninput="renderHospitals()">
+      <div id="hospitals-list" class="space-y-2"><p class="text-sm text-slate-400">読み込み中...</p></div>
+    </div>
+
     <!-- 申請一覧 -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
       <div class="flex items-center justify-between mb-4">
@@ -555,7 +568,7 @@ function showToast(msg) {
 
 // ── タブ切り替え ───────────────────────────────────────────────
 function switchTab(name) {
-  if (name === 'users') { loadCorporations(); loadUsers(); loadApplications(); }
+  if (name === 'users') { loadHospitals(); loadCorporations(); loadUsers(); loadApplications(); }
   if (name === 'history') { loadSearchLogs(); }
   ['facilities','users','history','import'].forEach(t => {
     document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
@@ -775,6 +788,39 @@ async function sendInvite(email) {
   } catch(e) {
     showToast('⚠️ メール送信に失敗: ' + e.message);
   }
+}
+
+let HOSPITALS = [];
+async function loadHospitals() {
+  const el = document.getElementById('hospitals-list');
+  el.innerHTML = '<p class="text-sm text-slate-400">読み込み中...</p>';
+  try {
+    const snap = await db.collection('users').where('role','==','hospital').get();
+    const map = new Map();
+    snap.docs.forEach(doc => {
+      const d = doc.data();
+      const code = d.hospitalId || '(未設定)';
+      if (!map.has(code)) map.set(code, { code, name: d.hospitalName || d.name || '(名称未設定)', members: 0 });
+      map.get(code).members++;
+    });
+    HOSPITALS = [...map.values()].sort((a,b) => String(a.code).localeCompare(String(b.code), 'ja', {numeric:true}));
+    renderHospitals();
+  } catch(e) {
+    el.innerHTML = `<p class="text-sm text-red-400">⚠️ 読み込みエラー: ${e.message}</p>`;
+  }
+}
+function renderHospitals() {
+  const el = document.getElementById('hospitals-list');
+  if (!HOSPITALS.length) { el.innerHTML = '<p class="text-sm text-slate-400">病院が登録されていません</p>'; return; }
+  const q = (document.getElementById('hosp-q').value || '').trim().toLowerCase();
+  const list = q ? HOSPITALS.filter(h => (h.name + ' ' + h.code).toLowerCase().includes(q)) : HOSPITALS;
+  if (!list.length) { el.innerHTML = '<p class="text-sm text-slate-400">該当する病院がありません</p>'; return; }
+  el.innerHTML = `<div class="text-xs text-slate-400 mb-2">${list.length}病院${q ? ` / 全${HOSPITALS.length}病院` : ''}</div>` + list.map(h => `
+    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+      <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-[#e4f2fa] text-[#2c7ba6]">${h.code}</span>
+      <span class="text-sm font-semibold text-slate-800">${h.name}</span>
+      <span class="text-xs text-slate-400 ml-auto whitespace-nowrap">担当者 ${h.members}名</span>
+    </div>`).join('');
 }
 
 async function loadUsers() {
