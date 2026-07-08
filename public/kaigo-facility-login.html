@@ -76,6 +76,8 @@ async function doLogin() {
   if (!email || !pass) { showErr('メールアドレスとパスワードを入力してください'); return; }
   btn.disabled = true; btn.textContent = '認証中...';
   try {
+    // ログイン状態をブラウザに永続保存（タブ・ブラウザを閉じても維持）
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     await redirectByRole(cred.user);
   } catch(e) {

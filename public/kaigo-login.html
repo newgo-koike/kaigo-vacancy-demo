@@ -30,8 +30,14 @@
     </div>
   </div>
 
+  <!-- ログイン状態の確認中（既ログインなら自動で中へ、未ログインならフォームを表示） -->
+  <div id="checking" class="flex items-center gap-2 text-slate-400 text-sm py-12">
+    <span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin"></span>
+    確認中…
+  </div>
+
   <!-- カード -->
-  <div class="bg-white rounded-2xl border-2 border-[#2b2b2b] w-full max-w-md p-7">
+  <div id="loginCard" class="hidden bg-white rounded-2xl border-2 border-[#2b2b2b] w-full max-w-md p-7">
 
     <h2 class="text-lg font-black text-[#2b2b2b] mb-1">ログイン</h2>
     <p class="text-xs text-slate-400 mb-6">医療機関・ケアマネ専用ページです</p>
@@ -77,7 +83,12 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-auth.onAuthStateChanged(async user => { if (user) await redirectByRole(user); });
+// 既にログイン済みなら確認中のまま自動で遷移。未ログインのときだけフォームを表示する
+auth.onAuthStateChanged(async user => {
+  if (user) { await redirectByRole(user); return; }
+  document.getElementById('checking').classList.add('hidden');
+  document.getElementById('loginCard').classList.remove('hidden');
+});
 
 async function doLogin() {
   const raw   = document.getElementById('emailInp').value.trim();
@@ -92,6 +103,8 @@ async function doLogin() {
   btn.disabled = true;
   btn.textContent = '認証中...';
   try {
+    // ログイン状態をブラウザに永続保存（タブ・ブラウザを閉じても維持。ログアウトするまで有効）
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     await redirectByRole(cred.user);
   } catch(e) {
