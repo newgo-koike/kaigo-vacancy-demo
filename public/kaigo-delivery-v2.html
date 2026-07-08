@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.6 | 介護施設検索システム</title>
+  <title>納品書 v2.7 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -198,9 +198,9 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.6</div>
+  <div class="v2-badge">✨ v2.7</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.6</p>
+  <p>納品書・仕様書・操作マニュアル　v2.7</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
     <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月23日</div>
@@ -240,6 +240,50 @@
       .cl-txt { font-size:13px; color:var(--g700); line-height:1.6; }
       .cl-txt strong { color:var(--g900); }
     </style>
+
+    <!-- 2026/7/9 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月9日</div>
+          <div class="cl-subtitle">検索体験の改善・資料出力の統一・病院アカウント運用の強化</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>検索結果の表示件数切替（25/50/100件）＋「もっと見る」</strong><br>初期表示を25件に絞ることで検索後の表示を高速化。件数バーから25/50/100件に切り替えられ、続きは「もっと見る」で追加表示。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>「検索に戻る」で検索結果を復元</strong><br>施設詳細を見てから検索に戻ったとき、絞り込み条件・並び順・スクロール位置まで元の検索結果に戻るように（毎回トップに戻らない）。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細の「印刷」を資料出力と同じ体裁に統一</strong><br>施設詳細ページの「印刷」ボタンと、検索結果で1件選んで出す資料が、同じA4縦の見やすいレイアウトになるよう共通化（<code>kaigo-print.js</code>）。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>病院ユーザーが自分でパスワードを変更可能に</strong><br>担当者管理画面に「自分のパスワードを変更」を新設。現在のパスワード確認のうえ、新しいパスワード（6文字以上）に変更できる。ログインIDは不変。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>管理画面に「病院一覧」ビュー</strong><br>ユーザー管理タブに、病院ごとにまとめた一覧（病院コード・病院名・担当者数、絞り込み検索）を追加。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>空室状況を全て「要問い合わせ」表示に（暫定）</strong><br>空室データ整備中のため、当面は全施設を「要問い合わせ」に統一表示。空室での絞り込みも一時的に非表示。データ整備後は通常の空き表示に戻せる設定。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索対象を大阪府のみに限定（暫定）</strong><br>当面は大阪府の施設のみ表示（他府県は非表示）。1つの設定で元に戻せる。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>ログイン保持の明示化＋検索条件の解除ボタン</strong><br>一度ログインすればログアウトするまで維持されるよう明示化。検索条件を保存した場合に「保存を解除」できるボタンも追加。</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 2026/7/8 -->
     <div class="cl-day">
@@ -556,9 +600,39 @@
   <div class="sec" style="margin-top:0">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">★</div>
-      <div class="sec-title">v2.6 で追加・変更されたこと</div>
+      <div class="sec-title">v2.7 で追加・変更されたこと</div>
     </div>
     <div class="whats-new">
+      <h3>🆕 v2.6 → v2.7 の主な変更点（2026/7/9）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">📄 表示件数の切替（25/50/100件）＋もっと見る</div>
+          <div class="new-item-desc">初期表示を25件に絞って検索後の表示を高速化。件数バーから切り替えでき、続きは「もっと見る」で追加表示。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">↩ 「検索に戻る」で結果を復元</div>
+          <div class="new-item-desc">施設を見てから検索に戻ると、絞り込み条件・並び順・スクロール位置まで元の検索結果に戻る（毎回トップに戻らない）。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🖨 施設詳細の「印刷」を資料出力と統一</div>
+          <div class="new-item-desc">施設詳細の「印刷」と、検索結果から1件選んで出す資料が、同じA4縦の見やすいレイアウトになるよう共通化。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔑 病院ユーザーのパスワード変更</div>
+          <div class="new-item-desc">担当者管理画面に「自分のパスワードを変更」を新設。現在のパスワード確認のうえ変更可能（ログインIDは不変）。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏥 管理画面に「病院一覧」ビュー</div>
+          <div class="new-item-desc">病院ごとにまとめた一覧（病院コード・病院名・担当者数、絞り込み検索）を管理画面のユーザー管理タブに追加。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">📌 空室は全て「要問い合わせ」／大阪府のみ（暫定）</div>
+          <div class="new-item-desc">空室データ整備中のため空室状況は全施設「要問い合わせ」表示、検索対象は当面大阪府のみ。どちらも設定1つで通常表示に戻せる。</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">
+        <strong>🔜 今後の予定（設計確定・未実装）</strong>：データ入れ直しのタイミングで、病院IDを<strong>重複しないランダム4桁</strong>に。病院マスターは4桁でログイン（初期パスワードは4桁+<code>00</code>）、担当者追加は4桁+<code>01</code>,<code>02</code>… の形式に切り替え予定。
+      </div>
       <h3>🆕 v2.5 → v2.6 の主な変更点（2026/7/8）</h3>
       <div class="new-grid">
         <div class="new-item">
@@ -603,6 +677,11 @@
       </div>
       <h3 style="margin-top:26px">📜 これまでのアップデート履歴</h3>
       <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-top:8px">
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.7</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/9</span>
+          <span>表示件数切替（25/50/100件）＋もっと見る／「検索に戻る」で結果復元／施設詳細の印刷を資料出力と統一／病院ユーザーのパスワード変更／管理画面に病院一覧／空室は全て要問い合わせ・大阪府のみ（暫定）／ログイン保持の明示化</span>
+        </div>
         <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
           <span style="font-weight:800;color:var(--purple);min-width:66px">v2.6</span>
           <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/8</span>
@@ -1508,7 +1587,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  介護施設検索システム v2.6<br>
+  介護施設検索システム v2.7<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>
