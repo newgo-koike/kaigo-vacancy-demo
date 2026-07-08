@@ -804,6 +804,7 @@ function liveFilter() {
     return true;
   });
 
+  shownCount = PAGE_SIZE;   // 新しい絞り込みは先頭ページから
   renderCards(list);
 }
 
@@ -888,23 +889,48 @@ function mapDoc(doc) {
 }
 
 // ── カード描画 ────────────────────────────────────────────────
+// 一度に描画する件数を絞ることで、検索結果が多いときの描画待ちを短縮する
+let PAGE_SIZE  = 25;   // 1ページの表示件数（25 / 50 / 100 で切替）
+let shownCount = 25;   // 現在表示している件数（「もっと見る」で増える）
+let LAST_LIST  = [];   // 直近の描画対象（件数変更・もっと見るの再描画用）
+
 function renderCards(list) {
+  LAST_LIST = list;
   const area    = document.getElementById('cards-area');
   const bar     = document.getElementById('count-bar');
   const sortBar = document.getElementById('sort-bar');
 
   const okCnt   = list.filter(f => f.vacancy > 0).length;
   const fullCnt = list.filter(f => f.vacancy === 0).length;
-  bar.innerHTML = `<strong>${okCnt}件</strong>空きあり / 満室${fullCnt}件 / 計${list.length}件`;
+  const sizeSel = `<select id="page-size" onchange="changePageSize(this.value)" style="margin-left:10px;padding:3px 8px;border:1.5px solid var(--line,#e7e7e3);border-radius:8px;font-family:inherit;font-size:12px;color:var(--ink,#2b2b2b);cursor:pointer;vertical-align:middle;">
+      <option value="25"${PAGE_SIZE===25?' selected':''}>25件ずつ</option>
+      <option value="50"${PAGE_SIZE===50?' selected':''}>50件ずつ</option>
+      <option value="100"${PAGE_SIZE===100?' selected':''}>100件ずつ</option>
+    </select>`;
+  bar.innerHTML = `<span><strong>${okCnt}件</strong>空きあり / 満室${fullCnt}件 / 計${list.length}件</span>${sizeSel}`;
   sortBar.style.display = 'flex';
 
   if (!list.length) {
     area.innerHTML = '<div class="state-box"><div class="state-ico">🔍</div><div class="state-ttl">条件に合う施設が見つかりません</div><div class="state-sub">条件を変えて再検索してください</div></div>';
     return;
   }
-  area.innerHTML = `<div class="cards-grid">${list.map(cardHTML).join('')}</div>`;
+  const shown = list.slice(0, shownCount);
+  let html = `<div class="cards-grid">${shown.map(cardHTML).join('')}</div>`;
+  if (list.length > shownCount) {
+    const remain = list.length - shownCount;
+    const next   = Math.min(PAGE_SIZE, remain);
+    html += `<div style="text-align:center;margin:24px 0 4px;">
+      <button onclick="showMore()" style="padding:11px 30px;border:2px solid var(--ink,#2b2b2b);border-radius:100px;background:#fff;color:var(--ink,#2b2b2b);font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;">もっと見る（次の${next}件／残り${remain}件）</button>
+    </div>`;
+  }
+  area.innerHTML = html;
   renderFilterChips();
 }
+
+// 表示件数の切替（25/50/100）— 先頭ページから描き直す
+function changePageSize(n) { PAGE_SIZE = parseInt(n, 10); shownCount = PAGE_SIZE; renderCards(LAST_LIST); }
+// もっと見る — 現在の1ページ分だけ追加表示
+function showMore() { shownCount += PAGE_SIZE; renderCards(LAST_LIST); }
 
 function condBadge(label, val, okVal) {
   if (!val) return '';

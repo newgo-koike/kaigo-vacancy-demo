@@ -241,6 +241,34 @@
       .cl-txt strong { color:var(--g900); }
     </style>
 
+    <!-- 2026/7/8 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月8日</div>
+          <div class="cl-subtitle">病院アカウントの個人ID体系化・担当者セルフ追加・セキュリティ整備</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>病院ログインをID＋パスワード方式に</strong><br>メールアドレス不要。IDとパスワードだけでログインできるように（ID＝パスワード）。内部でIDをダミーメール <code>{loginId}@meets-medical.jp</code> に自動変換し、既存の認証基盤を活用。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>北摂136病院のアカウント発行＋個人単位ID体系</strong><br>北摂14エリア136病院にログインアカウントを発行。「病院コード-番号」形式（例：あおい病院＝1001-01）に整備し、各アカウントに所属病院（hospitalId・病院名）を紐付けて病院ごとに区別・集計できるように。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>病院による担当者セルフ追加機能</strong><br>病院がログイン後、<code>kaigo-hospital-members.html</code> から自分で担当者を追加できる画面を新設。名前を入れると次の空き番号（1001-02…）で自動発行。同じ病院なら誰でも追加可能。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>セキュリティルールを整備（重要）</strong><br>Firestoreが「誰でも全データを読み書き・削除できる」開発初期の設定のままだった問題を是正。ロールベースのアクセス制御を適用し、未認証アクセスを遮断。病院は自病院の担当者のみ追加可・管理者権限は作成不可に。</div>
+        </div>
+      </div>
+    </div>
+
     <!-- 2026/7/4 -->
     <div class="cl-day">
       <div class="cl-day-hd">
