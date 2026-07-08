@@ -400,9 +400,11 @@
         <select class="f-sel" id="q-pref" onchange="updateCityOptions()">
           <option value="">すべて</option>
           <option value="大阪府">大阪府</option>
+          <!-- ※暫定: 大阪府のみ運用中。他府県は OSAKA_ONLY を false にして復活させる
           <option value="兵庫県">兵庫県</option>
           <option value="京都府">京都府</option>
           <option value="奈良県">奈良県</option>
+          -->
         </select>
       </div>
       <div class="f-grp">
@@ -599,6 +601,13 @@ const CITY_MAP = {
   '奈良県': ['奈良市','大和郡山市','天理市'],
 };
 
+// ※暫定運用: 検索結果を大阪府のみに限定する。他府県も出すときは OSAKA_ONLY を false にする
+const OSAKA_ONLY = true;
+function isOsaka(f) {
+  if (!OSAKA_ONLY) return true;
+  return f.prefecture === '大阪府' || CITY_MAP['大阪府'].includes(f.city);
+}
+
 // ── 状態 ──────────────────────────────────────────────────
 let DATA = [];
 let SORTED = [];
@@ -707,7 +716,7 @@ async function doSearch() {
 
   try {
     const snap = await db.collection('facilities').get();
-    DATA = snap.docs.map(mapDoc);
+    DATA = snap.docs.map(mapDoc).filter(isOsaka);   // ※暫定: 大阪府のみ表示
     selectedFacilities.clear();
     updateFloatBtn();
     applySort();
