@@ -250,7 +250,7 @@
   <div class="hdr-title">介護施設検索</div>
   <div class="hdr-right">
     <a href="kaigo-search.html" class="btn-back">← 検索に戻る</a>
-    <button class="btn-print" onclick="window.print()">🖨 印刷・PDF</button>
+    <button class="btn-print" onclick="printSheet()">🖨 印刷・PDF</button>
   </div>
 </header>
 
@@ -261,6 +261,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
@@ -274,6 +275,16 @@ const db   = firebase.firestore();
 const auth = firebase.auth();
 const id   = new URLSearchParams(location.search).get('id');
 const page = document.getElementById('page');
+let currentDoc = null;
+
+// 「印刷」＝検索結果からの単票資料出力と同じ体裁のシートを別タブで開く
+function printSheet() {
+  if (!currentDoc) return;
+  KaigoPrint.printFacilitySheet(currentDoc, {
+    vacancyInquiry: true,
+    onBlocked: () => alert('ポップアップがブロックされました。ブラウザの許可設定をご確認ください。'),
+  });
+}
 
 auth.onAuthStateChanged(async user => {
   if (!user) { location.href = 'kaigo-login.html'; return; }
@@ -288,6 +299,7 @@ auth.onAuthStateChanged(async user => {
 function load() {
   db.collection('facilities').doc(id).onSnapshot(doc => {
     if (!doc.exists) { page.innerHTML = '<div class="state-msg">施設が見つかりませんでした。</div>'; return; }
+    currentDoc = doc;
     render(doc);
   }, e => { page.innerHTML = `<div class="state-msg">⚠️ ${e.message}</div>`; });
 }

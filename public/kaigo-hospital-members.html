@@ -62,6 +62,20 @@
     <p class="note" id="preview"></p>
   </div>
 
+  <div class="card">
+    <h2>自分のパスワードを変更</h2>
+    <label class="f-lbl">現在のパスワード</label>
+    <input class="f-inp" id="cur-pw" type="password" autocomplete="current-password" placeholder="現在のパスワード">
+    <label class="f-lbl" style="margin-top:12px;">新しいパスワード（6文字以上）</label>
+    <input class="f-inp" id="new-pw" type="password" autocomplete="new-password" placeholder="新しいパスワード">
+    <label class="f-lbl" style="margin-top:12px;">新しいパスワード（確認）</label>
+    <input class="f-inp" id="new-pw2" type="password" autocomplete="new-password" placeholder="もう一度入力">
+    <button class="btn" id="pwBtn" onclick="changeMyPassword()">パスワードを変更する</button>
+    <div class="msg err" id="pw-err"></div>
+    <div class="msg ok" id="pw-ok"></div>
+    <p class="note">変更後は、次回ログインから新しいパスワードを使ってください。ログインIDは変わりません。</p>
+  </div>
+
   <div class="foot"><a href="kaigo-search.html">← 検索画面へ戻る</a></div>
 </div>
 
@@ -149,6 +163,41 @@ async function addMember(){
 }
 
 $('nm').addEventListener('keydown',e=>{ if(e.key==='Enter') addMember(); });
+
+// ── 自分のパスワード変更 ───────────────────────────────────────
+function pwErr(m){ $('pw-err').textContent=m; $('pw-err').classList.add('show'); }
+async function changeMyPassword(){
+  const cur=$('cur-pw').value, np=$('new-pw').value, np2=$('new-pw2').value;
+  const btn=$('pwBtn');
+  $('pw-err').classList.remove('show'); $('pw-ok').classList.remove('show');
+  if(!cur||!np){ pwErr('現在のパスワードと新しいパスワードを入力してください'); return; }
+  if(np.length<6){ pwErr('新しいパスワードは6文字以上にしてください'); return; }
+  if(np!==np2){ pwErr('新しいパスワード（確認）が一致しません'); return; }
+  const user=auth.currentUser;
+  if(!user){ pwErr('ログイン情報が取得できません。お手数ですが再度ログインしてください'); return; }
+
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>変更中...';
+  try{
+    // ログイン時と同様、数字のみ6文字未満の現在パスワードは先頭ゼロ埋め
+    let curPw=cur; if(/^\d+$/.test(curPw)&&curPw.length<6) curPw=curPw.padStart(6,'0');
+    const cred=firebase.auth.EmailAuthProvider.credential(user.email, curPw);
+    await user.reauthenticateWithCredential(cred);   // 本人確認（現在PWの照合）
+    await user.updatePassword(np);
+    $('pw-ok').textContent='✅ パスワードを変更しました。次回から新しいパスワードでログインしてください。';
+    $('pw-ok').classList.add('show');
+    $('cur-pw').value=''; $('new-pw').value=''; $('new-pw2').value='';
+  }catch(e){
+    let m='変更に失敗しました';
+    if(e.code==='auth/wrong-password'||e.code==='auth/invalid-credential') m='現在のパスワードが正しくありません';
+    else if(e.code==='auth/weak-password') m='新しいパスワードは6文字以上にしてください';
+    else if(e.code==='auth/too-many-requests') m='試行回数が多すぎます。しばらくしてから再度お試しください';
+    else if(e.code==='auth/requires-recent-login') m='安全のため、一度ログアウトして再ログイン後にお試しください';
+    else if(e.code) m='変更に失敗しました（'+e.code+'）';
+    pwErr(m);
+  }
+  btn.disabled=false; btn.innerHTML='パスワードを変更する';
+}
+$('new-pw2').addEventListener('keydown',e=>{ if(e.key==='Enter') changeMyPassword(); });
 </script>
 </body>
 </html>
