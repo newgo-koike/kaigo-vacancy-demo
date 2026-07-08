@@ -7,5 +7,6 @@
       "**/node_modules/**",
       "**/kaigo-bulk-hospital.html"
     ]
-  }
+  },
+  "firestore": { "rules": "firestore.rules" }
 }

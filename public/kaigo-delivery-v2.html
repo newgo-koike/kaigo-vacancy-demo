@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.5 | 介護施設検索システム</title>
+  <title>納品書 v2.6 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -198,9 +198,9 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.5</div>
+  <div class="v2-badge">✨ v2.6</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.5</p>
+  <p>納品書・仕様書・操作マニュアル　v2.6</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
     <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月23日</div>
@@ -528,9 +528,28 @@
   <div class="sec" style="margin-top:0">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">★</div>
-      <div class="sec-title">v2.5 で追加・変更されたこと</div>
+      <div class="sec-title">v2.6 で追加・変更されたこと</div>
     </div>
     <div class="whats-new">
+      <h3>🆕 v2.5 → v2.6 の主な変更点（2026/7/8）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">🔑 病院ログインをID＋パスワード方式に</div>
+          <div class="new-item-desc">メールアドレス不要。IDとパスワードだけでログイン（ID＝パスワード）。内部でIDをダミーメールに自動変換し、既存の認証基盤を活用。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">👥 個人単位のID体系＋病院ごとの区別</div>
+          <div class="new-item-desc">「病院コード-番号」形式（例：あおい病院＝1001-01）に整備。各アカウントに所属病院（hospitalId・病院名）を紐付け、病院ごとに区別・集計可能に。北摂136病院を発行済み。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">➕ 病院による担当者セルフ追加</div>
+          <div class="new-item-desc">病院がログイン後、自分で担当者を追加できる画面（kaigo-hospital-members.html）を新設。名前を入れると次の空き番号で自動発行。同じ病院なら誰でも追加可能。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔒 セキュリティルールの整備</div>
+          <div class="new-item-desc">Firestoreが「誰でも全データ読み書き可能」だった状態を是正。ロールベースのアクセス制御を適用し、未認証アクセス遮断・病院は自病院の担当者のみ追加可・管理者権限は作成不可に。</div>
+        </div>
+      </div>
       <h3>🆕 v2.4 → v2.5 の主な変更点（2026/6/23）</h3>
       <div class="new-grid">
         <div class="new-item">
@@ -552,6 +571,24 @@
         <div class="new-item">
           <div class="new-item-title">🖨 印刷A4縦1枚に再最適化</div>
           <div class="new-item-desc">全セクションのフォント・パディングを圧縮し、負担割合テーブルを含む全情報がA4縦1枚に収まるよう @media print を全面調整。印刷プレビューで確認済み。</div>
+        </div>
+      </div>
+      <h3 style="margin-top:26px">📜 これまでのアップデート履歴</h3>
+      <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-top:8px">
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.6</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/8</span>
+          <span>病院ログインをID＋パスワード方式に／個人単位ID体系（病院コード-番号）＋病院ごとの区別／病院による担当者セルフ追加／セキュリティルール整備（全開放→ロールベース）</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.5</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/6/23</span>
+          <span>介護費用の負担割合テーブル追加／費用セクション構成の見直し／介護費用の数値を公式データに修正／印刷A4縦1枚に再最適化</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.1〜2.4</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">〜2026/6</span>
+          <span>アカウント登録フロー・3ロール認証（admin / hospital / facility）・法人／ユーザー／申請コレクション・Tailwind導入など基盤機能を整備</span>
         </div>
       </div>
     </div>
@@ -581,6 +618,7 @@
           <div class="role-pages">
             <div class="role-page">kaigo-login.html</div>
             <div class="role-page">kaigo-search.html</div>
+            <div class="role-page">kaigo-hospital-members.html</div>
             <div class="role-page">kaigo-facility-view.html</div>
             <div class="role-page">kaigo-apply.html（申請前）</div>
           </div>
@@ -746,6 +784,10 @@
       <div class="sec-title">アカウント登録フロー（v2.1新機能）</div>
     </div>
 
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:13px;line-height:1.7">
+      <strong>v2.6：</strong>病院アカウントは管理者が初期ID（例 <code>1001-01</code>）を一括発行して各病院に配布。以降は<strong>病院がログイン後 <code>kaigo-hospital-members.html</code> から担当者を自分で追加</strong>できます（次の空き番号 <code>1001-02</code>… で自動発行、同病院なら誰でも追加可）。下記の申請フローは新規病院を追加する際に使用します。
+    </div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
 
       <!-- 病院・ケアマネのフロー -->
@@ -851,7 +893,7 @@
       <table class="spec-table">
         <tr><th>項目</th><th>内容</th></tr>
         <tr><td>ホスティング</td><td>Firebase Hosting — <code>kaigo-link-dev-59bc5.web.app</code>（自動デプロイ設定：GitHub Actions 連携済み）</td></tr>
-        <tr><td>認証</td><td>Firebase Authentication — メール/パスワード認証。3ロール（admin / hospital / facility）<span class="diff-badge">v2.1 NEW</span></td></tr>
+        <tr><td>認証</td><td>Firebase Authentication — メール/パスワード認証。3ロール（admin / hospital / facility）。病院はID＋パスワードでログイン（内部でID→ダミーメール <code>{loginId}@meets-medical.jp</code> に自動変換）<span class="diff-badge">v2.6</span></td></tr>
         <tr><td>データベース</td><td>Firebase Firestore — コレクション: <code>facilities</code> / <code>corporations</code> / <code>users</code> / <code>applications</code></td></tr>
         <tr><td>写真保存</td><td>Firebase Storage — パス: <code>facilities/【施設ID】/photo.jpg</code></td></tr>
         <tr><td>フロントエンド</td><td>HTML + CSS + Vanilla JavaScript。新規ページは Tailwind CSS（CDN）+ Noto Sans JP フォント<span class="diff-badge">v2.1 NEW</span></td></tr>
@@ -884,9 +926,12 @@
     <div class="field-group">
       <div class="field-group-hd purple">users（ユーザーアカウント）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
       <div class="field-list">
-        <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者名</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者名（病院の初期アカウントは病院名）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス（病院は <code>{loginId}@meets-medical.jp</code> のダミー）</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">role</div><div class="field-desc">権限（admin / hospital / facility）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">loginId</div><div class="field-desc">ログインID（例 <code>1001-01</code>＝病院コード-番号）<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">hospitalId</div><div class="field-desc">hospitalロールのみ。所属病院コード（例 <code>1001</code>）。病院ごとの区別・集計に使用<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">hospitalName</div><div class="field-desc">hospitalロールのみ。所属病院名<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">facilityロールのみ。どの法人に属するかを示す</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">createdAt</div><div class="field-desc">アカウント作成日時</div><div class="field-type">timestamp</div></div>
       </div>
@@ -1435,7 +1480,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  介護施設検索システム v2.3<br>
+  介護施設検索システム v2.6<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>

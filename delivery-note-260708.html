@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>納品書 | 病院アカウント発行・権限整備</title>
+<style>
+  :root{--ink:#2b2b2b;--paper:#fdfdfb;--hair:#e7e7e3;--pink:#e88494;--pink-l:#fbe7ea;
+        --blue:#5fb0de;--blue-d:#2c7ba6;--blue-l:#e4f2fa;--g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;
+        --ok:#2c7ba6;--ok-bg:#e4f2fa;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,'Hiragino Sans','Noto Sans JP',Arial,sans-serif;background:#f4f4f1;color:var(--ink);-webkit-font-smoothing:antialiased;padding:32px 16px 80px;line-height:1.7;}
+  .sheet{max-width:820px;margin:0 auto;background:white;border:2px solid var(--ink);border-radius:18px;padding:44px 46px;}
+
+  .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:26px;flex-wrap:wrap;gap:16px;}
+  .top .logo{display:flex;align-items:center;gap:11px;}
+  .top .logo .box{width:40px;height:40px;background:white;border:2px solid var(--ink);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .top .logo .nm{font-size:15px;font-weight:800;}
+  .top .logo .sub{font-size:11px;color:var(--g500);letter-spacing:.08em;}
+  .top .meta{text-align:right;font-size:12px;color:var(--g600);}
+  .top .meta .doc{font-size:24px;font-weight:900;color:var(--ink);letter-spacing:.1em;margin-bottom:4px;}
+
+  h1.case{font-size:20px;font-weight:900;margin-bottom:6px;}
+  .case-sub{font-size:13px;color:var(--g500);margin-bottom:24px;}
+
+  .lead{background:var(--blue-l);border:2px solid var(--ink);border-radius:14px;padding:16px 18px;font-size:13.5px;margin-bottom:30px;}
+  .lead b{font-weight:800;}
+
+  h2{font-size:15px;font-weight:900;margin:30px 0 14px;display:flex;align-items:center;gap:8px;}
+  h2 .no{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--ink);color:white;border-radius:50%;font-size:12px;flex-shrink:0;}
+
+  .items{display:grid;gap:11px;}
+  .item{border:1.5px solid var(--hair);border-radius:12px;padding:14px 16px;}
+  .item .t{font-size:14px;font-weight:800;margin-bottom:5px;}
+  .item .d{font-size:12.5px;color:var(--g600);}
+  .item .d .hi{color:var(--blue-d);font-weight:700;}
+  .item.warn{background:#fffbeb;border-color:#fde68a;}
+  .item.warn .t{color:#b45309;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px;}
+  th,td{border:1px solid var(--hair);padding:8px 11px;text-align:left;vertical-align:top;}
+  th{background:#f8f8f6;font-weight:700;}
+  td.c{font-family:ui-monospace,monospace;color:var(--blue-d);font-weight:700;}
+
+  .flow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px;}
+  .flow .step{border:2px solid var(--ink);border-radius:12px;padding:14px;font-size:12.5px;}
+  .flow .step .n{font-size:11px;font-weight:800;color:var(--pink);margin-bottom:4px;}
+  .flow .step .h{font-weight:800;margin-bottom:4px;font-size:13px;}
+  @media(max-width:640px){.flow{grid-template-columns:1fr;}}
+
+  .cred{font-family:ui-monospace,monospace;background:var(--pink-l);border:1px solid var(--pink);border-radius:5px;padding:1px 7px;font-weight:700;font-size:12px;}
+
+  .next li{font-size:13px;margin-left:18px;margin-bottom:5px;}
+
+  .foot{margin-top:34px;padding-top:18px;border-top:1.5px solid var(--hair);font-size:11.5px;color:var(--g400);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  @media print{body{background:white;padding:0;}.sheet{border:none;border-radius:0;padding:20px;}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="top">
+    <div class="logo">
+      <div class="box">🏥</div>
+      <div>
+        <div class="nm">Meets Medical</div>
+        <div class="sub">介護施設空室検索システム</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div class="doc">納品書</div>
+      <div>発行日: 2026年7月8日</div>
+      <div>担当: NewGo / 小池</div>
+    </div>
+  </div>
+
+  <h1 class="case">病院アカウント発行・権限整備 一式</h1>
+  <div class="case-sub">北摂エリア病院リスト（136件）に基づくログインアカウントの発行、個人単位ID体系への整備、セキュリティ強化、担当者セルフ追加機能の実装</div>
+
+  <div class="lead">
+    北摂エリアの<b>136病院</b>にログインアカウントを発行しました。あわせて、<b>1病院に複数の担当者</b>を持てる個人単位のID体系へ整備し、<b>病院が自分で担当者を追加できる仕組み</b>を実装。作業中に判明したデータベースの<b>重大なセキュリティ設定不備も是正</b>しています。
+  </div>
+
+  <h2><span class="no">1</span>実施内容</h2>
+  <div class="items">
+    <div class="item">
+      <div class="t">病院アカウントの発行（136件）</div>
+      <div class="d">北摂14エリアの全136病院に、<span class="hi">エリア番号＋連番</span>でIDを採番。Firebase Auth と Firestore に136アカウントを登録（<span class="hi">失敗0・全件検証済み</span>）。</div>
+    </div>
+    <div class="item">
+      <div class="t">ログイン方式を「ID＋パスワード」に改修</div>
+      <div class="d">メールアドレス不要。<span class="hi">IDとパスワードだけ</span>でログイン可能に。ID＝パスワードで統一し、病院が覚えやすい形に。（内部ではIDをダミーメールに自動変換し、既存の認証基盤を活用）</div>
+    </div>
+    <div class="item">
+      <div class="t">個人単位のID体系へ移行</div>
+      <div class="d">「<span class="hi">病院コード-番号</span>」形式（例：あおい病院＝<span class="hi">1001-01</span>）に整備。各アカウントに所属病院（hospitalId・病院名）を紐付け、<span class="hi">病院ごとに区別・集計</span>できるように。既存136件を各病院の1人目（-01）へ移行済み。</div>
+    </div>
+    <div class="item">
+      <div class="t">病院による担当者セルフ追加機能 <span style="color:var(--ok);font-size:11px;">✅ 動作確認済み</span></div>
+      <div class="d">病院がログイン後、<span class="hi">自分で担当者を追加</span>できる画面を実装。名前を入力すると次の空き番号（1001-02…）で自動発行。検索画面に「担当者管理」導線を設置。同じ病院なら誰でも追加可能。</div>
+    </div>
+    <div class="item warn">
+      <div class="t">⚠️ セキュリティ設定不備の是正（重要）</div>
+      <div class="d">作業中、データベースが<b>「誰でも全データを読み書き・削除できる」</b>開発初期のままだったことが判明。<span class="hi">ロールベースのアクセス制御</span>に是正し、未認証の無差別アクセスを遮断。病院は自病院の担当者のみ追加可・管理者権限は作成不可、と厳格化しました。</div>
+    </div>
+    <div class="item">
+      <div class="t">運用基盤の整備</div>
+      <div class="d">管理者権限での一括処理環境（gcloud認証）を構築。今後の追加病院登録やメンテナンスもスクリプトで安全に実行可能。</div>
+    </div>
+  </div>
+
+  <h2><span class="no">2</span>成果物</h2>
+  <table>
+    <tr><th style="width:38%">成果物</th><th>内容</th></tr>
+    <tr><td>ログイン画面（改修）</td><td>kaigo-login.html — ID＋パスワード方式</td></tr>
+    <tr><td>担当者管理画面（新規）</td><td>kaigo-hospital-members.html — 病院による担当者追加</td></tr>
+    <tr><td>セキュリティルール（新規）</td><td>firestore.rules — ロールベースのアクセス制御</td></tr>
+    <tr><td>ID発行リスト</td><td>260706北摂病院リスト_ID発行済み.xlsx — 136件のID一覧</td></tr>
+    <tr><td>本番反映</td><td>https://kaigo-link-dev-59bc5.web.app に全てデプロイ済み</td></tr>
+  </table>
+
+  <h2><span class="no">3</span>運用フロー</h2>
+  <div class="flow">
+    <div class="step">
+      <div class="n">STEP 1</div>
+      <div class="h">初期IDを配布</div>
+      各病院に初期アカウントを1つ渡す（例：あおい病院 → ID <span class="cred">1001-01</span> ／ パスワード <span class="cred">1001-01</span>）
+    </div>
+    <div class="step">
+      <div class="n">STEP 2</div>
+      <div class="h">病院がログイン</div>
+      病院がID・パスワードでログイン。施設の空室検索が使えるように
+    </div>
+    <div class="step">
+      <div class="n">STEP 3</div>
+      <div class="h">担当者を自分で追加</div>
+      「担当者管理」から名前を入力 → 1001-02… が自動発行。ID＝パスワードを本人に伝える
+    </div>
+  </div>
+
+  <h2><span class="no">4</span>エリア番号 対応表</h2>
+  <table>
+    <tr><th>No</th><th>エリア</th><th>件数</th><th>ID範囲</th><th>No</th><th>エリア</th><th>件数</th><th>ID範囲</th></tr>
+    <tr><td class="c">1</td><td>伊丹市</td><td>10</td><td class="c">1001〜</td><td class="c">8</td><td>摂津市</td><td>4</td><td class="c">8001〜</td></tr>
+    <tr><td class="c">2</td><td>茨木市</td><td>13</td><td class="c">2001〜</td><td class="c">9</td><td>川西市</td><td>9</td><td class="c">9001〜</td></tr>
+    <tr><td class="c">3</td><td>高槻市</td><td>13</td><td class="c">3001〜</td><td class="c">10</td><td>池田市</td><td>3</td><td class="c">10001〜</td></tr>
+    <tr><td class="c">4</td><td>吹田市</td><td>13</td><td class="c">4001〜</td><td class="c">11</td><td>東淀川区</td><td>4</td><td class="c">11001〜</td></tr>
+    <tr><td class="c">5</td><td>豊中市</td><td>16</td><td class="c">5001〜</td><td class="c">12</td><td>尼崎市</td><td>23</td><td class="c">12001〜</td></tr>
+    <tr><td class="c">6</td><td>西淀川区</td><td>5</td><td class="c">6001〜</td><td class="c">13</td><td>宝塚市</td><td>7</td><td class="c">13001〜</td></tr>
+    <tr><td class="c">7</td><td>箕面市</td><td>9</td><td class="c">7001〜</td><td class="c">14</td><td>淀川区</td><td>7</td><td class="c">14001〜</td></tr>
+    <tr><td colspan="8" style="text-align:right;font-weight:700;background:#f8f8f6;">合計 14エリア／136病院</td></tr>
+  </table>
+
+  <h2><span class="no">5</span>次のステップ・申し送り</h2>
+  <ul class="next">
+    <li><b>動作確認</b>：<span style="color:var(--ok);font-weight:700;">完了 ✅</span>（ログイン／担当者一覧／担当者追加・自動採番／権限制御をすべて確認済み）</li>
+    <li><b>病院への配布</b>：各病院へ初期ID／パスワードを案内（ID一覧xlsx参照）</li>
+    <li><b>パスワード運用</b>：初期はID＝パスワード。必要に応じて変更案内を検討</li>
+    <li><b>メンテ時の再認証</b>：組織のセキュリティポリシーにより、ルール変更・アカウント一括処理のたびに firebase／gcloud の再認証が必要</li>
+    <li><b>デザイン刷新</b>：全画面を「大分ドクター風」線画デザインに統一済み（別途反映）</li>
+  </ul>
+
+  <div class="foot">
+    <span>Meets Medical 介護施設空室検索システム</span>
+    <span>2026年7月8日 時点</span>
+  </div>
+
+</div>
+</body>
+</html>

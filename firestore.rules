@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function hasDoc()   { return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function me()       { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function myRole()   { return hasDoc() ? me().role : ''; }
+    function isAdmin()  { return myRole() == 'admin'; }
+
+    // ユーザー：本人は自分のdocのみ / 管理者は全部 / 病院は自病院の担当者を追加可
+    match /users/{uid} {
+      allow get:    if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list:   if isAdmin()
+                    || (myRole() == 'hospital' && resource.data.hospitalId == me().hospitalId);
+      allow create: if isAdmin()
+                    || (myRole() == 'hospital'
+                        && request.resource.data.role == 'hospital'
+                        && request.resource.data.hospitalId == me().hospitalId);
+      allow update, delete: if isAdmin();
+    }
+
+    // 施設：単一ページは公開（印刷・詳細）/ 一覧はログイン必須 / 更新は管理者・施設担当者
+    match /facilities/{fid} {
+      allow get:    if true;
+      allow list:   if signedIn();
+      allow write:  if isAdmin() || myRole() == 'facility';
+    }
+
+    // 法人：ログイン必須で閲覧 / 更新は管理者
+    match /corporations/{cid} {
+      allow read:   if signedIn();
+      allow write:  if isAdmin();
+    }
+
+    // 検索ログ：記録は病院・管理者 / 閲覧は管理者のみ
+    match /searchLogs/{lid} {
+      allow create: if myRole() == 'hospital' || myRole() == 'admin';
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 申請：作成は誰でも（申請フォーム）/ 閲覧・更新は管理者
+    match /applications/{aid} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
