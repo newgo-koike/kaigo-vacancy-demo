@@ -94,6 +94,13 @@
     .plan-toggle { padding:4px 10px; border:1.5px solid var(--g300); border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; background:white; color:var(--g500); white-space:nowrap; transition:all .15s; }
     .plan-toggle:hover { border-color:#2c7ba6; color:#2c7ba6; }
     .plan-toggle.paid { background:var(--ok-bg); border-color:var(--ok); color:var(--ok); }
+    /* 病院ログインID一覧を印刷するとき、一覧カード以外を落とす（配布用の紙をそのまま出せるように） */
+    @media print {
+      body > *:not(main), header, nav, .no-print { display:none !important; }
+      main > div > *:not(#hosp-card) { display:none !important; }
+      #hosp-card { border:none !important; box-shadow:none !important; padding:0 !important; }
+      #hospitals-list > div { break-inside:avoid; page-break-inside:avoid; }
+    }
   </style>
 </head>
 <body>
@@ -180,15 +187,39 @@
   <div class="max-w-2xl mx-auto space-y-6">
 
     <!-- 病院一覧 -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6" id="hosp-card">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="text-base font-bold text-slate-800">病院一覧</h2>
-          <p class="text-xs text-slate-400 mt-0.5">登録病院と病院コード（ログインIDの先頭4桁）・担当者数</p>
+          <h2 class="text-base font-bold text-slate-800">病院一覧（ログインID配布用）</h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            ログインIDは <span class="font-mono">病院コード-01</span>。<b class="text-[#2c7ba6]">パスワードはログインIDと同じ文字列</b>です。
+          </p>
         </div>
-        <button onclick="loadHospitals()" class="text-xs text-[#2c7ba6] hover:underline">↻ 更新</button>
+        <div class="flex gap-3 items-center shrink-0 no-print">
+          <button onclick="addHospitalPrompt()" class="text-xs font-bold text-white bg-[#5fb0de] hover:bg-[#2c7ba6] px-3 py-1.5 rounded-lg whitespace-nowrap">＋ 病院を追加</button>
+          <button onclick="exportHospitalsCSV()" class="text-xs text-[#2c7ba6] hover:underline whitespace-nowrap">⬇ CSV</button>
+          <button onclick="window.print()" class="text-xs text-[#2c7ba6] hover:underline whitespace-nowrap">🖨 印刷</button>
+          <button onclick="loadHospitals()" class="text-xs text-[#2c7ba6] hover:underline whitespace-nowrap">↻ 更新</button>
+        </div>
       </div>
-      <input class="w-full mb-3 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#5fb0de]" id="hosp-q" type="text" placeholder="病院名・コードで絞り込み..." oninput="renderHospitals()">
+
+      <!-- 病院追加フォーム -->
+      <div id="hosp-add" class="hidden mb-4 p-4 bg-[#f2f9fd] border border-[#cfe6f4] rounded-xl no-print">
+        <p class="text-xs font-bold text-[#2c7ba6] mb-2">新しい病院を追加（未使用のランダム4桁コードを自動採番します）</p>
+        <div class="flex gap-2 flex-wrap">
+          <input id="hosp-new-name" type="text" placeholder="病院名（例：〇〇総合病院）"
+            class="flex-1 min-w-[220px] px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#5fb0de]">
+          <input id="hosp-new-area" type="text" placeholder="エリア（例：豊中市）"
+            class="w-40 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#5fb0de]">
+          <button id="hosp-add-btn" onclick="addHospital()"
+            class="text-sm font-bold text-white bg-[#5fb0de] hover:bg-[#2c7ba6] px-5 py-2 rounded-lg">発行</button>
+          <button onclick="document.getElementById('hosp-add').classList.add('hidden')"
+            class="text-sm text-slate-500 px-3 py-2">キャンセル</button>
+        </div>
+        <p id="hosp-add-msg" class="text-xs mt-2"></p>
+      </div>
+
+      <input class="w-full mb-3 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#5fb0de] no-print" id="hosp-q" type="text" placeholder="病院名・ログインID・エリアで絞り込み..." oninput="renderHospitals()">
       <div id="hospitals-list" class="space-y-2"><p class="text-sm text-slate-400">読み込み中...</p></div>
     </div>
 
@@ -370,16 +401,18 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-firebase.initializeApp({
+const FIRE = {
   apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
   authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
   projectId:"kaigo-link-dev-59bc5",
   storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
   messagingSenderId:"646624290677",
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
-});
+};
+firebase.initializeApp(FIRE);
 const db = firebase.firestore();
 const auth = firebase.auth();
+const HOSP_DOMAIN = 'meets-medical.jp';
 const BASE = 'https://kaigo-meetsmedical.surge.sh';
 
 let DATA = [];
@@ -791,6 +824,19 @@ async function sendInvite(email) {
 }
 
 let HOSPITALS = [];
+
+// 病院コードは「使用中のものを避けたランダム4桁」。連番だと病院数やエリアが推測できるため。
+function pickUnusedCode(usedCodes) {
+  const used = new Set([...usedCodes].map(String));
+  for (let i = 0; i < 500; i++) {
+    const c = String(Math.floor(1000 + Math.random() * 9000));  // 1000-9999（先頭ゼロなし）
+    if (!used.has(c)) return c;
+  }
+  throw new Error('未使用の4桁コードが見つかりませんでした');
+}
+
+const seqOf = id => { const m = /-(\d+)$/.exec(id || ''); return m ? parseInt(m[1], 10) : 1; };
+
 async function loadHospitals() {
   const el = document.getElementById('hospitals-list');
   el.innerHTML = '<p class="text-sm text-slate-400">読み込み中...</p>';
@@ -800,27 +846,125 @@ async function loadHospitals() {
     snap.docs.forEach(doc => {
       const d = doc.data();
       const code = d.hospitalId || '(未設定)';
-      if (!map.has(code)) map.set(code, { code, name: d.hospitalName || d.name || '(名称未設定)', members: 0 });
-      map.get(code).members++;
+      if (!map.has(code)) map.set(code, {
+        code,
+        name: d.hospitalName || d.name || '(名称未設定)',
+        area: d.area || '',
+        members: [],
+      });
+      const h = map.get(code);
+      if (d.area && !h.area) h.area = d.area;
+      h.members.push({ loginId: d.loginId || '', name: d.name || '' });
     });
-    HOSPITALS = [...map.values()].sort((a,b) => String(a.code).localeCompare(String(b.code), 'ja', {numeric:true}));
+    HOSPITALS = [...map.values()]
+      .map(h => {
+        h.members.sort((a,b) => seqOf(a.loginId) - seqOf(b.loginId));
+        h.mainId = h.members[0]?.loginId || `${h.code}-01`;
+        return h;
+      })
+      .sort((a,b) => a.name.localeCompare(b.name, 'ja'));
     renderHospitals();
   } catch(e) {
     el.innerHTML = `<p class="text-sm text-red-400">⚠️ 読み込みエラー: ${e.message}</p>`;
   }
 }
+
+function filteredHospitals() {
+  const q = (document.getElementById('hosp-q').value || '').trim().toLowerCase();
+  if (!q) return HOSPITALS;
+  return HOSPITALS.filter(h =>
+    (h.name + ' ' + h.code + ' ' + h.area + ' ' + h.members.map(m => m.loginId + m.name).join(' '))
+      .toLowerCase().includes(q));
+}
+
 function renderHospitals() {
   const el = document.getElementById('hospitals-list');
   if (!HOSPITALS.length) { el.innerHTML = '<p class="text-sm text-slate-400">病院が登録されていません</p>'; return; }
-  const q = (document.getElementById('hosp-q').value || '').trim().toLowerCase();
-  const list = q ? HOSPITALS.filter(h => (h.name + ' ' + h.code).toLowerCase().includes(q)) : HOSPITALS;
+  const list = filteredHospitals();
   if (!list.length) { el.innerHTML = '<p class="text-sm text-slate-400">該当する病院がありません</p>'; return; }
-  el.innerHTML = `<div class="text-xs text-slate-400 mb-2">${list.length}病院${q ? ` / 全${HOSPITALS.length}病院` : ''}</div>` + list.map(h => `
-    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
-      <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-[#e4f2fa] text-[#2c7ba6]">${h.code}</span>
-      <span class="text-sm font-semibold text-slate-800">${h.name}</span>
-      <span class="text-xs text-slate-400 ml-auto whitespace-nowrap">担当者 ${h.members}名</span>
-    </div>`).join('');
+
+  el.innerHTML =
+    `<div class="text-xs text-slate-400 mb-2">${list.length}病院${list.length !== HOSPITALS.length ? ` / 全${HOSPITALS.length}病院` : ''}
+       担当者 計${list.reduce((n,h) => n + h.members.length, 0)}名</div>` +
+    list.map(h => `
+      <div class="px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[#e4f2fa] text-[#2c7ba6]">${h.mainId}</span>
+          <span class="text-sm font-semibold text-slate-800">${h.name}</span>
+          ${h.area ? `<span class="text-xs text-slate-400">${h.area}</span>` : ''}
+          <span class="text-xs text-slate-400 ml-auto whitespace-nowrap">担当者 ${h.members.length}名</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-1.5">
+          パスワード: <span class="font-mono font-bold text-slate-700">${h.mainId}</span>
+          <span class="text-slate-300">（ログインIDと同じ）</span>
+          ${h.members.length > 1
+            ? `<span class="ml-2 text-slate-400">他の担当者: ${h.members.slice(1).map(m => `<span class="font-mono">${m.loginId}</span>（${m.name}）`).join('、')}</span>`
+            : ''}
+        </div>
+      </div>`).join('');
+}
+
+function exportHospitalsCSV() {
+  const list = filteredHospitals();
+  const rows = [['病院名','エリア','ログインID','パスワード','担当者名']];
+  list.forEach(h => h.members.forEach(m => {
+    rows.push([h.name, h.area, m.loginId, m.loginId, m.name]);
+  }));
+  const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], {type:'text/csv'}));  // BOM付きでExcelの文字化けを防ぐ
+  a.download = `病院ログインID一覧-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function addHospitalPrompt() {
+  const box = document.getElementById('hosp-add');
+  box.classList.toggle('hidden');
+  document.getElementById('hosp-add-msg').textContent = '';
+  if (!box.classList.contains('hidden')) document.getElementById('hosp-new-name').focus();
+}
+
+async function addHospital() {
+  const name = document.getElementById('hosp-new-name').value.trim();
+  const area = document.getElementById('hosp-new-area').value.trim();
+  const msg  = document.getElementById('hosp-add-msg');
+  const btn  = document.getElementById('hosp-add-btn');
+  msg.className = 'text-xs mt-2';
+  if (!name) { msg.className += ' text-red-500'; msg.textContent = '病院名を入力してください'; return; }
+
+  btn.disabled = true; btn.textContent = '発行中...';
+  try {
+    // 現在使われているコードを取り直してから採番する（一覧が古いまま重複させないため）
+    const snap = await db.collection('users').where('role','==','hospital').get();
+    const used = new Set(snap.docs.map(d => String(d.data().hospitalId || '')));
+    const code = pickUnusedCode(used);
+    const loginId = `${code}-01`;
+    const email   = `${loginId}@${HOSP_DOMAIN}`;
+
+    // 管理者のログインを保ったままアカウントを作るため、別アプリで作成する
+    const secApp  = firebase.apps.some(a => a.name === 'secondary')
+      ? firebase.app('secondary') : firebase.initializeApp(FIRE, 'secondary');
+    const secAuth = secApp.auth();
+    const cred = await secAuth.createUserWithEmailAndPassword(email, loginId);  // 初期パスワード = ログインID
+    await db.collection('users').doc(cred.user.uid).set({
+      role: 'hospital', name, hospitalId: code, hospitalName: name,
+      loginId, email, area,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    await secAuth.signOut();
+
+    msg.className += ' text-emerald-600 font-bold';
+    msg.innerHTML = `✅ ${name} を発行しました　ログインID: <span class="font-mono">${loginId}</span> ／ パスワード: <span class="font-mono">${loginId}</span>`;
+    document.getElementById('hosp-new-name').value = '';
+    document.getElementById('hosp-new-area').value = '';
+    await loadHospitals();
+  } catch(e) {
+    msg.className += ' text-red-500';
+    msg.textContent = `⚠️ ${e.message}`;
+  } finally {
+    btn.disabled = false; btn.textContent = '発行';
+  }
 }
 
 async function loadUsers() {
