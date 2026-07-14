@@ -682,7 +682,8 @@
         </div>
       </div>
       <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">
-        <strong>🔜 今後の予定（設計確定・未実装）</strong>：データ入れ直しのタイミングで、病院IDを<strong>重複しないランダム4桁</strong>に。病院マスターは4桁でログイン（初期パスワードは4桁+<code>00</code>）、担当者追加は4桁+<code>01</code>,<code>02</code>… の形式に切り替え予定。
+        <strong>✅ 実装済み</strong>：担当者は「<code>病院コード-01</code>」形式の個人IDでログイン（<strong>初期パスワードはログインIDと同じ文字列</strong>）。担当者追加時は <code>-02</code>, <code>-03</code>… と自動採番されます。一度ログインすればセッションは維持され、毎回のログインは不要です。<br>
+        <strong>🔜 今後の予定（未実装）</strong>：病院コードを<strong>重複しないランダム4桁</strong>に置き換え（現在は連番のため、4桁と5桁が混在しています）。
       </div>
       <h3>🆕 v2.5 → v2.6 の主な変更点（2026/7/8）</h3>
       <div class="new-grid">
@@ -1253,10 +1254,157 @@
     </div>
   </div>
 
-  <!-- ⑦ 操作マニュアル -->
+  <!-- ⑦ 病院への訪問マニュアル -->
   <div class="sec">
     <div class="sec-hd">
       <div class="sec-num">7</div>
+      <div class="sec-title">病院への訪問マニュアル（「使ってみてください」と渡すまで）</div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 営業担当（兵頭さん）</div>
+      <h3>病院に訪問して、その場で使ってもらうまでの流れ</h3>
+      <p style="font-size:13px;color:var(--g600);margin:0 0 18px">
+        相手は<strong>地域連携室のMSW・退院支援看護師・ケアマネ</strong>。この人たちの困りごとは
+        「退院が決まった患者さんに、条件に合う施設をすぐ提案できない」ことです。
+        <strong>説明より先に、その場で1件検索して見せるのが最短</strong>です。
+      </p>
+
+      <div class="onboarding-flow" style="margin-top:16px">
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">1</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">【訪問前】その病院のログインIDを手元に用意する</div>
+            <div class="onboarding-desc">
+              管理画面の<strong>「病院一覧」</strong>で、訪問先の病院の<strong>ログインID</strong>を確認します（形式：<code>病院コード-01</code>）。<br>
+              <strong>初期パスワードはログインIDと同じ文字列</strong>です。別途メモは不要で、IDさえ分かれば入れます。<br>
+              <span style="color:var(--amber);font-weight:700">▶ 事前に一度ご自分でログインして、施設がちゃんと出るか確認しておくと安心です。</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">2</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">【現地】その場でログインしてもらう（30秒）</div>
+            <div class="onboarding-desc">
+              相手のPCかスマホで <code>kaigo-link-dev-59bc5.web.app</code> を開いてもらい、IDとパスワード（同じ文字列）を入力。<br>
+              <div class="manual-point" style="margin-top:8px">💬「<strong>一度ログインすれば、次からは開くだけで使えます。</strong>毎回IDを入れる必要はありません」</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">3</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">【現地】「今、退院調整中の方いますか？」と聞いて、その条件で検索する</div>
+            <div class="onboarding-desc">
+              デモ用の架空条件ではなく、<strong>相手が今まさに困っている実例</strong>で検索するのが決定打です。<br>
+              市を選び、施設種別（特養・老健・グループホーム・サ高住・介護付有料・住宅型有料）と月額の上限を入れて検索。<br>
+              <div class="manual-point" style="margin-top:8px">💬「予算はいくらまでですか？　じゃあその条件で……はい、◯件出ました」</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">4</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">【現地】費用の内訳を見せる ＝ ここが一番効く</div>
+            <div class="onboarding-desc">
+              各施設のカードに<strong>入居時費用（一時金＋敷金）と月額（賃料・管理費・食費の内訳）</strong>が出ています。<br>
+              <div class="manual-point" style="margin-top:8px">💬「<strong>これ全部、各施設の公表資料から拾った実額です。</strong>電話して聞き直さなくても、その場で比較できます」</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">5</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">【現地】3件選んで「資料出力」→ その場で印刷して渡す</div>
+            <div class="onboarding-desc">
+              気になる施設にチェックを入れて「資料出力」を押すと、<strong>A4の比較資料</strong>が出ます。<br>
+              <div class="manual-point" style="margin-top:8px">💬「<strong>これ、そのままご家族にお渡しできます。</strong>いま手書きで作られている比較表、これで置き換えられませんか？」</div>
+              <span style="color:var(--brand-d);font-weight:700;font-size:12px">▶ 印刷したものを1枚持参しておくと、実物があるぶん話が早いです。</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">6</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">【現地】検索条件を保存してもらう ＝ 次も使う理由をつくる</div>
+            <div class="onboarding-desc">
+              「この条件を保存」を押すと、次回から1クリックで同じ条件が呼び出せます。<br>
+              <div class="manual-point" style="margin-top:8px">💬「よく使う条件を保存しておいてください。次から一発で出ます」</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">7</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">【引き渡し】「担当者は病院側で増やせます」と伝えて終了</div>
+            <div class="onboarding-desc">
+              画面右上の<strong>「担当者管理」</strong>から、<strong>名前を入れるだけで担当者を追加</strong>できます（<code>-02</code>、<code>-03</code>…と自動採番。パスワードは同じくIDと同じ文字列）。<br>
+              <strong>Meets Medical への連絡は不要</strong>で、その場で即発行されます。パスワードの変更も同じ画面から可能です。<br>
+              <div class="manual-point" style="margin-top:8px">💬「連携室の他の方にも使ってほしいので、<strong>この画面から追加しておいてください。</strong>うちへの連絡は要りません」</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="manual-point" style="margin-top:20px;background:var(--purple-bg);border-color:#e9d5ff">
+        <strong>🎯 このセクションのゴール</strong>：訪問中に「1回検索させて、1枚印刷して渡す」まで到達すること。
+        説明を聞いただけの人はまず戻ってきません。<strong>自分の患者さんの条件で1回検索した人</strong>が、次も開きます。
+      </div>
+    </div>
+
+    <div class="manual-block">
+      <h3>💬 よく聞かれること（想定問答）</h3>
+      <table class="spec-table">
+        <tr><th style="width:32%">質問</th><th>回答</th></tr>
+        <tr>
+          <td>空室は分かるの？</td>
+          <td><strong>今は分かりません。</strong>空室情報は現在収集中のため、全施設「要問い合わせ」と表示しています。<br>
+          <span style="color:var(--amber);font-weight:700">▶ ここは正直に伝えてください。</span>「空室はこれから施設側に入れてもらいます。今は<strong>条件で候補を絞り込んで、費用を比較する</strong>ところまでお使いください」</td>
+        </tr>
+        <tr>
+          <td>どのエリアの施設が入ってるの？</td>
+          <td>北摂5市・<strong>計476施設</strong>（豊中市154・吹田市116・茨木市104・池田市52・箕面市50）。<br>各市の介護情報リストに載っている施設を<strong>網羅</strong>しています（一部の施設だけ、ではありません）。</td>
+        </tr>
+        <tr>
+          <td>費用の数字は正確？</td>
+          <td>各施設の<strong>公表資料（公式サイト等）に基づく実額</strong>で、出典URLも保持しています。<br>ただし改定される場合があるため、<strong>最終確認は施設へ</strong>とお伝えください。</td>
+        </tr>
+        <tr>
+          <td>スマホでも見られる？</td>
+          <td>見られます。訪問先や移動中にそのまま検索できます。</td>
+        </tr>
+        <tr>
+          <td>何人まで使えるの？</td>
+          <td><strong>人数制限はありません。</strong>病院側で担当者を自由に追加できます。</td>
+        </tr>
+        <tr>
+          <td>パスワードは変えられる？</td>
+          <td>変えられます。「担当者管理」画面から本人が変更できます（ログインIDは変わりません）。</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="manual-block">
+      <h3>📈 訪問後：使われているかを確認する</h3>
+      <p style="font-size:13px;color:var(--g600);margin:0">
+        検索は<strong>ログとして記録</strong>されています。管理画面から「どの病院が・どんな条件で検索しているか」を確認できるため、
+        <strong>訪問後に実際に使われたかどうかが分かります</strong>。
+        使われていない病院には再訪問、よく使われている条件は施設営業のネタになります（詳細は「検索データの蓄積と活用」を参照）。
+      </p>
+    </div>
+  </div>
+
+  <!-- ⑧ 操作マニュアル -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-num">8</div>
       <div class="sec-title">操作マニュアル</div>
     </div>
 
@@ -1312,7 +1460,7 @@
   <!-- ⑧ 運用・注意事項 -->
   <div class="sec">
     <div class="sec-hd">
-      <div class="sec-num">8</div>
+      <div class="sec-num">9</div>
       <div class="sec-title">運用上の注意事項</div>
     </div>
     <table class="spec-table">
@@ -1355,7 +1503,7 @@
   <!-- ⑨ 施設データ収集・入力フロー（兵頭さん向け） -->
   <div class="sec">
     <div class="sec-hd">
-      <div class="sec-num">9</div>
+      <div class="sec-num">10</div>
       <div class="sec-title">施設データの収集・入力フロー（兵頭さん向け）</div>
     </div>
 
@@ -1412,7 +1560,7 @@
   <!-- ⑩ 3者のユーザーエクスペリエンス -->
   <div class="sec">
     <div class="sec-hd">
-      <div class="sec-num">10</div>
+      <div class="sec-num">11</div>
       <div class="sec-title">3者のユーザーエクスペリエンス（登録〜日常利用）</div>
     </div>
 
@@ -1595,7 +1743,7 @@
   <!-- ⑪ 検索データの蓄積と活用 -->
   <div class="sec">
     <div class="sec-hd">
-      <div class="sec-num">11</div>
+      <div class="sec-num">12</div>
       <div class="sec-title">検索データの蓄積と活用</div>
     </div>
 
