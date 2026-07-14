@@ -15,18 +15,16 @@
     --amber:#d97706; --amber-bg:#fef3c7;
     --purple:#7c3aed; --purple-bg:#f5f3ff;
     --red:#dc2626; --red-bg:#fee2e2;
+    --green:#15803d; --green-bg:#f0fdf4;
   }
   * { box-sizing:border-box; }
   body {
     margin:0; background:#f0f4f8; color:var(--g800); line-height:1.7;
     font-family:'Noto Sans JP',-apple-system,sans-serif; -webkit-font-smoothing:antialiased;
   }
-  .container { max-width:920px; margin:0 auto; padding:32px 20px 80px; }
+  .container { max-width:960px; margin:0 auto; padding:32px 20px 80px; }
 
-  .page-hdr {
-    background:var(--g900); color:#fff; border-radius:20px;
-    padding:34px 36px; margin-bottom:26px;
-  }
+  .page-hdr { background:var(--g900); color:#fff; border-radius:20px; padding:34px 36px; margin-bottom:26px; }
   .eyebrow { font-size:12px; color:var(--g400); letter-spacing:.08em; margin-bottom:6px; }
   .page-hdr h1 { font-size:26px; font-weight:800; margin:0 0 8px; letter-spacing:-.01em; }
   .page-hdr p { margin:0; font-size:14.5px; color:#cbd5e1; }
@@ -42,13 +40,20 @@
   }
   .banner b { color:var(--brand-d); }
 
-  .sec-hd { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
-  .sec-num {
-    width:30px; height:30px; border-radius:9px; background:var(--brand);
-    color:#fff; font-weight:800; font-size:14px; flex:none;
-    display:flex; align-items:center; justify-content:center;
-  }
+  .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:22px; }
+  .sm { background:#fff; border:1px solid var(--g200); border-radius:12px; padding:14px 16px; text-align:center; }
+  .sm-n { font-size:26px; font-weight:800; line-height:1.2; }
+  .sm-l { font-size:11px; color:var(--g500); margin-top:2px; }
+  .sm.red .sm-n { color:var(--red); }
+  .sm.amber .sm-n { color:var(--amber); }
+  .sm.green .sm-n { color:var(--green); }
+
+  .sec-hd { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .sec-num { width:30px; height:30px; border-radius:9px; background:var(--brand); color:#fff; font-weight:800; font-size:14px; flex:none; display:flex; align-items:center; justify-content:center; }
+  .sec-num.red { background:var(--red); }
+  .sec-num.green { background:var(--green); }
   .sec-title { font-size:19px; font-weight:800; color:var(--g900); letter-spacing:-.01em; }
+  .sec-sub { font-size:12.5px; color:var(--g500); margin:0 0 14px 42px; }
   h3 { font-size:14px; font-weight:800; color:var(--brand-d); margin:22px 0 8px; }
   p { margin:0 0 12px; font-size:14px; }
 
@@ -58,21 +63,20 @@
   td.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
   td.nm { font-weight:700; }
   .bad { color:var(--red); font-weight:800; }
+  .good { color:var(--green); font-weight:800; }
   .cause { font-size:12px; color:var(--g500); line-height:1.6; }
   .cause b { color:var(--g800); }
+  .quote { font-size:11.5px; color:var(--g600); background:var(--g50); border-left:3px solid var(--g200); padding:4px 9px; display:block; margin-top:3px; }
 
-  .note {
-    background:#fffdf5; border:1px solid #fde68a; border-radius:12px;
-    padding:14px 18px; font-size:13.5px; color:#78350f; margin:14px 0;
-  }
+  .note { background:#fffdf5; border:1px solid #fde68a; border-radius:12px; padding:14px 18px; font-size:13.5px; color:#78350f; margin:14px 0; }
   .note b { color:var(--amber); }
+  .done { background:var(--green-bg); border:1px solid #bbf7d0; border-radius:12px; padding:14px 18px; font-size:13.5px; color:#166534; margin:14px 0; }
+  .done b { color:var(--green); }
+  .ask { background:var(--red-bg); border:1px solid #fecaca; border-radius:12px; padding:14px 18px; font-size:13.5px; color:#991b1b; margin:14px 0; }
+  .ask b { color:var(--red); }
 
   .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
-  .btn {
-    display:inline-flex; align-items:center; gap:7px; font-family:inherit;
-    font-size:13.5px; font-weight:700; padding:11px 20px; border-radius:100px;
-    border:none; cursor:pointer; text-decoration:none; transition:.15s;
-  }
+  .btn { display:inline-flex; align-items:center; gap:7px; font-family:inherit; font-size:13.5px; font-weight:700; padding:11px 20px; border-radius:100px; border:none; cursor:pointer; text-decoration:none; transition:.15s; }
   .btn-p { background:var(--brand); color:#fff; }
   .btn-p:hover { background:var(--brand-d); }
   .btn-g { background:#fff; color:var(--g600); border:1.5px solid var(--g200); }
@@ -89,7 +93,7 @@
     .page-hdr p, .hdr-meta, .eyebrow { color:var(--g500); }
     .hdr-meta strong { color:var(--g700); }
     .card { border:none; padding:0; margin-bottom:16px; break-inside:avoid; }
-    table, .note, .banner { break-inside:avoid; }
+    table, .note, .banner, .done, .ask { break-inside:avoid; }
   }
   @media (max-width:640px) {
     .page-hdr { padding:24px 22px; }
@@ -105,7 +109,7 @@
   <div class="page-hdr">
     <div class="eyebrow">介護施設検索システム ／ 納品書 v2.8 別紙</div>
     <h1>元データについて確認をお願いしたい点</h1>
-    <p>260712 介護情報リスト（豊中市・吹田市・茨木市・池田市・箕面市）</p>
+    <p>260712 介護情報リスト（豊中市・吹田市・茨木市・池田市・箕面市／全476施設）</p>
     <div class="hdr-meta">
       <div><strong>宛先</strong>Meets Medical 御中</div>
       <div><strong>作成日</strong>2026年7月14日</div>
@@ -119,71 +123,163 @@
     以下は<b>元データ（Excel）の内容</b>についての確認事項です。</div>
   </div>
 
+  <div class="summary">
+    <div class="sm red"><div class="sm-n">7</div><div class="sm-l">要確認（数値の誤り）</div></div>
+    <div class="sm amber"><div class="sm-n">12</div><div class="sm-l">要確認（リストから除外）</div></div>
+    <div class="sm green"><div class="sm-n">6</div><div class="sm-l">確認済み・対応不要</div></div>
+  </div>
+
+  <!-- ① 食費 -->
   <div class="card">
     <div class="sec-hd">
-      <div class="sec-num">1</div>
-      <div class="sec-title">月額合計が内訳と合わない行が6件あります</div>
+      <div class="sec-num red">1</div>
+      <div class="sec-title">食費が1食あたり133円になっている施設が2件</div>
     </div>
+    <p class="sec-sub">同じ運営会社の2施設で同じ値のため、記入ミスの可能性が高いと考えています。</p>
 
-    <p>
-      システムは月額を <b>「家賃＋食費＋管理費」で再計算して表示</b> しています。そのため内訳が正しければ表示に問題はありませんが、
-      Excelの「月額合計」欄の数字と一致しない行が6件ありました。<b>どちらが正しいかご教示ください。</b>
-    </p>
-
-    <h3>うち3件は、月額合計の欄で1列が足されていないように見えます</h3>
     <table>
       <tr>
-        <th style="width:30%">施設名</th><th style="width:8%">市</th>
-        <th style="width:14%">月額合計</th><th style="width:14%">内訳の合計</th><th>推定される原因</th>
+        <th style="width:28%">施設名</th><th style="width:8%">市</th>
+        <th style="width:14%">食費（3食月額）</th><th style="width:13%">1食あたり</th><th>備考</th>
       </tr>
       <tr>
-        <td class="nm">住宅型有料老人ホームアイフリー豊中</td><td>豊中</td>
-        <td class="num bad">70,000円</td><td class="num">121,000円</td>
-        <td class="cause">家賃42,000＋管理費28,000＝70,000。<b>食費51,000が未加算</b></td>
+        <td class="nm">ロイヤルホーム健都</td><td>吹田</td>
+        <td class="num bad">12,000円</td><td class="num bad">約133円</td>
+        <td class="cause">3食×30日＝90食で割り戻すと1食133円。<b>他のサ高住の相場は1食500〜600円</b></td>
       </tr>
       <tr>
-        <td class="nm">住宅型有料老人ホームアイフリー立花</td><td>豊中</td>
-        <td class="num bad">70,000円</td><td class="num">118,000円</td>
-        <td class="cause">家賃42,000＋管理費28,000＝70,000。<b>食費48,000が未加算</b></td>
-      </tr>
-      <tr>
-        <td class="nm">グループホームユーアイ緑丘</td><td>豊中</td>
-        <td class="num bad">107,700円</td><td class="num">142,700円</td>
-        <td class="cause">家賃60,000＋食費47,700＝107,700。<b>管理費35,000が未加算</b></td>
+        <td class="nm">ロイヤルホーム池田五月丘</td><td>池田</td>
+        <td class="num bad">12,000円</td><td class="num bad">約133円</td>
+        <td class="cause">同上。同じ運営会社・同じ金額</td>
       </tr>
     </table>
 
-    <h3>残る3件は差が小さく、入力ミスか端数処理と思われます</h3>
+    <div class="ask">
+      <b>ご確認ください。</b>「3食月額」の欄に、1日分や一部の食事代のみが入っていませんか？
+      正しい月額をご教示いただければ修正します。
+    </div>
+  </div>
+
+  <!-- ② 敷金 -->
+  <div class="card">
+    <div class="sec-hd">
+      <div class="sec-num red">2</div>
+      <div class="sec-title">注意書きに敷金の記載があるのに、敷金欄が0円の施設が5件</div>
+    </div>
+    <p class="sec-sub">敷金欄が空欄（0円）ですが、同じ行の注意書きには「敷金が必要」と書かれています。</p>
+
     <table>
       <tr>
         <th style="width:30%">施設名</th><th style="width:8%">市</th>
-        <th style="width:14%">月額合計</th><th style="width:14%">内訳の合計</th><th>差</th>
+        <th style="width:10%">敷金欄</th><th>注意書きの記載</th>
+      </tr>
+      <tr>
+        <td class="nm">グループホームお多福の家</td><td>茨木</td>
+        <td class="num bad">0円</td>
+        <td><span class="quote">※保証金150,000円（入居時前払金）</span>
+        <div class="cause" style="margin-top:4px"><b>金額が明記されています。150,000円で登録してよろしいですか？</b></div></td>
+      </tr>
+      <tr>
+        <td class="nm">ブランシエール千里中央</td><td>豊中</td>
+        <td class="num bad">0円</td>
+        <td><span class="quote">※年払い方式、月払い方式は、敷金として家賃3ヵ月分相当額が必要です。</span>
+        <div class="cause" style="margin-top:4px">家賃244,000円 × 3ヶ月 ＝ <b>732,000円</b>と計算できますが、この値で登録してよいかご判断ください。</div></td>
+      </tr>
+      <tr>
+        <td class="nm">パークウェルステイト千里中央</td><td>豊中</td>
+        <td class="num bad">0円</td>
+        <td><span class="quote">※敷金（前払方式：月額賃料相当額1か月相当分、月払方式：月額賃料額6か月相当分）が別途必要</span>
+        <div class="cause" style="margin-top:4px">方式によって1ヶ月分・6ヶ月分と変わるため、<b>どちらを掲載するかご指示ください。</b></div></td>
+      </tr>
+      <tr>
+        <td class="nm">エイジフリーハウス豊中庄内栄町</td><td>豊中</td>
+        <td class="num bad">0円</td>
+        <td><span class="quote">※前払い金不要（敷金は家賃の3ヶ月分必要）</span></td>
+      </tr>
+      <tr>
+        <td class="nm">エイジフリーハウス豊中インター西</td><td>豊中</td>
+        <td class="num bad">0円</td>
+        <td><span class="quote">※前払い金不要（敷金は家賃の3ヶ月分必要）</span></td>
+      </tr>
+    </table>
+
+    <div class="ask">
+      <b>敷金は「入居時費用」として検索結果に表示される項目です。</b>
+      0円のままだと「初期費用が一切かからない施設」として表示され、実態と食い違います。
+      「家賃の◯ヶ月分」を金額に換算して登録してよいか、ご判断をお願いします。
+      <b>こちらで勝手に計算して入れることはしていません。</b>
+    </div>
+
+    <div class="done">
+      <b>なお、以下は確認のうえ「正常」と判断しました。</b><br>
+      ・<b>特養68件・老健29件</b>の入居時費用が全件0円 → 制度上、敷金・一時金がないため正常<br>
+      ・<b>前払金の記載があるのに一時金0円の24件</b> → 「前払金なし・月額払い方式」または別プランの説明で、採用している月払いプランでは0円が正しい
+    </div>
+  </div>
+
+  <!-- ③ 月額合計（解決済み） -->
+  <div class="card">
+    <div class="sec-hd">
+      <div class="sec-num green">3</div>
+      <div class="sec-title">月額合計が内訳と合わない行が6件 ─ 確認済み・対応不要</div>
+    </div>
+    <p class="sec-sub">
+      システムは月額を<b>「家賃＋食費＋管理費」で再計算して表示</b>しています。Excelの「月額合計」欄は参照していません。
+    </p>
+
+    <div class="done">
+      <b>✅ 6件すべて「内訳の合計が正しい」とご確認いただきました。データの修正は不要です。</b><br>
+      システムはすでに内訳から再計算した正しい金額を表示しており、Excelの「月額合計」欄のみが誤っている状態です。
+      <b>元のExcelを今後も台帳としてお使いになる場合は、そちらの合計欄をご修正いただくとよいかと思います。</b>
+    </div>
+
+    <table>
+      <tr>
+        <th style="width:30%">施設名</th><th style="width:8%">市</th>
+        <th style="width:15%">Excelの月額合計</th><th style="width:15%">システムの表示<br>（＝正しい値）</th><th>Excel側の誤り</th>
+      </tr>
+      <tr>
+        <td class="nm">住宅型有料老人ホームアイフリー豊中</td><td>豊中</td>
+        <td class="num bad">70,000円</td><td class="num good">121,000円</td>
+        <td class="cause">合計欄で<b>食費51,000円が未加算</b></td>
+      </tr>
+      <tr>
+        <td class="nm">住宅型有料老人ホームアイフリー立花</td><td>豊中</td>
+        <td class="num bad">70,000円</td><td class="num good">118,000円</td>
+        <td class="cause">合計欄で<b>食費48,000円が未加算</b></td>
+      </tr>
+      <tr>
+        <td class="nm">グループホームユーアイ緑丘</td><td>豊中</td>
+        <td class="num bad">107,700円</td><td class="num good">142,700円</td>
+        <td class="cause">合計欄で<b>管理費35,000円が未加算</b></td>
       </tr>
       <tr>
         <td class="nm">認知症高齢者グループホーム憩〜北千里〜</td><td>吹田</td>
-        <td class="num">152,000円</td><td class="num">157,000円</td><td class="num">−5,000円</td>
+        <td class="num bad">152,000円</td><td class="num good">157,000円</td>
+        <td class="cause">合計欄が内訳より<b>5,000円少ない</b></td>
       </tr>
       <tr>
         <td class="nm">グループホーム輝豊苑</td><td>豊中</td>
-        <td class="num">127,500円</td><td class="num">126,900円</td><td class="num">＋600円</td>
+        <td class="num bad">127,500円</td><td class="num good">126,900円</td>
+        <td class="cause">合計欄が内訳より<b>600円多い</b></td>
       </tr>
       <tr>
         <td class="nm">認知症高齢者グループホームハピネスさんあい</td><td>吹田</td>
-        <td class="num">152,000円</td><td class="num">151,500円</td><td class="num">＋500円</td>
+        <td class="num bad">152,000円</td><td class="num good">151,500円</td>
+        <td class="cause">合計欄が内訳より<b>500円多い</b></td>
       </tr>
     </table>
   </div>
 
+  <!-- ④ リストから外れた施設 -->
   <div class="card">
     <div class="sec-hd">
-      <div class="sec-num">2</div>
+      <div class="sec-num">4</div>
       <div class="sec-title">前回リストにあった12施設が、今回のリストから外れています</div>
     </div>
+    <p class="sec-sub">すべて住宅型有料です。今回のリストに載っていなかったため、システムからは削除しました。</p>
 
-    <p>
-      すべて<b>住宅型有料</b>です。今回のリストに載っていなかったため、システムからは削除しました。
-      <b>意図的に除外されたものであれば、このままで問題ありません。</b>
-    </p>
+    <p style="font-size:14px"><b>意図的に除外されたものであれば、このままで問題ありません。</b></p>
 
     <div class="note">
       <b>⚠ もし手違いで漏れた場合は、お早めにお知らせください。</b>

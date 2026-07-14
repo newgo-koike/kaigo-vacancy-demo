@@ -663,8 +663,9 @@
         </div>
       </div>
       <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">
-        <strong>⚠ 元データについて確認をお願いしたい点</strong>：今回のExcelで<strong>「月額合計」欄と内訳（家賃＋食費＋管理費）が一致しない行が6件</strong>ありました（うち3件は合計欄で1列が未加算と見られます）。また<strong>前回リストにあった12施設が今回のリストから外れて</strong>いたため削除しています。検索画面は<strong>内訳から月額を再計算して表示</strong>しているため表示は破綻しませんが、正しい金額をご教示ください。<br>
-        <a href="kaigo-data-check-260714.html" style="display:inline-block;margin-top:6px;color:var(--blue);font-weight:800;text-decoration:underline">▶ 詳細はこちら（該当施設の一覧・差額の内訳）</a>
+        <strong>⚠ 元データについて確認をお願いしたい点</strong>：全476件を1件ずつ照合したところ、<strong>食費が1食あたり133円になっている2施設</strong>と、<strong>注意書きに「敷金が必要」とあるのに敷金欄が0円の5施設</strong>が見つかりました。正しい金額をご教示ください。また<strong>前回リストにあった12施設が今回のリストから外れて</strong>いたため削除しています。<br>
+        なお「月額合計」欄と内訳が一致しない6件は、<strong>内訳の合計が正しい旨をご確認いただき解決済み</strong>です（システムは内訳から再計算しているため、表示は正しい金額になっています）。<br>
+        <a href="kaigo-data-check-260714.html" style="display:inline-block;margin-top:6px;color:var(--blue);font-weight:800;text-decoration:underline">▶ 詳細はこちら（該当施設の一覧・確認事項）</a>
       </div>
       <h3>🆕 v2.6 → v2.7 の主な変更点（2026/7/9）</h3>
       <div class="new-grid">
@@ -1196,7 +1197,7 @@
       <tr><td>入力済み</td><td>施設名・種別・住所・アクセス（路線／最寄り駅／徒歩・バス所要時間）・入居一時金・敷金・家賃・食費・管理費・費用の注意書き・出典URL・介護事業所番号</td></tr>
       <tr><td>仮設定済み</td><td>こだわりタグ・入居条件（生活保護・身元保証・介護認定）= 施設種別に応じたデフォルト値。実態と異なる可能性あり</td></tr>
       <tr><td>未入力</td><td>電話番号・担当者名・写真（元リストに項目がないため）</td></tr>
-      <tr><td>要確認・更新</td><td>空室数（現在すべて0）・写真・タグの正確性・入居条件の正確な可否<br><span style="font-size:11px;color:var(--amber)">▶ 施設への訪問時に確認・修正を推奨</span><br>元Excelで「月額合計」欄と内訳が一致しない行が6件あります（別紙「確認事項」参照）</td></tr>
+      <tr><td>要確認・更新</td><td>空室数（現在すべて0）・写真・タグの正確性・入居条件の正確な可否<br><span style="font-size:11px;color:var(--amber)">▶ 施設への訪問時に確認・修正を推奨</span><br>元Excelの食費が疑わしい2施設・敷金が0円のまま注意書きに記載がある5施設（別紙「確認事項」参照）</td></tr>
       <tr><td>次フェーズ</td><td>空室情報の収集と施設アカウントの発行 ／ 他市への展開（全国展開は1,000〜4,000件想定）</td></tr>
     </table>
   </div>
