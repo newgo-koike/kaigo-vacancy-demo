@@ -150,10 +150,27 @@
   <div class="stat"><div class="stat-num" style="color:#ef4444" id="st-stale">—</div><div class="stat-lbl">14日以上未更新</div></div>
   <div class="stat-sep"></div>
   <div class="stat"><div class="stat-num" style="color:var(--brand)" id="st-approved">—</div><div class="stat-lbl">掲載承認済</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat" style="cursor:pointer" onclick="toggleAlerts()" title="クリックで内訳を表示">
+    <div class="stat-num" style="color:#dc2626" id="st-alerts">—</div><div class="stat-lbl">⚠ 要確認データ</div>
+  </div>
   <div class="search-wrap">
     <span class="search-ico">🔍</span>
     <input class="search-inp" id="q" type="text" placeholder="施設名・エリアで絞り込み..." oninput="renderTable()">
   </div>
+</div>
+
+<!-- データ品質アラート -->
+<div id="alerts-panel" class="hidden px-6 py-4 bg-amber-50 border-b border-amber-200">
+  <div class="flex items-center justify-between mb-2">
+    <p class="text-sm font-bold text-amber-800">⚠ 要確認データ</p>
+    <button onclick="toggleAlerts()" class="text-xs text-amber-700 hover:underline">閉じる</button>
+  </div>
+  <p class="text-xs text-amber-700 mb-3">
+    「高い・安い」ではなく<b>明らかな入力ミスと判断できるもの</b>だけを検出しています。
+    高級施設（入居一時金1,800万円など）は正常な値として扱い、アラートを出しません。
+  </p>
+  <div id="alerts-list" class="space-y-1.5"></div>
 </div>
 
 <div class="table-wrap">
@@ -442,11 +459,21 @@ function startApp() {
           name: d.name || '名称未設定',
           type: d.type || '',
           area: d.area || '',
+          city: d.city || '',
           vacancy: typeof d.vacancy === 'number' ? d.vacancy : 0,
           plan: d.plan || 'free',
           updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
           daysAgo,
           approved: d.approved === true,
+          // データ品質チェック用
+          rent: d.rent ?? 0,
+          mealFee: d.mealFee ?? 0,
+          managementFee: d.managementFee ?? 0,
+          initialFeeAmount: d.initialFeeAmount ?? 0,
+          depositAmount: d.depositAmount ?? 0,
+          feeNotes: d.feeNotes || '',
+          address: d.address || '',
+          station: d.station || '',
         };
       });
       updateStats();
@@ -464,6 +491,96 @@ function updateStats() {
   document.getElementById('st-full').textContent  = DATA.filter(f => f.vacancy === 0).length;
   document.getElementById('st-stale').textContent    = DATA.filter(f => f.daysAgo > 14).length;
   document.getElementById('st-approved').textContent = DATA.filter(f => f.approved).length;
+  renderAlerts();
+}
+
+/* ── データ品質アラート ────────────────────────────────────────
+   「相場から外れている」では判定しない。介護施設の費用は種別で4倍以上開きがあり、
+   入居一時金1,800万円の前払い方式のような正常な高額施設も実在するため、
+   統計的な外れ値を出すと高級施設ばかりが並んでアラートが形骸化する。
+   ここでは「その値では現実にあり得ない」「記載同士が矛盾している」ものだけを拾う。 */
+const MEALS_PER_MONTH = 90;   // 3食 × 30日
+
+function detectAlerts() {
+  const out = [];
+  const yen = n => Number(n).toLocaleString() + '円';
+
+  DATA.forEach(f => {
+    const total = f.rent + f.mealFee + f.managementFee;
+    const push = (level, msg) => out.push({ f, level, msg });
+
+    // 単位の取り違え。登録画面のラベルが「万円」なので、生の数値を入れると1万分の1になる
+    [['家賃', f.rent], ['食費', f.mealFee], ['管理費', f.managementFee]].forEach(([k, v]) => {
+      if (v > 0 && v < 1000) push('error', `${k}が${yen(v)}。万円単位で入力された疑い`);
+    });
+
+    // 月額が生活不可能な水準
+    if (total === 0)         push('error', '月額費用がすべて0円（未入力の疑い）');
+    else if (total < 30000)  push('error', `月額合計が${yen(total)}。低すぎる（入力漏れの疑い）`);
+
+    // 食費を1食あたりに割り戻して現実性を見る
+    if (f.mealFee > 0) {
+      const per = Math.round(f.mealFee / MEALS_PER_MONTH);
+      if (per < 150)  push('error', `食費が1食あたり約${per}円。安すぎる（3食月額の欄に1日分等が入っている疑い）`);
+      if (per > 2500) push('error', `食費が1食あたり約${per.toLocaleString()}円。高すぎる`);
+    }
+
+    // 注意書きと金額欄の矛盾。「敷金が必要」と書いてあるのに0円は記載漏れ
+    if (f.depositAmount === 0 && /敷金|保証金/.test(f.feeNotes)) {
+      const line = (f.feeNotes.match(/[^\n]*(?:敷金|保証金)[^\n]*/) || [''])[0].trim();
+      push('error', `敷金欄が0円だが、注意書きに敷金の記載あり：「${line.slice(0, 60)}」`);
+    }
+
+    // 必須項目
+    if (!f.address) push('error', '住所が未入力');
+    if (!f.station) push('warn',  '最寄り駅が未入力');
+
+    // 誤りとは限らないが目視したいもの
+    if (total > 600000) push('warn', `月額合計が${yen(total)}。高額なため要確認`);
+  });
+
+  return out;
+}
+
+function renderAlerts() {
+  const alerts = detectAlerts();
+  const errs = alerts.filter(a => a.level === 'error');
+  const el = document.getElementById('st-alerts');
+  if (el) {
+    el.textContent = errs.length;
+    el.style.color = errs.length ? '#dc2626' : 'var(--ok)';
+  }
+
+  const list = document.getElementById('alerts-list');
+  if (!list) return;
+  if (!alerts.length) {
+    list.innerHTML = '<p class="text-xs text-emerald-700 font-bold">✅ 要確認のデータはありません</p>';
+    return;
+  }
+  // 施設ごとにまとめる（1施設で複数の指摘が出ることがある）
+  const byFac = new Map();
+  alerts.forEach(a => {
+    if (!byFac.has(a.f.id)) byFac.set(a.f.id, { f: a.f, msgs: [] });
+    byFac.get(a.f.id).msgs.push(a);
+  });
+  const rows = [...byFac.values()].sort((a, b) =>
+    (b.msgs.some(m => m.level === 'error') ? 1 : 0) - (a.msgs.some(m => m.level === 'error') ? 1 : 0));
+
+  list.innerHTML = rows.map(({ f, msgs }) => {
+    const isErr = msgs.some(m => m.level === 'error');
+    return `<div class="px-3 py-2 rounded-lg border ${isErr ? 'bg-red-50 border-red-200' : 'bg-white border-amber-200'}">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isErr ? 'bg-red-600 text-white' : 'bg-amber-500 text-white'}">${isErr ? '要修正' : '要確認'}</span>
+        <a href="kaigo-facility-view.html?id=${f.id}" target="_blank" class="text-sm font-bold text-slate-800 hover:underline">${f.name}</a>
+        <span class="text-[11px] text-slate-400">${f.type} / ${f.city}</span>
+      </div>
+      ${msgs.map(m => `<div class="text-[11px] ${m.level === 'error' ? 'text-red-700' : 'text-amber-700'} mt-0.5">・${m.msg}</div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function toggleAlerts() {
+  document.getElementById('alerts-panel').classList.toggle('hidden');
 }
 
 function renderTable() {
