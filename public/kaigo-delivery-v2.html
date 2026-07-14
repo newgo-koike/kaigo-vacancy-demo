@@ -246,7 +246,7 @@
       <div class="cl-day-hd">
         <div>
           <div class="cl-date">2026年7月14日</div>
-          <div class="cl-subtitle">施設データを5市・計476施設に刷新（池田市・箕面市を新規追加）・検索カードの費用欄を可読化</div>
+          <div class="cl-subtitle">施設データを5市・計476施設に刷新（池田市・箕面市を新規追加）／入居時費用まわりの表示・絞り込みを「一時金＋敷金」に統一／病院アカウントの担当者名を整備</div>
         </div>
       </div>
       <div class="cl-items">
@@ -274,9 +274,37 @@
           <span class="cl-tag added">追加</span>
           <div class="cl-txt"><strong>管理者ダッシュボードに「病院一覧（ログインID配布用）」</strong><br>病院名・エリア・ログインID・パスワード・担当者を一覧表示。絞り込み、<strong>配布用CSV出力</strong>、印刷に対応しました。<strong>「＋病院を追加」</strong>から病院名を入れるだけで、未使用のランダム4桁を採番してアカウントを即発行できます。</div>
         </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>「入居一時金あり」で絞り込むと大半の施設が出てこなかった問題を修正（26件→234件）</strong><br>絞り込みが<strong>Excelの「入居一時金」列だけを見ていて、敷金・保証金を無視していた</strong>ことが原因です。入居時費用がかかる234施設のうち<strong>208施設が検索から漏れて</strong>いました（池田市は52件中2件しかヒットしない状態）。<br>表示側と揃えて<strong>「入居一時金＋敷金のいずれかがかかる施設＝あり」</strong>に統一し、項目名も<strong>「入居時費用（一時金＋敷金）」</strong>に変更しました。<br><span style="color:var(--g500)">修正後：豊中13→70件・吹田6→58件・茨木2→45件・池田2→31件・箕面3→30件。「なし」側に費用のある施設が混ざっていないことも全476件で検証済みです（特養68件・老健29件は制度上0円のため正しく「なし」になります）。</span></div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>施設詳細ページの入居時費用が0円と表示されていた問題を修正（211施設）</strong><br>検索結果には入居時費用が出ているのに、施設をクリックした詳細ページでは0円と表示される施設がありました。詳細ページが<strong>敷金を合算していなかった</strong>ことが原因です。検索・詳細・資料出力の3画面すべてで<strong>「入居一時金＋敷金」</strong>の合算に統一しました。データ自体は正しく入っており、表示だけの問題でした。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>敷金の表示を統一（「0円」と空欄が混在していた問題）</strong><br>施設詳細の費用欄で、敷金が「0円」と出る施設と何も表示されない施設が混在していました。<strong>常に「一時金」「敷金」の内訳を並べて表示</strong>するよう統一し、「一時金は返還なし／敷金は退去時に返還されます」の注記も追加しました。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>管理者ダッシュボードに「⚠ 要確認データ」アラート</strong><br>明らかにおかしい数値を自動で検出して一覧表示します（食費が1食あたり極端に安い／高い、月額が全項目0円、注意書きに敷金の記載があるのに敷金欄が0円、住所や最寄り駅の未入力 など）。<br><span style="color:var(--g500)">※「相場より高い／安い」ではなく<strong>入力ミスと判断できるもの</strong>だけを出します。入居一時金1,800万円のような高額施設は正常なため、アラートにはなりません。</span></div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>病院アカウントの「担当者名」と「病院名」を分離（136病院）</strong><br>一括発行した各病院の <code>-01</code> アカウントは、担当者名の欄にも病院名が入っていました。あとから追加した担当者は個人名なので、同じ欄に病院名と個人名が混ざっていた状態です。<strong>担当者名＝個人名、病院名＝病院名</strong>と役割を分け、担当者名がわからないうちは<strong>「担当者名 未設定」</strong>と表示するようにしました。検索画面のヘッダーも「〇〇病院 さん」ではなく病院名を表示します。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>担当者名を管理画面から入力できるように</strong><br>病院一覧で担当者ごとに <strong>✏️</strong> を押すと、その場で担当者名を入力・変更できます。上部に「担当者名 未設定 ○名」と残数が出るので、訪問して聞けた病院から順に埋めていけます。病院を追加するフォームにも<strong>担当者名（任意）</strong>欄を追加しました。病院側の担当者管理画面からも入力できます（安全のため、病院が変更できるのは自病院の担当者の<strong>名前だけ</strong>です）。</div>
+        </div>
         <div class="cl-item added">
           <span class="cl-tag added">追加</span>
           <div class="cl-txt"><strong>病院への訪問マニュアルを追加</strong><br>「使ってみてください」と渡すまでの7ステップと想定問答をセクション7にまとめました。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>元データの確認事項をまとめた別紙を作成</strong><br>全476件を照合して見つかった「元データ側で確認が必要な点」を <a href="kaigo-data-check-260714.html" style="color:var(--blue);font-weight:700">別紙ページ</a> にまとめました（印刷・PDF保存に対応）。</div>
         </div>
       </div>
     </div>
@@ -660,6 +688,18 @@
         <div class="new-item">
           <div class="new-item-title">🛡 取り込みツールを安全化（4段階方式）</div>
           <div class="new-item-desc">バックアップ →（書き込まずに）差分確認 → 適用 → 検証の順に進む方式に。施設IDを維持したまま更新するので、ログイン・QR・URL・写真が切れません。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">💰 入居時費用を「一時金＋敷金」に統一</div>
+          <div class="new-item-desc">絞り込みが敷金を無視していたため「入居一時金あり」で26件しか出ませんでした（実際は234件）。検索・詳細・資料出力の3画面すべてを合算表示に揃えました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏥 病院IDをランダム4桁に・担当者名を整備</div>
+          <div class="new-item-desc">連番だったコードを重複しないランダム4桁に一括変更。担当者名と病院名を分離し、管理画面の ✏️ から担当者名を入力できるようにしました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">⚠ 要確認データの自動アラート</div>
+          <div class="new-item-desc">食費が1食あたり極端に安い／高い、月額が全項目0円、注意書きに敷金の記載があるのに0円 など、入力ミスと判断できるものを管理画面に一覧表示します。</div>
         </div>
       </div>
       <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">

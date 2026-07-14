@@ -444,12 +444,13 @@
     <div class="sb-sec">
       <div class="sb-sec-hd"><span class="sb-sec-title">費用</span></div>
       <div class="f-grp">
-        <label class="f-lbl">初期費用（入居一時金）</label>
+        <label class="f-lbl">入居時費用（一時金＋敷金）</label>
         <div class="radio-row" id="init-fee-radios">
           <label class="radio-chip on"><input type="radio" name="init-fee" value="all" checked onchange="syncRadioChip(this)">指定なし</label>
           <label class="radio-chip"><input type="radio" name="init-fee" value="yes" onchange="syncRadioChip(this)">あり</label>
           <label class="radio-chip"><input type="radio" name="init-fee" value="no" onchange="syncRadioChip(this)">なし</label>
         </div>
+        <p style="font-size:11px;color:#8c8c8c;margin-top:6px;line-height:1.6">入居一時金・敷金・保証金のいずれかがかかる施設を「あり」とします。</p>
       </div>
       <div class="f-grp">
         <label class="f-lbl">月額（万円）</label>
@@ -827,8 +828,9 @@ function liveFilter() {
     if (pref    && f.prefecture !== pref) return false;
     if (city    && f.city !== city) return false;
     if (station && !f.searchText.includes(station)) return false;
-    if (initFee === 'yes' && !f.initialFee) return false;
-    if (initFee === 'no'  &&  f.initialFee) return false;
+    // 入居時費用は「一時金＋敷金」。敷金だけかかる施設（211件）を取りこぼさない。
+    if (initFee === 'yes' && !f.hasInitialCost) return false;
+    if (initFee === 'no'  &&  f.hasInitialCost) return false;
     if (types.length && !types.includes(f.type)) return false;
     if (!VACANCY_INQUIRY && activeVac === 'ok' && f.vacancy === 0) return false;
     if (selectedTags.size && ![...selectedTags].every(t => f.features.includes(t))) return false;
@@ -908,6 +910,8 @@ function mapDoc(doc) {
     initialFeeAmountYen: d.initialFeeAmount ?? null,
     depositAmount: w(d.depositAmount ?? null),
     depositAmountYen: d.depositAmount ?? null,
+    // 「入居時費用あり」の判定。一時金・敷金のどちらか、または旧フラグが立っていれば「あり」。
+    hasInitialCost: ((d.initialFeeAmount || 0) + (d.depositAmount || 0)) > 0 || !!d.initialFee,
     rent, mgmt, meal, other, hasBreakdown,
     rentYen, mgmtYen, mealYen, otherYen,
     monthlyTotal,
@@ -1359,7 +1363,7 @@ function renderFilterChips() {
   if (station) chips.push({ label: `検索: ${station}`, clear: () => { document.getElementById('q-station').value=''; liveFilter(); }});
 
   const initFee = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
-  if (initFee !== 'all') chips.push({ label: initFee === 'yes' ? '初期費用あり' : '初期費用なし', clear: () => {
+  if (initFee !== 'all') chips.push({ label: initFee === 'yes' ? '入居時費用あり' : '入居時費用なし', clear: () => {
     const r = document.querySelector('input[name="init-fee"][value="all"]');
     r.checked = true; syncRadioChip(r);
   }});
