@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.7 | 介護施設検索システム</title>
+  <title>納品書 v2.8 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -198,12 +198,12 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.7</div>
+  <div class="v2-badge">✨ v2.8</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.7</p>
+  <p>納品書・仕様書・操作マニュアル　v2.8</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
-    <div class="delivery-meta-item"><strong>最終更新</strong>2026年6月23日</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年7月14日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
     <div class="delivery-meta-item"><strong>システム名</strong>介護施設検索システム</div>
     <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
@@ -240,6 +240,34 @@
       .cl-txt { font-size:13px; color:var(--g700); line-height:1.6; }
       .cl-txt strong { color:var(--g900); }
     </style>
+
+    <!-- 2026/7/14 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月14日</div>
+          <div class="cl-subtitle">施設データを5市・計476施設に刷新（池田市・箕面市を新規追加）・検索カードの費用欄を可読化</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設データを最新版（260712リスト）に全面更新／計476施設</strong><br>豊中市154件・吹田市116件・茨木市104件・<strong>池田市52件・箕面市50件</strong>の5市を最新の介護情報リストで刷新。池田市・箕面市は新規追加です。既存374施設は最新の費用（入居一時金・敷金・家賃・食費・管理費）と注意書きに更新し、新規102施設を追加、今回のリストから外れた12施設（豊中4・吹田8）を削除しました。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>取り込み専用ツールを新設（バックアップ→差分確認→適用→検証の4段階）</strong><br>書き込み前に必ず全データをJSONでバックアップし、「何件が更新・追加・削除されるか」を1件も書き込まずに確認してから実行する方式に。<strong>施設ドキュメントIDを維持したまま更新</strong>するため、施設ログイン・配布済みQR・施設詳細URL・写真の保存先が切れません。取り込み後は全476件×全項目を照合し、取りこぼし・入力誤りがないことを検証済みです。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索結果カードの費用欄を見やすく改善</strong><br>施設名と費用欄の間が空きすぎて費用の内訳（賃料・管理費・食費）が小さく潰れていた問題を解消。結果リストに最大幅を設定して余白を詰め、費用欄を約1.8倍に拡張。内訳の数字が判読できるサイズになりました。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>施設種別の表記ゆれを吸収</strong><br>元Excelの略記（介護付／住宅型／GH）を、検索画面の絞り込みが使う正式名称（介護付有料／住宅型有料／グループホーム）に変換して登録。そのまま入れると種別で絞り込んだ際に該当施設が表示されない状態になるため。</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 2026/7/9 -->
     <div class="cl-day">
@@ -600,9 +628,31 @@
   <div class="sec" style="margin-top:0">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">★</div>
-      <div class="sec-title">v2.7 で追加・変更されたこと</div>
+      <div class="sec-title">v2.8 で追加・変更されたこと</div>
     </div>
     <div class="whats-new">
+      <h3>🆕 v2.7 → v2.8 の主な変更点（2026/7/14）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">🏙 池田市・箕面市を新規追加（5市・計476施設）</div>
+          <div class="new-item-desc">池田市52件・箕面市50件を新たに登録。豊中市154件・吹田市116件・茨木市104件と合わせ、北摂5市で計476施設になりました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">💴 全施設の費用を最新リストに刷新</div>
+          <div class="new-item-desc">既存374施設の入居一時金・敷金・家賃・食費・管理費・注意書きを260712リストの内容に更新。リストから外れた12施設は削除しました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔍 検索カードの費用欄を見やすく</div>
+          <div class="new-item-desc">施設名と費用の間の余白を詰め、費用欄を約1.8倍に拡張。潰れていた賃料・管理費・食費の内訳が判読できるサイズになりました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🛡 取り込みツールを安全化（4段階方式）</div>
+          <div class="new-item-desc">バックアップ →（書き込まずに）差分確認 → 適用 → 検証の順に進む方式に。施設IDを維持したまま更新するので、ログイン・QR・URL・写真が切れません。</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">
+        <strong>⚠ 元データについて確認をお願いしたい点</strong>：今回のExcelで<strong>「月額合計」欄と内訳（家賃＋食費＋管理費）が一致しない行が6件</strong>ありました（うち3件は合計欄で1列が未加算と見られます）。検索画面は<strong>内訳から月額を再計算して表示</strong>しているため表示は破綻しませんが、正しい金額をご教示ください。別途「確認事項」資料をお渡ししています。
+      </div>
       <h3>🆕 v2.6 → v2.7 の主な変更点（2026/7/9）</h3>
       <div class="new-grid">
         <div class="new-item">
@@ -677,6 +727,11 @@
       </div>
       <h3 style="margin-top:26px">📜 これまでのアップデート履歴</h3>
       <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-top:8px">
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.8</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/14</span>
+          <span>施設データを5市・計476施設に刷新（池田市・箕面市を新規追加／更新374・新規102・削除12）／取り込みツールを4段階の安全方式で新設（施設IDを維持）／検索カードの費用欄を可読化／施設種別の表記ゆれを吸収</span>
+        </div>
         <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
           <span style="font-weight:800;color:var(--purple);min-width:66px">v2.7</span>
           <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/9</span>
@@ -1067,7 +1122,7 @@
         <div class="field-item"><div class="field-name">name</div><div class="field-desc">施設名</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">type</div><div class="field-desc">施設種別（特養 / 老健 / グループホーム / サ高住 / 介護付有料 / 住宅型有料）</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">prefecture</div><div class="field-desc">都道府県（大阪府 など）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">city</div><div class="field-desc">市区町村（豊中市 / 吹田市 / 茨木市 など）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">city</div><div class="field-desc">市区町村（豊中市 / 吹田市 / 茨木市 / 池田市 / 箕面市）</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">area</div><div class="field-desc">エリア名（庄内 / 岡町 / 曽根 など）</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">address</div><div class="field-desc">住所</div><div class="field-type">string</div></div>
         <div class="field-item"><div class="field-name">station</div><div class="field-desc">最寄り駅名</div><div class="field-type">string</div></div>
@@ -1096,39 +1151,40 @@
   <div class="sec">
     <div class="sec-hd">
       <div class="sec-num">5</div>
-      <div class="sec-title">現在のデータ状況（2026年6月時点）</div>
+      <div class="sec-title">現在のデータ状況（2026年7月14日時点）</div>
     </div>
 
     <div class="data-status-grid">
       <div class="data-status-card ok">
         <div class="data-status-label">登録施設数</div>
-        <div class="data-status-value">154件</div>
-        <div class="data-status-note">豊中市内全介護施設を一括インポート済み</div>
+        <div class="data-status-value">476件</div>
+        <div class="data-status-note">豊中154・吹田116・茨木104・池田52・箕面50（北摂5市）</div>
       </div>
       <div class="data-status-card warn">
         <div class="data-status-label">空室数（要更新）</div>
         <div class="data-status-value">すべて0</div>
-        <div class="data-status-note">初期値0のまま。施設への確認・更新が必要</div>
+        <div class="data-status-note">未収集のため、検索画面では全施設「要問い合わせ」と表示中</div>
+      </div>
+      <div class="data-status-card warn">
+        <div class="data-status-label">施設アカウント</div>
+        <div class="data-status-value">0件</div>
+        <div class="data-status-note">施設側が自分で空室を更新するには発行が必要</div>
       </div>
       <div class="data-status-card">
-        <div class="data-status-label">登録法人数</div>
-        <div class="data-status-value">─</div>
-        <div class="data-status-note">順次追加予定。管理者ダッシュボードから登録</div>
-      </div>
-      <div class="data-status-card">
-        <div class="data-status-label">ユーザー数</div>
-        <div class="data-status-value">1名</div>
-        <div class="data-status-note">管理者アカウントのみ。今後招待制で追加予定</div>
+        <div class="data-status-label">病院アカウント</div>
+        <div class="data-status-value">136病院</div>
+        <div class="data-status-note">北摂14エリアに発行済み。担当者は病院側で追加可</div>
       </div>
     </div>
 
     <table class="spec-table">
       <tr><th>項目</th><th>状況</th></tr>
-      <tr><td>データ出所</td><td>豊中市介護情報リスト（Excel）から一括インポート</td></tr>
-      <tr><td>入力済み</td><td>施設名・種別・住所・電話番号・最寄り駅・エリア</td></tr>
+      <tr><td>データ出所</td><td>各市の介護情報リスト（Excel・260712版／豊中・吹田・茨木・池田・箕面の5ファイル）から一括インポート</td></tr>
+      <tr><td>入力済み</td><td>施設名・種別・住所・アクセス（路線／最寄り駅／徒歩・バス所要時間）・入居一時金・敷金・家賃・食費・管理費・費用の注意書き・出典URL・介護事業所番号</td></tr>
       <tr><td>仮設定済み</td><td>こだわりタグ・入居条件（生活保護・身元保証・介護認定）= 施設種別に応じたデフォルト値。実態と異なる可能性あり</td></tr>
-      <tr><td>要確認・更新</td><td>空室数（現在すべて0）・担当者名・写真・タグの正確性・入居条件の正確な可否<br><span style="font-size:11px;color:var(--amber)">▶ 施設への訪問時に確認・修正を推奨</span></td></tr>
-      <tr><td>次フェーズ</td><td>吹田市・茨木市データの追加インポート（全国展開は1,000〜4,000件想定）</td></tr>
+      <tr><td>未入力</td><td>電話番号・担当者名・写真（元リストに項目がないため）</td></tr>
+      <tr><td>要確認・更新</td><td>空室数（現在すべて0）・写真・タグの正確性・入居条件の正確な可否<br><span style="font-size:11px;color:var(--amber)">▶ 施設への訪問時に確認・修正を推奨</span><br>元Excelで「月額合計」欄と内訳が一致しない行が6件あります（別紙「確認事項」参照）</td></tr>
+      <tr><td>次フェーズ</td><td>空室情報の収集と施設アカウントの発行 ／ 他市への展開（全国展開は1,000〜4,000件想定）</td></tr>
     </table>
   </div>
 
@@ -1290,7 +1346,7 @@
       </tr>
       <tr>
         <td>今後の予定</td>
-        <td>吹田市・茨木市への展開 / 検索履歴のFirestore保存 / 地図表示（Google Maps連携） / GitHub Actions 自動デプロイ</td>
+        <td>空室情報の収集・施設アカウントの発行（空室が入れば「要問い合わせ」表示を解除） / 他市への展開 / 検索履歴のFirestore保存 / 地図表示（Google Maps連携） / GitHub Actions 自動デプロイ</td>
       </tr>
     </table>
   </div>
@@ -1587,7 +1643,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  介護施設検索システム v2.7<br>
+  介護施設検索システム v2.8<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>
