@@ -68,9 +68,14 @@ def main():
     print(f"病院数 {len(old_codes)} / アカウント数 {len(users)}")
 
     # ── 新しいランダム4桁を割り当てる（重複なし・先頭ゼロなし）──
-    pool = random.sample(range(1000, 10000), len(old_codes))
+    # 旧コードは抽選から外す。付け替えは1件ずつ進むため、まだ改番していない病院の
+    # 旧コードを新コードに引くと、その時点ではメールが実在して EMAIL_EXISTS で落ちる。
+    reserved = {int(c) for c in old_codes if re.fullmatch(r"\d{4}", c)}
+    candidates = [n for n in range(1000, 10000) if n not in reserved]
+    pool = random.sample(candidates, len(old_codes))
     new_code_of = {old: str(pool[i]) for i, old in enumerate(old_codes)}
     assert len(set(new_code_of.values())) == len(old_codes), "新コードが重複"
+    assert not (set(new_code_of.values()) & set(old_codes)), "新コードが旧コードと衝突"
 
     # ── 対応表 ────────────────────────────────────────────────
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")

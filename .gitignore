@@ -7,3 +7,9 @@ kaigo-delete-temp.html
 public/kaigo-bulk-hospital.html
 hospital_ids.csv
 *serviceAccountKey*.json
+
+# 認証情報を含むため除外
+hospital-users-backup-*.json
+病院ログインID一覧-*.csv
+hospital-login-ids-*.csv
+facilities-backup-*.json
