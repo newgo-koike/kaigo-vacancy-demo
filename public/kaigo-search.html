@@ -592,10 +592,13 @@ auth.onAuthStateChanged(async user => {
   if (!['hospital', 'admin'].includes(role)) {
     await auth.signOut(); location.href = 'kaigo-login.html'; return;
   }
-  currentUser = { uid: user.uid, email: user.email, name: uData?.name || '', role };
-  if (uData?.name) {
-    document.getElementById('hdr-user').textContent = uData.name + ' さん';
-  }
+  // name は担当者名。一括発行した病院アカウントは病院名が入っていることがあるので、
+  // 病院名と同じなら担当者名として扱わない（「〇〇病院 さん」と出てしまうため）。
+  const hospName = uData?.hospitalName || '';
+  const person   = (uData?.name && uData.name !== hospName) ? uData.name : '';
+  currentUser = { uid: user.uid, email: user.email, name: person, hospitalName: hospName, role };
+  const label = person ? person + ' さん' : hospName;
+  if (label) document.getElementById('hdr-user').textContent = label;
   document.body.style.visibility = 'visible';
   initSidebar();
   // 施設詳細から戻ってきたら結果を復元。そうでなければ前回の検索条件を読み込む
@@ -774,7 +777,8 @@ async function saveSearchLog() {
 
   await db.collection('searchLogs').add({
     uid: currentUser.uid,
-    userName: currentUser.name,
+    userName: currentUser.name || currentUser.hospitalName || '',
+    hospitalName: currentUser.hospitalName || '',
     userEmail: currentUser.email,
     searchedAt: firebase.firestore.FieldValue.serverTimestamp(),
     conditions: {

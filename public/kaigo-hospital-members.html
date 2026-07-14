@@ -20,7 +20,9 @@
   .row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--hair);border-radius:10px;margin-bottom:8px;font-size:14px;}
   .row .id{font-family:ui-monospace,monospace;font-weight:700;color:var(--blue-d);background:var(--blue-l);padding:2px 8px;border-radius:6px;font-size:13px;}
   .row .nm{font-weight:600;}
-  .row .tag{margin-left:auto;font-size:10px;color:var(--g400);}
+  .row .tag{font-size:10px;color:var(--g400);border:1px solid var(--hair);border-radius:100px;padding:1px 7px;}
+  .row .mini{margin-left:auto;font-size:11px;font-family:inherit;color:var(--blue-d);background:none;border:1px solid var(--hair);border-radius:100px;padding:3px 10px;cursor:pointer;white-space:nowrap;}
+  .row .mini:hover{border-color:var(--blue);background:var(--blue-l);}
   .f-lbl{display:block;font-size:12px;font-weight:600;color:var(--g700);margin-bottom:6px;}
   .f-inp{width:100%;padding:11px 14px;border:2px solid var(--hair);border-radius:100px;font-size:15px;outline:none;font-family:inherit;color:var(--ink);transition:border-color .15s;}
   .f-inp:focus{border-color:var(--blue);}
@@ -90,7 +92,7 @@ const db=firebase.firestore();
 const DOMAIN="meets-medical.jp";
 const $=id=>document.getElementById(id);
 
-let myHospitalId=null, myHospitalName=null, members=[];
+let myHospitalId=null, myHospitalName=null, myUid=null, members=[];
 
 auth.onAuthStateChanged(async user=>{
   if(!user){ location.href='kaigo-login.html'; return; }
@@ -103,19 +105,39 @@ auth.onAuthStateChanged(async user=>{
     $('addBtn').disabled=true; return;
   }
   myHospitalId=d.hospitalId; myHospitalName=d.hospitalName||d.name||'';
+  myUid=user.uid;
   if(!myHospitalId){ $('hosp').textContent='病院情報が未設定です。管理者に連絡してください。'; $('addBtn').disabled=true; return; }
   $('hosp').innerHTML='<b>'+myHospitalName+'</b>（病院コード '+myHospitalId+'）';
   await loadMembers();
 });
 
+// name は担当者名。一括発行したアカウントは病院名が入っているので、担当者名として扱わない。
+const personName = m => (m.name && m.name !== (m.hospitalName||'')) ? m.name : '';
+
 async function loadMembers(){
   const snap=await db.collection('users').where('hospitalId','==',myHospitalId).get();
-  members=snap.docs.map(x=>x.data()).filter(m=>m.role==='hospital');
+  members=snap.docs.map(x=>({...x.data(), uid:x.id})).filter(m=>m.role==='hospital');
   members.sort((a,b)=>seqOf(a.loginId)-seqOf(b.loginId));
-  $('list').innerHTML = members.length ? members.map(m=>`
-    <div class="row"><span class="id">${m.loginId||'-'}</span><span class="nm">${m.name||'（名前未設定）'}</span></div>
-  `).join('') : '<div class="note">まだ担当者がいません</div>';
+  $('list').innerHTML = members.length ? members.map(m=>{
+    const nm=personName(m);
+    return `<div class="row">
+      <span class="id">${m.loginId||'-'}</span>
+      <span class="nm"${nm?'':' style="color:#d97706"'}>${nm||'担当者名 未設定'}</span>
+      ${m.uid===myUid ? '<span class="tag">あなた</span>' : ''}
+      <button class="mini" onclick="renameMember('${m.uid}')">${nm?'名前を変更':'名前を入力'}</button>
+    </div>`;
+  }).join('') : '<div class="note">まだ担当者がいません</div>';
   updatePreview();
+}
+
+async function renameMember(uid){
+  const cur=personName(members.find(m=>m.uid===uid)||{});
+  const name=prompt('担当者名（お名前）を入力してください', cur);
+  if(name===null) return;
+  try{
+    await db.collection('users').doc(uid).set({name:name.trim()},{merge:true});
+    await loadMembers();
+  }catch(e){ alert('保存に失敗しました: '+(e.code||e.message)); }
 }
 
 function seqOf(loginId){ const p=(loginId||'').split('-'); return p.length>1 ? parseInt(p[1],10)||0 : 0; }

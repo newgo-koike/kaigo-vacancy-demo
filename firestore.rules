@@ -17,7 +17,12 @@ service cloud.firestore {
                     || (myRole() == 'hospital'
                         && request.resource.data.role == 'hospital'
                         && request.resource.data.hospitalId == me().hospitalId);
-      allow update, delete: if isAdmin();
+      // 病院は自病院の担当者の「名前」だけ直せる。ID・役割・所属は触らせない。
+      allow update: if isAdmin()
+                    || (myRole() == 'hospital'
+                        && resource.data.hospitalId == me().hospitalId
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']));
+      allow delete: if isAdmin();
     }
 
     // 施設：単一ページは公開（印刷・詳細）/ 一覧はログイン必須 / 更新は管理者・施設担当者

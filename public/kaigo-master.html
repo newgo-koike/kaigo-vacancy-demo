@@ -228,11 +228,14 @@
             class="flex-1 min-w-[220px] px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#5fb0de]">
           <input id="hosp-new-area" type="text" placeholder="エリア（例：豊中市）"
             class="w-40 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#5fb0de]">
+          <input id="hosp-new-person" type="text" placeholder="担当者名（任意・例：田中 太郎）"
+            class="w-52 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#5fb0de]">
           <button id="hosp-add-btn" onclick="addHospital()"
             class="text-sm font-bold text-white bg-[#5fb0de] hover:bg-[#2c7ba6] px-5 py-2 rounded-lg">発行</button>
           <button onclick="document.getElementById('hosp-add').classList.add('hidden')"
             class="text-sm text-slate-500 px-3 py-2">キャンセル</button>
         </div>
+        <p class="text-xs text-slate-400 mt-2">担当者名は未入力でも発行できます。あとから一覧の「✏️」で入力できます。</p>
         <p id="hosp-add-msg" class="text-xs mt-2"></p>
       </div>
 
@@ -963,15 +966,13 @@ async function loadHospitals() {
     snap.docs.forEach(doc => {
       const d = doc.data();
       const code = d.hospitalId || '(未設定)';
-      if (!map.has(code)) map.set(code, {
-        code,
-        name: d.hospitalName || d.name || '(名称未設定)',
-        area: d.area || '',
-        members: [],
-      });
+      const hospName = d.hospitalName || '(名称未設定)';
+      if (!map.has(code)) map.set(code, { code, name: hospName, area: d.area || '', members: [] });
       const h = map.get(code);
       if (d.area && !h.area) h.area = d.area;
-      h.members.push({ loginId: d.loginId || '', name: d.name || '' });
+      // 一括発行した -01 は name にも病院名が入っている。それは担当者名ではないので出さない。
+      const person = (d.name || '') === hospName ? '' : (d.name || '');
+      h.members.push({ uid: doc.id, loginId: d.loginId || '', name: person });
     });
     HOSPITALS = [...map.values()]
       .map(h => {
@@ -994,31 +995,53 @@ function filteredHospitals() {
       .toLowerCase().includes(q));
 }
 
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
 function renderHospitals() {
   const el = document.getElementById('hospitals-list');
   if (!HOSPITALS.length) { el.innerHTML = '<p class="text-sm text-slate-400">病院が登録されていません</p>'; return; }
   const list = filteredHospitals();
   if (!list.length) { el.innerHTML = '<p class="text-sm text-slate-400">該当する病院がありません</p>'; return; }
 
+  const total   = list.reduce((n,h) => n + h.members.length, 0);
+  const unnamed = list.reduce((n,h) => n + h.members.filter(m => !m.name).length, 0);
+
   el.innerHTML =
     `<div class="text-xs text-slate-400 mb-2">${list.length}病院${list.length !== HOSPITALS.length ? ` / 全${HOSPITALS.length}病院` : ''}
-       担当者 計${list.reduce((n,h) => n + h.members.length, 0)}名</div>` +
+       ・担当者 計${total}名
+       ${unnamed ? `<span class="text-amber-600 font-bold">・担当者名 未設定 ${unnamed}名</span>` : ''}</div>` +
     list.map(h => `
       <div class="px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
         <div class="flex items-center gap-3 flex-wrap">
-          <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[#e4f2fa] text-[#2c7ba6]">${h.mainId}</span>
-          <span class="text-sm font-semibold text-slate-800">${h.name}</span>
-          ${h.area ? `<span class="text-xs text-slate-400">${h.area}</span>` : ''}
-          <span class="text-xs text-slate-400 ml-auto whitespace-nowrap">担当者 ${h.members.length}名</span>
+          <span class="text-sm font-semibold text-slate-800">${esc(h.name)}</span>
+          ${h.area ? `<span class="text-xs text-slate-400">${esc(h.area)}</span>` : ''}
+          <span class="text-xs text-slate-400 ml-auto whitespace-nowrap">病院コード ${esc(h.code)} ／ 担当者 ${h.members.length}名</span>
         </div>
-        <div class="text-xs text-slate-500 mt-1.5">
-          パスワード: <span class="font-mono font-bold text-slate-700">${h.mainId}</span>
-          <span class="text-slate-300">（ログインIDと同じ）</span>
-          ${h.members.length > 1
-            ? `<span class="ml-2 text-slate-400">他の担当者: ${h.members.slice(1).map(m => `<span class="font-mono">${m.loginId}</span>（${m.name}）`).join('、')}</span>`
-            : ''}
+        <div class="mt-2 space-y-1">
+          ${h.members.map(m => `
+            <div class="flex items-center gap-2 flex-wrap text-xs">
+              <span class="font-mono font-bold px-2 py-0.5 rounded-md bg-[#e4f2fa] text-[#2c7ba6]">${esc(m.loginId)}</span>
+              <span class="text-slate-400">PW <span class="font-mono text-slate-600">${esc(m.loginId)}</span></span>
+              ${m.name
+                ? `<span class="text-slate-700 font-semibold">${esc(m.name)}</span>`
+                : `<span class="text-amber-600">担当者名 未設定</span>`}
+              <button onclick="renameMember('${m.uid}', ${JSON.stringify(m.name).replace(/"/g,'&quot;')})"
+                class="text-slate-300 hover:text-[#2c7ba6] no-print" title="担当者名を入力">✏️</button>
+            </div>`).join('')}
         </div>
       </div>`).join('');
+}
+
+// 担当者名は病院名とは別物。一括発行時は空なので、判明したらここで入れる。
+async function renameMember(uid, current) {
+  const name = prompt('担当者名（個人名）を入力してください', current || '');
+  if (name === null) return;
+  try {
+    await db.collection('users').doc(uid).set({ name: name.trim() }, { merge: true });
+    await loadHospitals();
+  } catch(e) {
+    alert('保存に失敗しました: ' + e.message);
+  }
 }
 
 function exportHospitalsCSV() {
@@ -1043,8 +1066,9 @@ function addHospitalPrompt() {
 }
 
 async function addHospital() {
-  const name = document.getElementById('hosp-new-name').value.trim();
-  const area = document.getElementById('hosp-new-area').value.trim();
+  const name   = document.getElementById('hosp-new-name').value.trim();
+  const area   = document.getElementById('hosp-new-area').value.trim();
+  const person = document.getElementById('hosp-new-person').value.trim();
   const msg  = document.getElementById('hosp-add-msg');
   const btn  = document.getElementById('hosp-add-btn');
   msg.className = 'text-xs mt-2';
@@ -1065,7 +1089,8 @@ async function addHospital() {
     const secAuth = secApp.auth();
     const cred = await secAuth.createUserWithEmailAndPassword(email, loginId);  // 初期パスワード = ログインID
     await db.collection('users').doc(cred.user.uid).set({
-      role: 'hospital', name, hospitalId: code, hospitalName: name,
+      role: 'hospital', hospitalId: code, hospitalName: name,
+      name: person,   // 担当者名。病院名を入れない（未定なら空のまま）
       loginId, email, area,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
@@ -1075,6 +1100,7 @@ async function addHospital() {
     msg.innerHTML = `✅ ${name} を発行しました　ログインID: <span class="font-mono">${loginId}</span> ／ パスワード: <span class="font-mono">${loginId}</span>`;
     document.getElementById('hosp-new-name').value = '';
     document.getElementById('hosp-new-area').value = '';
+    document.getElementById('hosp-new-person').value = '';
     await loadHospitals();
   } catch(e) {
     msg.className += ' text-red-500';
