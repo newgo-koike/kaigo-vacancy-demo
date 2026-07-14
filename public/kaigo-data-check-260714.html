@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>元データの確認事項 | 260712 介護情報リスト（5市）</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand:#5fb0de; --brand-d:#2c7ba6; --brand-l:#e4f2fa;
+    --g50:#f8fafc; --g100:#f1f5f9; --g200:#e2e8f0;
+    --g400:#94a3b8; --g500:#64748b; --g600:#475569; --g700:#334155;
+    --g800:#1e293b; --g900:#0f172a;
+    --ok:#2c7ba6; --ok-bg:#e4f2fa;
+    --amber:#d97706; --amber-bg:#fef3c7;
+    --purple:#7c3aed; --purple-bg:#f5f3ff;
+    --red:#dc2626; --red-bg:#fee2e2;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:#f0f4f8; color:var(--g800); line-height:1.7;
+    font-family:'Noto Sans JP',-apple-system,sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  .container { max-width:920px; margin:0 auto; padding:32px 20px 80px; }
+
+  .page-hdr {
+    background:var(--g900); color:#fff; border-radius:20px;
+    padding:34px 36px; margin-bottom:26px;
+  }
+  .eyebrow { font-size:12px; color:var(--g400); letter-spacing:.08em; margin-bottom:6px; }
+  .page-hdr h1 { font-size:26px; font-weight:800; margin:0 0 8px; letter-spacing:-.01em; }
+  .page-hdr p { margin:0; font-size:14.5px; color:#cbd5e1; }
+  .hdr-meta { margin-top:18px; display:flex; gap:26px; flex-wrap:wrap; font-size:12px; color:var(--g400); }
+  .hdr-meta strong { display:block; color:#e2e8f0; font-weight:700; margin-bottom:2px; }
+
+  .card { background:#fff; border:1px solid var(--g200); border-radius:16px; padding:26px 28px; margin-bottom:20px; }
+
+  .banner {
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--ok-bg); border:1px solid #bfe0f2; border-radius:12px;
+    padding:14px 18px; margin-bottom:22px; font-size:13.5px; color:#155e75;
+  }
+  .banner b { color:var(--brand-d); }
+
+  .sec-hd { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .sec-num {
+    width:30px; height:30px; border-radius:9px; background:var(--brand);
+    color:#fff; font-weight:800; font-size:14px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sec-title { font-size:19px; font-weight:800; color:var(--g900); letter-spacing:-.01em; }
+  h3 { font-size:14px; font-weight:800; color:var(--brand-d); margin:22px 0 8px; }
+  p { margin:0 0 12px; font-size:14px; }
+
+  table { width:100%; border-collapse:collapse; font-size:13.5px; margin:10px 0 6px; }
+  th, td { border:1px solid var(--g200); padding:9px 12px; text-align:left; vertical-align:top; }
+  th { background:var(--g50); font-weight:700; font-size:12px; color:var(--g600); }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  td.nm { font-weight:700; }
+  .bad { color:var(--red); font-weight:800; }
+  .cause { font-size:12px; color:var(--g500); line-height:1.6; }
+  .cause b { color:var(--g800); }
+
+  .note {
+    background:#fffdf5; border:1px solid #fde68a; border-radius:12px;
+    padding:14px 18px; font-size:13.5px; color:#78350f; margin:14px 0;
+  }
+  .note b { color:var(--amber); }
+
+  .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+  .btn {
+    display:inline-flex; align-items:center; gap:7px; font-family:inherit;
+    font-size:13.5px; font-weight:700; padding:11px 20px; border-radius:100px;
+    border:none; cursor:pointer; text-decoration:none; transition:.15s;
+  }
+  .btn-p { background:var(--brand); color:#fff; }
+  .btn-p:hover { background:var(--brand-d); }
+  .btn-g { background:#fff; color:var(--g600); border:1.5px solid var(--g200); }
+  .btn-g:hover { border-color:var(--brand); color:var(--brand-d); }
+
+  .footer { text-align:center; font-size:12px; color:var(--g400); margin-top:30px; line-height:1.8; }
+
+  @media print {
+    body { background:#fff; }
+    .container { padding:0; max-width:none; }
+    .no-print { display:none !important; }
+    .page-hdr { background:#fff; color:var(--g900); border-bottom:3px solid var(--g900); border-radius:0; padding:0 0 14px; margin-bottom:20px; }
+    .page-hdr h1 { color:var(--g900); }
+    .page-hdr p, .hdr-meta, .eyebrow { color:var(--g500); }
+    .hdr-meta strong { color:var(--g700); }
+    .card { border:none; padding:0; margin-bottom:16px; break-inside:avoid; }
+    table, .note, .banner { break-inside:avoid; }
+  }
+  @media (max-width:640px) {
+    .page-hdr { padding:24px 22px; }
+    .card { padding:20px 18px; }
+    table { font-size:12px; }
+    th, td { padding:7px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-hdr">
+    <div class="eyebrow">介護施設検索システム ／ 納品書 v2.8 別紙</div>
+    <h1>元データについて確認をお願いしたい点</h1>
+    <p>260712 介護情報リスト（豊中市・吹田市・茨木市・池田市・箕面市）</p>
+    <div class="hdr-meta">
+      <div><strong>宛先</strong>Meets Medical 御中</div>
+      <div><strong>作成日</strong>2026年7月14日</div>
+      <div><strong>制作</strong>YUMEMATCH</div>
+    </div>
+  </div>
+
+  <div class="banner">
+    <div>✅</div>
+    <div><b>取り込みは完了しています。</b>データの取りこぼし・入力誤りはありません（全476件×全項目を1件ずつ照合済み）。
+    以下は<b>元データ（Excel）の内容</b>についての確認事項です。</div>
+  </div>
+
+  <div class="card">
+    <div class="sec-hd">
+      <div class="sec-num">1</div>
+      <div class="sec-title">月額合計が内訳と合わない行が6件あります</div>
+    </div>
+
+    <p>
+      システムは月額を <b>「家賃＋食費＋管理費」で再計算して表示</b> しています。そのため内訳が正しければ表示に問題はありませんが、
+      Excelの「月額合計」欄の数字と一致しない行が6件ありました。<b>どちらが正しいかご教示ください。</b>
+    </p>
+
+    <h3>うち3件は、月額合計の欄で1列が足されていないように見えます</h3>
+    <table>
+      <tr>
+        <th style="width:30%">施設名</th><th style="width:8%">市</th>
+        <th style="width:14%">月額合計</th><th style="width:14%">内訳の合計</th><th>推定される原因</th>
+      </tr>
+      <tr>
+        <td class="nm">住宅型有料老人ホームアイフリー豊中</td><td>豊中</td>
+        <td class="num bad">70,000円</td><td class="num">121,000円</td>
+        <td class="cause">家賃42,000＋管理費28,000＝70,000。<b>食費51,000が未加算</b></td>
+      </tr>
+      <tr>
+        <td class="nm">住宅型有料老人ホームアイフリー立花</td><td>豊中</td>
+        <td class="num bad">70,000円</td><td class="num">118,000円</td>
+        <td class="cause">家賃42,000＋管理費28,000＝70,000。<b>食費48,000が未加算</b></td>
+      </tr>
+      <tr>
+        <td class="nm">グループホームユーアイ緑丘</td><td>豊中</td>
+        <td class="num bad">107,700円</td><td class="num">142,700円</td>
+        <td class="cause">家賃60,000＋食費47,700＝107,700。<b>管理費35,000が未加算</b></td>
+      </tr>
+    </table>
+
+    <h3>残る3件は差が小さく、入力ミスか端数処理と思われます</h3>
+    <table>
+      <tr>
+        <th style="width:30%">施設名</th><th style="width:8%">市</th>
+        <th style="width:14%">月額合計</th><th style="width:14%">内訳の合計</th><th>差</th>
+      </tr>
+      <tr>
+        <td class="nm">認知症高齢者グループホーム憩〜北千里〜</td><td>吹田</td>
+        <td class="num">152,000円</td><td class="num">157,000円</td><td class="num">−5,000円</td>
+      </tr>
+      <tr>
+        <td class="nm">グループホーム輝豊苑</td><td>豊中</td>
+        <td class="num">127,500円</td><td class="num">126,900円</td><td class="num">＋600円</td>
+      </tr>
+      <tr>
+        <td class="nm">認知症高齢者グループホームハピネスさんあい</td><td>吹田</td>
+        <td class="num">152,000円</td><td class="num">151,500円</td><td class="num">＋500円</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="sec-hd">
+      <div class="sec-num">2</div>
+      <div class="sec-title">前回リストにあった12施設が、今回のリストから外れています</div>
+    </div>
+
+    <p>
+      すべて<b>住宅型有料</b>です。今回のリストに載っていなかったため、システムからは削除しました。
+      <b>意図的に除外されたものであれば、このままで問題ありません。</b>
+    </p>
+
+    <div class="note">
+      <b>⚠ もし手違いで漏れた場合は、お早めにお知らせください。</b>
+      取り込み前のバックアップから復元できますが、時間が経つほど戻しにくくなります。
+    </div>
+
+    <table>
+      <tr><th style="width:11%">市</th><th style="width:9%">件数</th><th>施設名</th></tr>
+      <tr>
+        <td class="nm">豊中市</td><td class="num">4件</td>
+        <td>サンハウス曽根／とみきたの杜 もかの家／OPH新千里西町／アマニカス</td>
+      </tr>
+      <tr>
+        <td class="nm">吹田市</td><td class="num">8件</td>
+        <td>喜樹 ライジングハイ千里山 山脇マンション／幸 吹田／シニアアップデートマンション ライフケア吹田／ちさと村 中楽坊／大阪府 高齢者向け優良賃貸住宅(高優賃)「ロハス江坂」／ライジングハイ千里山／マスターズマンション吹田千里丘 中楽坊／パークナード吹田SSTエクラ</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card no-print">
+    <div class="actions">
+      <button class="btn btn-p" onclick="window.print()">🖨 印刷 / PDFで保存</button>
+      <a class="btn btn-g" href="kaigo-delivery-v2.html">← 納品書に戻る</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    ご不明な点があればお気軽にご連絡ください。<br>
+    介護施設検索システム v2.8 別紙 ／ 制作: YUMEMATCH
+  </div>
+
+</div>
+</body>
+</html>
