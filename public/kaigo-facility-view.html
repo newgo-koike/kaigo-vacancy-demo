@@ -370,11 +370,13 @@ function render(doc) {
       <div class="fee-box fee-box-init">
         <div class="fee-box-lbl">入居時費用（一時金＋敷金）</div>
         <div class="fee-big-num">${fmtYen(initAmt)}<span class="fee-big-unit">円</span></div>
-        ${initAmt > 0 ? `
+        <!-- 0円でも内訳を出す。金額がある施設だけ内訳が出ると、0円の施設は「未調査」なのか
+             「本当に不要」なのか読み手に区別がつかなくなる -->
         <div class="fee-cols">
-          <div class="fee-col"><div class="fee-col-lbl">入居一時金</div><div class="fee-col-val">${fmtYen(initFeeAmt)}</div><div class="fee-col-unit">円</div></div>
-          <div class="fee-col"><div class="fee-col-lbl">敷金<span style="font-size:9px;opacity:.7">（退去時返還）</span></div><div class="fee-col-val">${fmtYen(depositAmt)}</div><div class="fee-col-unit">円</div></div>
-        </div>` : ''}
+          <div class="fee-col"><div class="fee-col-lbl" style="white-space:nowrap">一時金</div><div class="fee-col-val">${fmtYen(initFeeAmt)}</div><div class="fee-col-unit">円</div></div>
+          <div class="fee-col"><div class="fee-col-lbl" style="white-space:nowrap">敷金</div><div class="fee-col-val">${fmtYen(depositAmt)}</div><div class="fee-col-unit">円</div></div>
+        </div>
+        <div class="fee-sub"><div class="fee-sub-item" style="font-size:10px;color:#94a3b8">一時金は返還なし／敷金は退去時に返還されます</div></div>
         ${other != null ? `<div class="fee-sub"><div class="fee-sub-item">その他 ${fmtYen(other)}円</div></div>` : ''}
       </div>
       <div class="fee-box fee-box-monthly">
