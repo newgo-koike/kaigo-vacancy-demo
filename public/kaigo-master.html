@@ -683,6 +683,28 @@ function copyText(text) {
   navigator.clipboard.writeText(text).then(() => showToast('📋 URLをコピーしました'));
 }
 
+// 病院1件分の「ログインID・パスワード・ログインURL」をメールにそのまま貼れる文面にしてコピー
+function copyHospitalEmailText(code) {
+  const h = HOSPITALS.find(x => x.code === code);
+  if (!h) return;
+  const lines = [
+    '【介護施設検索システム】ログイン情報のご案内',
+    '',
+    `${h.name} 御中`,
+    '',
+    '以下のID・パスワードでログインしてください。',
+    '',
+  ];
+  h.members.forEach(m => {
+    lines.push(`ログインID：${m.loginId}${m.name ? `（${m.name}様）` : ''}`);
+    lines.push(`パスワード：${m.loginId}`);
+    lines.push('');
+  });
+  lines.push('▼ こちらからログインしてみてください');
+  lines.push(`${BASE}/kaigo-login.html`);
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('📋 メール文面をコピーしました'));
+}
+
 function downloadQR(elId, name) {
   const el = document.getElementById(elId);
   if (!el) return;
@@ -1018,7 +1040,10 @@ function renderHospitals() {
         <div class="flex items-center gap-3 flex-wrap">
           <span class="text-sm font-semibold text-slate-800">${esc(h.name)}</span>
           ${h.area ? `<span class="text-xs text-slate-400">${esc(h.area)}</span>` : ''}
-          <span class="text-xs text-slate-400 ml-auto whitespace-nowrap">病院コード ${esc(h.code)} ／ 担当者 ${h.members.length}名</span>
+          <button onclick="copyHospitalEmailText('${h.code}')"
+            class="no-print text-xs font-bold text-white bg-[#5fb0de] hover:bg-[#2c7ba6] px-2.5 py-1 rounded-md whitespace-nowrap ml-auto"
+            title="ログインID・パスワード・ログインURLをまとめてコピー">📋 メール文面コピー</button>
+          <span class="text-xs text-slate-400 whitespace-nowrap">病院コード ${esc(h.code)} ／ 担当者 ${h.members.length}名</span>
         </div>
         <div class="mt-2 space-y-1">
           ${h.members.map(m => `
