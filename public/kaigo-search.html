@@ -1135,10 +1135,9 @@ function printSelected() {
     ['身元保証',   f => txt(f.mimonHosho)],
     ['介護認定',   f => txt(f.kaigoNintei)],
     ['キャンペーン', f => txt(f.campaign)],
-    ['費用の詳細', f => { const v = txt(f.feeNotes); return v === '—' ? '—' : `<span style="font-size:9px;color:#333;line-height:1.5;">${v}</span>`; }],
+    ['費用の詳細', f => { const v = txt(f.feeNotes); return v === '—' ? '—' : `<span style="font-size:9px;color:#333;line-height:1.5;">${KaigoPrint.feeNotesListHtml(v)}</span>`; }],
     ['連絡先担当', f => txt(f.contactName)],
     ['連絡先TEL', f => txt(f.contactTel)],
-    ['公式サイト', f => f.sourceUrl ? `<span style="font-size:8px;word-break:break-all;color:#333;">${f.sourceUrl}</span>` : '—'],
     ['最終更新',   f => txt(f.updated)],
   ];
 

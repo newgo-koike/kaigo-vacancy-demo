@@ -52,6 +52,13 @@
     };
   }
 
+  // feeNotes（\n区切り・※始まりの注意書き）を箇条書きHTMLに変換
+  function feeNotesListHtml(notes) {
+    const lines = String(notes || '').split(/\n/).flatMap(line => line.split(/(?=※)/)).map(l => l.trim()).filter(Boolean);
+    if (!lines.length) return '';
+    return `<ul style="margin:0;padding-left:16px;">${lines.map(l => `<li style="margin-bottom:2px;">${l}</li>`).join('')}</ul>`;
+  }
+
   // 施設1件の資料HTML（A4縦・白黒印刷対応・月額を中央ヒーロー表示）
   function facilitySheetHTML(f, vacInquiry) {
     const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -74,14 +81,13 @@
       ['費用の詳細', f.feeNotes],
       ['連絡先担当', f.contactName],
       ['連絡先TEL', f.contactTel],
-      ['公式サイト', f.sourceUrl],
     ].filter(([, v]) => v != null && String(v).trim() !== '');
     const detailTable = detailRows.length ? `
     <table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:12px;">
       <tbody>
         ${detailRows.map(([label, v]) => `<tr>
           <td style="padding:6px 10px;font-weight:700;border:1px solid #ccc;background:#f5f5f5;white-space:nowrap;width:20%;vertical-align:top;">${label}</td>
-          <td style="padding:6px 10px;border:1px solid #ccc;color:#333;font-size:9pt;line-height:1.6;word-break:break-all;">${v}</td>
+          <td style="padding:6px 10px;border:1px solid #ccc;color:#333;font-size:9pt;line-height:1.6;word-break:break-all;">${label === '費用の詳細' ? feeNotesListHtml(v) : v}</td>
         </tr>`).join('')}
       </tbody>
     </table>` : '';
@@ -199,5 +205,5 @@
     win.document.close();
   }
 
-  global.KaigoPrint = { mapDoc, facilitySheetHTML, printFacilitySheet };
+  global.KaigoPrint = { mapDoc, facilitySheetHTML, printFacilitySheet, feeNotesListHtml };
 })(window);
