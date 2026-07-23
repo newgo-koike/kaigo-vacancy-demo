@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>介護情報リスト 取り込み（260723・5市）</title>
+<style>
+  :root{
+    --blue:#5fb0de; --blue-d:#2c7ba6; --ink:#2b2b2b; --g600:#5b6470; --g500:#7b838d;
+    --g400:#9aa1a9; --line:#e7e7e3; --bg:#f7f8f9; --white:#fff;
+    --warn:#b45309; --warn-bg:#fffbeb; --warn-line:#fde68a;
+    --danger:#b91c1c; --danger-bg:#fef2f2; --danger-line:#fecaca;
+    --ok:#15803d; --ok-bg:#f0fdf4; --ok-line:#bbf7d0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    font-size:14px;line-height:1.7;visibility:hidden}
+  .wrap{max-width:940px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--g500);font-size:13px;margin:0 0 22px}
+
+  .step{background:var(--white);border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;margin-bottom:16px}
+  .step.locked{opacity:.45;pointer-events:none}
+  .step-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .step-n{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none}
+  .step.done .step-n{background:var(--ok)}
+  .step-t{font-size:16px;font-weight:700}
+  .step-d{color:var(--g500);font-size:13px;margin:0 0 14px 36px}
+
+  button{font-family:inherit;font-size:14px;font-weight:700;border:none;border-radius:10px;
+    padding:11px 22px;cursor:pointer;transition:.15s}
+  .btn{background:var(--blue);color:#fff}
+  .btn:hover{background:var(--blue-d)}
+  .btn:disabled{background:#cfd6dc;cursor:not-allowed}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-danger:hover{filter:brightness(.9)}
+  .btn-danger:disabled{background:#e2c5c5;cursor:not-allowed}
+  .btn-ghost{background:#eef2f5;color:var(--g600)}
+
+  .box{border-radius:10px;padding:13px 15px;font-size:13px;margin:12px 0}
+  .box-warn{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn)}
+  .box-danger{background:var(--danger-bg);border:1px solid var(--danger-line);color:var(--danger)}
+  .box-ok{background:var(--ok-bg);border:1px solid var(--ok-line);color:var(--ok)}
+  .box b{font-weight:700}
+
+  .log{background:#1e2530;color:#d7dee8;border-radius:10px;padding:14px 16px;
+    font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.75;
+    max-height:340px;overflow-y:auto;white-space:pre-wrap;margin-top:12px}
+  .log .r{color:#fca5a5} .log .y{color:#fcd34d} .log .g{color:#86efac} .log .b{color:#93c5fd}
+  .log .dim{color:#8b95a3}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left}
+  th{background:#f2f5f7;font-weight:700;font-size:12px;color:var(--g600)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:11px;font-weight:700}
+  .pill-u{background:#e0f2fe;color:#0369a1}
+  .pill-a{background:#dcfce7;color:#15803d}
+  .pill-d{background:#fee2e2;color:#b91c1c}
+
+  .opts{border:1px solid var(--line);border-radius:10px;padding:4px 14px;margin:14px 0}
+  .opt{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid #f0f2f4}
+  .opt:last-child{border-bottom:none}
+  .opt input{margin-top:4px;width:16px;height:16px;flex:none;cursor:pointer}
+  .opt-t{font-weight:700;font-size:13px}
+  .opt-d{color:var(--g500);font-size:12px}
+  .opt.hot .opt-t{color:var(--danger)}
+
+  .modes{display:flex;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .mode{flex:1;min-width:230px;border:2px solid var(--line);border-radius:11px;padding:13px 15px;cursor:pointer}
+  .mode.sel{border-color:var(--blue);background:#f2f9fd}
+  .mode.sel.hot{border-color:var(--danger);background:var(--danger-bg)}
+  .mode-t{font-weight:700;font-size:14px;margin-bottom:2px}
+  .mode-d{font-size:12px;color:var(--g500)}
+
+  .confirm{display:flex;gap:8px;align-items:center;margin:12px 0;flex-wrap:wrap}
+  .confirm input[type=text]{font-family:ui-monospace,Menlo,monospace;font-size:14px;
+    padding:9px 13px;border:2px solid var(--danger-line);border-radius:9px;width:230px}
+  .bar{height:7px;background:#e9edf1;border-radius:99px;overflow:hidden;margin:12px 0 6px}
+  .bar>div{height:100%;background:var(--blue);width:0;transition:width .2s}
+  .hide{display:none}
+  .muted{color:var(--g400);font-size:12px}
+  code{background:#f0f2f4;padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>介護情報リスト 取り込み（260723）</h1>
+  <p class="sub">豊中市・吹田市・茨木市・池田市・箕面市 の5市（データ更新版） / 全 <b id="src-n">–</b> 件 → Firestore <code>facilities</code></p>
+
+  <div class="box box-warn">
+    <b>施設ドキュメントIDは維持されます。</b>
+    既存施設は<b>施設名で照合して更新</b>します（削除→再作成はしません）。
+    IDが変わると施設ログイン（<code>users.facilityId</code>）・配布済みQR・施設詳細URL・写真の保存先が全部切れるためです。
+  </div>
+
+  <div class="box box-warn">
+    <b>260712版との違い：入居時費用の内訳（一時金／敷金）が廃止されました。</b>
+    新しいExcelは「初期費用合計」の1列のみで、内訳はありません。この取り込みでは合計額を <code>initialFeeAmount</code> にそのまま入れ、
+    旧 <code>depositAmount</code>（敷金）は自動的に削除されます（施設詳細の内訳表示では敷金が一律0円になります＝合計額は変わりません）。
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step" id="s1">
+    <div class="step-h"><div class="step-n">1</div><div class="step-t">現在のデータをバックアップ</div></div>
+    <p class="step-d">Firestore の全施設と施設アカウントを JSON で書き出します。<b>これを実行しないと適用に進めません。</b></p>
+    <button class="btn" id="b-backup" onclick="doBackup()">現データを読み込んでダウンロード</button>
+    <div class="log hide" id="log1"></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step locked" id="s2">
+    <div class="step-h"><div class="step-n">2</div><div class="step-t">ドライラン（差分の確認）</div></div>
+    <p class="step-d">1件も書き込まずに、何が更新・追加・削除されるかだけを計算します。</p>
+    <button class="btn" id="b-dry" onclick="doDryRun()">差分を計算する</button>
+    <div id="dry-out"></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step locked" id="s3">
+    <div class="step-h"><div class="step-n">3</div><div class="step-t">適用</div></div>
+    <p class="step-d">ドライランの結果を確認してから実行してください。</p>
+
+    <div class="modes">
+      <div class="mode sel" id="m-merge" onclick="setMode('merge')">
+        <div class="mode-t">安全マージ（既定）</div>
+        <div class="mode-d">Excelにある列だけ上書き。空室数・写真・プラン等の既存入力は保持。リスト外の施設も残す。</div>
+      </div>
+      <div class="mode hot" id="m-full" onclick="setMode('full')">
+        <div class="mode-t">完全同期</div>
+        <div class="mode-d">Excel外の項目もリセットし、リスト外の施設を削除。<b>取り消せません。</b></div>
+      </div>
+    </div>
+
+    <div id="full-opts" class="hide">
+      <div class="box box-danger">
+        <b>完全同期で消えるもの。</b>Excelに対応する列が存在しないため、上書きではなく<b>消去</b>になります。
+        必要なものはチェックを外して守ってください。
+      </div>
+      <div class="opts" id="reset-opts"></div>
+    </div>
+
+    <div class="opts">
+      <label class="opt">
+        <input type="checkbox" id="o-legacy" checked>
+        <div>
+          <div class="opt-t">旧形式の <code>otherFee</code> / <code>monthlyFee</code> を削除する（推奨）</div>
+          <div class="opt-d">検索画面は月額を「家賃＋食費＋管理費＋otherFee」で再計算します。古い otherFee が残っていると月額合計が水増しされます。Excelは内訳が完結しているため削除が正解です。</div>
+        </div>
+      </label>
+    </div>
+
+    <div id="confirm-area"></div>
+    <div class="bar hide" id="bar"><div id="bar-in"></div></div>
+    <div class="log hide" id="log3"></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step locked" id="s4">
+    <div class="step-h"><div class="step-n">4</div><div class="step-t">検証</div></div>
+    <p class="step-d">書き込み後の Firestore を読み直して、件数と内訳が想定どおりか確認します。</p>
+    <button class="btn" onclick="doVerify()">再読み込みして検証</button>
+    <div id="verify-out"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="kaigo-import-data-260723.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
+  authDomain:"kaigo-link-dev-59bc5.firebaseapp.com",
+  projectId:"kaigo-link-dev-59bc5",
+  storageBucket:"kaigo-link-dev-59bc5.firebasestorage.app",
+  messagingSenderId:"646624290677",
+  appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
+});
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+auth.onAuthStateChanged(async user => {
+  if (!user) { location.href = '../public/kaigo-login.html'; return; }
+  const snap = await db.collection('users').doc(user.uid).get();
+  if (snap.data()?.role !== 'admin') { location.href = '../public/kaigo-login.html'; return; }
+  document.body.style.visibility = 'visible';
+});
+
+const SRC    = window.NEW_FACILITIES_260723;
+const CITIES = ['豊中市','吹田市','茨木市','池田市','箕面市'];
+document.getElementById('src-n').textContent = SRC.length;
+
+// Excel由来＝常に上書きしてよい列
+const CATALOG = ['name','type','prefecture','city','address',
+                 'stationLine','station','stationDistance','stations',
+                 'rent','mealFee','managementFee','initialFee','feeNotes'];
+
+// Excelに列が無い＝完全同期では消える項目
+const RESETS = [
+  {k:'vacancy',      t:'空室数・空室備考',           d:'施設担当者が管理画面から日々更新している値。0にリセットされます。', f:['vacancy','vacancyNotes'], zero:{vacancy:0,vacancyNotes:''}},
+  {k:'plan',         t:'プラン（free / paid）',      d:'有料プラン設定。free に戻ります。課金状態を持つ施設は要注意。', f:['plan'], zero:{plan:'free'}},
+  {k:'photoUrl',     t:'施設写真',                   d:'photoUrl が消えます。Cloud Storage 上の実体は孤児として残ります。', f:['photoUrl'], del:['photoUrl']},
+  {k:'campaign',     t:'キャンペーン・お知らせ',      d:'施設が入力した告知文。空になります。', f:['campaign'], zero:{campaign:''}},
+  {k:'contact',      t:'連絡先・担当者名',           d:'contactName / contactTel が空になります。', f:['contactName','contactTel'], zero:{contactName:'',contactTel:''}},
+  {k:'tags',         t:'特徴タグ・受入条件',         d:'features / 生活保護 / 身元保証 / 介護認定 の可否。過去に一括付与したタグが消え、検索の絞り込みが効かなくなります。', f:['features','seikatsuHogo','mimonHosho','kaigoNintei'], zero:{features:[],seikatsuHogo:'',mimonHosho:'',kaigoNintei:''}},
+  {k:'source',       t:'出典URL・介護事業所番号',    d:'sourceUrl / managementId。Excelに代わりの列が無く、再取得も効きません。managementId は将来の再取込で唯一の安定キーになる値です。', f:['sourceUrl','managementId'], zero:{sourceUrl:''}, del:['managementId']},
+  {k:'area',         t:'エリア（area）',             d:'補助的な地域区分。空になります。', f:['area'], zero:{area:''}},
+];
+
+let MODE = 'merge';
+let LIVE = null;      // {id, data}[]
+let FUSERS = [];      // role=facility の users
+let PLAN = null;      // ドライラン結果
+
+// ── ログ ─────────────────────────────────────────────
+function L(id, msg, cls=''){
+  const el = document.getElementById(id);
+  el.classList.remove('hide');
+  el.insertAdjacentHTML('beforeend', `<span class="${cls}">${msg}</span>\n`);
+  el.scrollTop = el.scrollHeight;
+}
+const esc = s => String(s??'').replace(/[<>&]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const norm = s => String(s||'').normalize('NFKC').replace(/[\s　・･]/g,'')
+  .replace(/(介護付有料老人ホーム|住宅型有料老人ホーム|有料老人ホーム|サービス付き高齢者向け住宅|サービス付高齢者向け住宅|認知症高齢者グループホーム|グループホーム|特別養護老人ホーム|介護老人保健施設|養護老人ホーム|ケアハウス)/g,'')
+  .replace(/[（(].*?[)）]/g,'').toLowerCase();
+
+// ── STEP 1: バックアップ ────────────────────────────
+async function doBackup(){
+  const b = document.getElementById('b-backup');
+  b.disabled = true; b.textContent = '読み込み中...';
+  try {
+    L('log1','Firestore から facilities を全件読み込み中...','dim');
+    const fs = await db.collection('facilities').get();
+    LIVE = fs.docs.map(d => ({ id:d.id, data:d.data() }));
+    L('log1',`  facilities: ${LIVE.length} 件`,'b');
+
+    L('log1','施設アカウント（users.role = facility）を読み込み中...','dim');
+    const us = await db.collection('users').where('role','==','facility').get();
+    FUSERS = us.docs.map(d => ({ id:d.id, ...d.data() }));
+    L('log1',`  施設アカウント: ${FUSERS.length} 件`,'b');
+
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      note: '260723 5市リスト（データ更新版）取り込み前のバックアップ',
+      facilitiesCount: LIVE.length,
+      facilities: LIVE,
+      facilityUsers: FUSERS,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'');
+    a.href = URL.createObjectURL(blob);
+    a.download = `facilities-backup-${stamp}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    L('log1',`✅ バックアップをダウンロードしました（${a.download}）`,'g');
+    L('log1','   このファイルは必ず保管してください。復元の唯一の手段です。','y');
+    document.getElementById('s1').classList.add('done');
+    document.getElementById('s2').classList.remove('locked');
+    b.textContent = '再ダウンロード'; b.disabled = false;
+  } catch(e){
+    L('log1',`⚠ エラー: ${esc(e.message)}`,'r');
+    b.disabled = false; b.textContent = '再試行';
+  }
+}
+
+// ── STEP 2: ドライラン ──────────────────────────────
+function buildPlan(){
+  const liveByName = new Map();
+  const dupNames = [];
+  for (const d of LIVE){
+    const n = d.data.name || '';
+    if (liveByName.has(n)) dupNames.push(n);
+    else liveByName.set(n, d);
+  }
+  const updates = [], adds = [], srcNames = new Set();
+  for (const f of SRC){
+    srcNames.add(f.name);
+    const hit = liveByName.get(f.name);
+    if (hit) updates.push({ f, doc:hit });
+    else     adds.push({ f });
+  }
+  // リスト外＝対象5市に居るのに新リストに無い既存施設
+  const orphans = LIVE.filter(d => {
+    const city = d.data.city || CITIES.find(c => (d.data.address||'').includes(c)) || '';
+    return CITIES.includes(city) && !srcNames.has(d.data.name);
+  });
+  // 表記ゆれ候補（削除前の最重要チェック）
+  const srcByNorm = new Map();
+  SRC.forEach(f => { const k = norm(f.name); if(!srcByNorm.has(k)) srcByNorm.set(k, []); srcByNorm.get(k).push(f); });
+  const nearMiss = [];
+  for (const o of orphans){
+    const cand = (srcByNorm.get(norm(o.data.name)) || []).filter(c => !liveByName.has(c.name));
+    if (cand.length) nearMiss.push({ orphan:o, cand });
+  }
+  // 削除対象に施設アカウントが紐づいていないか
+  const fidSet = new Set(FUSERS.map(u => u.facilityId).filter(Boolean));
+  const orphansWithAccount = orphans.filter(o => fidSet.has(o.id));
+  // 完全同期で失われる件数
+  const loss = {};
+  for (const r of RESETS){
+    loss[r.k] = updates.filter(({doc}) => r.f.some(k => {
+      const v = doc.data[k];
+      return v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && !v.length) && !(k==='vacancy' && v===0) && !(k==='plan' && v==='free');
+    })).length;
+  }
+  const legacy = updates.filter(({doc}) => doc.data.otherFee != null || doc.data.monthlyFee != null).length;
+  const manYen = LIVE.filter(d => typeof d.data.rent === 'number' && d.data.rent > 0 && d.data.rent < 1000).length;
+  return { updates, adds, orphans, nearMiss, orphansWithAccount, dupNames, loss, legacy, manYen };
+}
+
+function doDryRun(){
+  PLAN = buildPlan();
+  const p = PLAN;
+  const cityCnt = arr => { const o={}; arr.forEach(x => { const c=(x.f?x.f.city:x.data.city)||'?'; o[c]=(o[c]||0)+1; }); return o; };
+  const fmt = o => Object.entries(o).map(([k,v])=>`${k} ${v}`).join(' / ') || '—';
+
+  let h = `<table>
+    <tr><th style="width:130px">操作</th><th class="num" style="width:80px">件数</th><th>内訳</th></tr>
+    <tr><td><span class="pill pill-u">更新</span></td><td class="num"><b>${p.updates.length}</b></td>
+        <td class="muted">施設名で既存と一致。<b>ドキュメントIDは維持</b>。${fmt(cityCnt(p.updates))}</td></tr>
+    <tr><td><span class="pill pill-a">新規</span></td><td class="num"><b>${p.adds.length}</b></td>
+        <td class="muted">${fmt(cityCnt(p.adds))}</td></tr>
+    <tr><td><span class="pill pill-d">リスト外</span></td><td class="num"><b>${p.orphans.length}</b></td>
+        <td class="muted">${MODE==='full' ? '<b style="color:#b91c1c">完全同期では削除されます</b>' : '安全マージでは残ります'}</td></tr>
+  </table>`;
+
+  if (p.dupNames.length) {
+    h += `<div class="box box-danger"><b>⚠ 既存データに施設名の重複が ${p.dupNames.length} 件あります。</b>
+      照合は施設名で行うため、重複があると片方しか更新されません。先に重複を解消してください：<br>
+      ${p.dupNames.map(esc).join(' / ')}</div>`;
+  }
+
+  if (p.nearMiss.length) {
+    h += `<div class="box box-danger"><b>⚠ 表記ゆれの疑い ${p.nearMiss.length} 件。これは削除してはいけません。</b>
+      下記は「リスト外」と判定されましたが、新リストによく似た名前があります。実際は<b>同じ施設が改名された</b>だけの可能性が高く、
+      このまま完全同期すると<b>旧ドキュメントが削除され、別IDで作り直されます（＝施設アカウントとURLが切れる）</b>。
+      <table><tr><th>既存（削除される）</th><th>新リストの類似名（新規作成される）</th></tr>
+      ${p.nearMiss.map(n => `<tr><td>${esc(n.orphan.data.name)}</td><td>${n.cand.map(c=>esc(c.name)).join('<br>')}</td></tr>`).join('')}
+      </table></div>`;
+  } else if (p.orphans.length) {
+    h += `<div class="box box-ok">表記ゆれの疑いはありません（新リストに似た名前の施設なし）。リスト外の ${p.orphans.length} 件は本当にリストから外れた施設です。</div>`;
+  }
+
+  if (p.orphans.length) {
+    h += `<div class="box ${MODE==='full'?'box-danger':'box-warn'}"><b>リスト外の既存施設 ${p.orphans.length} 件</b>
+      ${p.orphansWithAccount.length ? `<br><b>うち ${p.orphansWithAccount.length} 件は施設ログインアカウントが紐づいています。削除するとその施設はログインできなくなります。</b>` : '<br>施設ログインアカウントが紐づいているものはありません。'}
+      <table><tr><th>施設名</th><th style="width:110px">市</th><th style="width:110px">種別</th><th style="width:90px">アカウント</th></tr>
+      ${p.orphans.map(o => `<tr><td>${esc(o.data.name)}</td><td>${esc(o.data.city||'')}</td><td>${esc(o.data.type||'')}</td>
+        <td>${p.orphansWithAccount.includes(o) ? '<b style="color:#b91c1c">あり</b>' : '<span class="muted">なし</span>'}</td></tr>`).join('')}
+      </table></div>`;
+  }
+
+  const lossRows = RESETS.filter(r => p.loss[r.k] > 0);
+  if (lossRows.length) {
+    h += `<div class="box ${MODE==='full'?'box-danger':'box-warn'}">
+      <b>「完全同期」を選んだ場合に失われる既存データ</b>（安全マージなら 0 件・すべて保持）
+      <table><tr><th>項目</th><th class="num" style="width:110px">影響する施設</th></tr>
+      ${lossRows.map(r => `<tr><td>${esc(r.t)}</td><td class="num"><b>${p.loss[r.k]}</b> 件</td></tr>`).join('')}
+      </table></div>`;
+  }
+
+  h += `<div class="box ${p.legacy ? 'box-warn' : 'box-ok'}">
+    旧形式フィールド <code>otherFee</code> / <code>monthlyFee</code> を持つ既存施設: <b>${p.legacy}</b> 件
+    ${p.legacy ? '　→ 残すと月額合計が水増し表示されます。削除を推奨。' : '　→ 問題ありません。'}
+  </div>`;
+
+  if (p.manYen) {
+    h += `<div class="box box-warn"><b>参考：家賃が 1,000 未満の既存施設が ${p.manYen} 件あります。</b>
+      「万円」単位で登録されてしまった疑いがあります（登録画面が万円ラベル・保存は円）。今回のExcel対象なら円で正しく上書きされます。</div>`;
+  }
+
+  h += `<div class="box box-ok">取り込み後の想定件数: <b>${MODE==='full'
+      ? LIVE.length + p.adds.length - p.orphans.length
+      : LIVE.length + p.adds.length}</b> 件
+      （現在 ${LIVE.length} 件 ＋ 新規 ${p.adds.length} 件${MODE==='full' ? ` − 削除 ${p.orphans.length} 件` : ''}）</div>`;
+
+  document.getElementById('dry-out').innerHTML = h;
+  document.getElementById('s2').classList.add('done');
+  document.getElementById('s3').classList.remove('locked');
+  renderResetOpts();
+  renderConfirm();
+}
+
+// ── STEP 3: 適用 ────────────────────────────────────
+function setMode(m){
+  MODE = m;
+  document.getElementById('m-merge').classList.toggle('sel', m==='merge');
+  document.getElementById('m-full').classList.toggle('sel', m==='full');
+  document.getElementById('full-opts').classList.toggle('hide', m!=='full');
+  if (PLAN) doDryRun();
+  renderConfirm();
+}
+
+function renderResetOpts(){
+  if (!PLAN) return;
+  document.getElementById('reset-opts').innerHTML = RESETS.map(r => `
+    <label class="opt hot">
+      <input type="checkbox" class="reset-cb" data-k="${r.k}">
+      <div>
+        <div class="opt-t">${esc(r.t)} を消す（該当 ${PLAN.loss[r.k]} 件）</div>
+        <div class="opt-d">${esc(r.d)}</div>
+      </div>
+    </label>`).join('');
+}
+
+function renderConfirm(){
+  const del = MODE==='full' && PLAN ? PLAN.orphans.length : 0;
+  const area = document.getElementById('confirm-area');
+  if (MODE === 'merge'){
+    area.innerHTML = `<button class="btn" onclick="doApply()">安全マージで適用する（更新 ${PLAN?PLAN.updates.length:0} / 新規 ${PLAN?PLAN.adds.length:0}）</button>`;
+    return;
+  }
+  area.innerHTML = `
+    <div class="box box-danger"><b>この操作は取り消せません。</b>
+      ${del ? `既存施設 <b>${del} 件を削除</b>し、` : ''}チェックした項目の既存入力を消去します。
+      復元はステップ1のバックアップJSONからの手作業のみです。</div>
+    <div class="confirm">
+      <span>実行するには <code>DELETE</code> と入力：</span>
+      <input type="text" id="confirm-txt" placeholder="DELETE" oninput="onConfirmInput()" autocomplete="off">
+      <button class="btn-danger" id="b-apply-full" disabled onclick="doApply()">完全同期を実行する</button>
+    </div>`;
+}
+function onConfirmInput(){
+  document.getElementById('b-apply-full').disabled =
+    document.getElementById('confirm-txt').value.trim() !== 'DELETE';
+}
+
+function buildPatch(f, existing){
+  const ts = firebase.firestore.FieldValue.serverTimestamp();
+  const DEL = firebase.firestore.FieldValue.delete();
+  const p = { updatedAt: ts };
+  for (const k of CATALOG) p[k] = f[k] !== undefined ? f[k] : '';
+
+  // 入居一時金・敷金は Excel の列。0 の場合はフィールドごと消す（古い金額が残ると誤表示になる）
+  if (f.initialFeeAmount != null) p.initialFeeAmount = f.initialFeeAmount;
+  else if (existing && existing.initialFeeAmount != null) p.initialFeeAmount = DEL;
+  if (f.depositAmount != null) p.depositAmount = f.depositAmount;
+  else if (existing && existing.depositAmount != null) p.depositAmount = DEL;
+
+  if (document.getElementById('o-legacy').checked && existing){
+    if (existing.otherFee   != null) p.otherFee   = DEL;
+    if (existing.monthlyFee != null) p.monthlyFee = DEL;
+  }
+
+  if (MODE === 'full'){
+    document.querySelectorAll('.reset-cb:checked').forEach(cb => {
+      const r = RESETS.find(x => x.k === cb.dataset.k);
+      Object.assign(p, r.zero || {});
+      (r.del || []).forEach(k => { if (!existing || existing[k] !== undefined) p[k] = DEL; });
+    });
+  }
+  return p;
+}
+
+async function doApply(){
+  document.querySelectorAll('#s3 button').forEach(b => b.disabled = true);
+  document.getElementById('bar').classList.remove('hide');
+  const barIn = document.getElementById('bar-in');
+  const ts = firebase.firestore.FieldValue.serverTimestamp();
+
+  const del = MODE==='full' ? PLAN.orphans : [];
+  const total = PLAN.updates.length + PLAN.adds.length + del.length;
+  let done = 0, err = 0;
+  const tick = () => { done++; barIn.style.width = Math.round(done/total*100) + '%'; };
+
+  L('log3', `▶ ${MODE==='full' ? '完全同期' : '安全マージ'} を開始（更新 ${PLAN.updates.length} / 新規 ${PLAN.adds.length} / 削除 ${del.length}）`, 'b');
+
+  const run = async (items, fn, label) => {
+    for (let i = 0; i < items.length; i += 400){
+      const chunk = items.slice(i, i + 400);
+      const batch = db.batch();
+      chunk.forEach(it => fn(batch, it));
+      try {
+        await batch.commit();
+        chunk.forEach(tick);
+        L('log3', `  ${label}: ${Math.min(i+400, items.length)} / ${items.length}`, 'dim');
+      } catch(e){
+        err += chunk.length;
+        chunk.forEach(tick);
+        L('log3', `  ⚠ ${label} バッチ失敗: ${esc(e.message)}`, 'r');
+      }
+    }
+  };
+
+  await run(PLAN.updates, (batch, {f, doc}) => {
+    batch.update(db.collection('facilities').doc(doc.id), buildPatch(f, doc.data));
+  }, '更新');
+
+  await run(PLAN.adds, (batch, {f}) => {
+    const data = Object.assign({}, f, {
+      vacancy: 0, vacancyNotes: '', plan: 'free', approved: true,
+      createdAt: ts, updatedAt: ts,
+    });
+    batch.set(db.collection('facilities').doc(), data);
+  }, '新規');
+
+  if (del.length){
+    await run(del, (batch, o) => {
+      batch.delete(db.collection('facilities').doc(o.id));
+    }, '削除');
+  }
+
+  L('log3', err ? `⚠ 完了（失敗 ${err} 件）。バックアップJSONと突き合わせてください。`
+                : `✅ 完了：更新 ${PLAN.updates.length} / 新規 ${PLAN.adds.length} / 削除 ${del.length} / エラー 0`,
+    err ? 'r' : 'g');
+  document.getElementById('s3').classList.add('done');
+  document.getElementById('s4').classList.remove('locked');
+}
+
+// ── STEP 4: 検証 ────────────────────────────────────
+async function doVerify(){
+  const out = document.getElementById('verify-out');
+  out.innerHTML = '<p class="muted">読み込み中...</p>';
+  const snap = await db.collection('facilities').get();
+  const docs = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  const byCity = {}, byType = {};
+  docs.forEach(d => { byCity[d.city||'(未設定)'] = (byCity[d.city||'(未設定)']||0)+1;
+                      byType[d.type||'(未設定)'] = (byType[d.type||'(未設定)']||0)+1; });
+
+  const TYPES = ['特養','老健','グループホーム','サ高住','介護付有料','住宅型有料'];
+  const badType = docs.filter(d => !TYPES.includes(d.type));
+  const notOsaka = docs.filter(d => d.prefecture !== '大阪府' && !(d.address||'').startsWith('大阪府'));
+  const badFee = docs.filter(d => typeof d.rent === 'number' && d.rent > 0 && d.rent < 1000);
+  const missing = SRC.filter(f => !docs.some(d => d.name === f.name));
+
+  const row = (t, n, ok, note) => `<tr><td>${t}</td><td class="num"><b>${n}</b></td>
+    <td>${ok ? '<span class="pill pill-a">OK</span>' : '<span class="pill pill-d">要確認</span>'}</td>
+    <td class="muted">${note}</td></tr>`;
+
+  out.innerHTML = `
+    <table>
+      <tr><th>チェック</th><th class="num" style="width:70px">件数</th><th style="width:80px">判定</th><th>備考</th></tr>
+      ${row('総施設数', docs.length, true, '')}
+      ${row(`Excel ${SRC.length}件が全部入っているか`, SRC.length - missing.length, missing.length===0,
+            missing.length ? '未登録: ' + missing.slice(0,5).map(f=>esc(f.name)).join(' / ') : '全件登録済み')}
+      ${row('検索の種別フィルタに乗らない施設', badType.length, badType.length===0,
+            badType.length ? '種別が TYPES 外: ' + [...new Set(badType.map(d=>esc(d.type)))].join(' / ') : '全件が正しい種別')}
+      ${row('大阪府フィルタから漏れる施設', notOsaka.length, notOsaka.length===0,
+            notOsaka.length ? 'prefecture も address も大阪府でない' : '全件が大阪府として認識される')}
+      ${row('家賃が万円単位の疑い', badFee.length, badFee.length===0,
+            badFee.length ? badFee.slice(0,3).map(d=>esc(d.name)+':'+d.rent).join(' / ') : '全件が円単位')}
+    </table>
+    <table>
+      <tr><th>市</th><th class="num">件数</th></tr>
+      ${Object.entries(byCity).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="num">${v}</td></tr>`).join('')}
+    </table>
+    <table>
+      <tr><th>種別</th><th class="num">件数</th></tr>
+      ${Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="num">${v}</td></tr>`).join('')}
+    </table>
+    <div class="box box-ok" style="margin-top:14px">
+      仕上げに <a href="../public/kaigo-search.html" target="_blank">検索画面</a> を開いて、
+      市（池田市・箕面市を含む）と種別（グループホーム・介護付有料・住宅型有料）で絞り込みが効くか目視で確認してください。
+    </div>`;
+  document.getElementById('s4').classList.add('done');
+}
+</script>
+</body>
+</html>

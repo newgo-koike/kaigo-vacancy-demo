@@ -313,7 +313,208 @@ function toggleCareFeeDetail() {
   if (!el) return;
   const open = el.style.display !== 'none';
   el.style.display  = open ? 'none' : 'table-row';
-  btn.textContent   = open ? '▼ 負担割合・要介護度別の目安を見る' : '▲ 閉じる';
+  btn.textContent   = open ? btn.dataset.open : btn.dataset.close;
+}
+
+// ── 施設種別ごとの「その他かかる費用の目安」（令和6年度介護報酬改定・単価10円・30日換算） ─────
+const COST_CATEGORIES = {
+  '住宅型有料': {
+    careDisplay:'1.7〜3.6 万円', careNote:'※要介護1の場合', careMin:1.7, careMax:3.6,
+    careDesc:'介護保険の自己負担分（1割負担の場合）', careSub:'訪問介護・デイサービス等の利用量、要介護度・負担割合により変動',
+    medDisplay:'0.3〜1.0 万円', medMin:0.3, medMax:1.0,
+    medDesc:'薬代などの医薬品費（1割負担の場合）', medSub:'負担割合（1〜3割）により変動',
+    lifeDisplay:'1.0〜3.0 万円', lifeMin:1.0, lifeMax:3.0,
+    lifeDesc:'おむつ代・日用品・散髪代・洗濯代など', lifeSub:'生活スタイルにより変動',
+    toggleLabel:'負担割合・要介護度別の目安を見る',
+    limitNote:'限度額内：<span style="color:#d97706">1割（所得に応じて2割、3割）</span>の自己負担　／　超えた分：全額自己負担',
+    detailCols:['限度額（月額）','自己負担（1割）','自己負担（2割）','自己負担（3割）'],
+    detailRows:[
+      ['要介護1','167,650円','16,765円','33,530円','50,295円'],
+      ['要介護2','197,050円','19,705円','39,410円','59,115円'],
+      ['要介護3','270,480円','27,048円','54,096円','81,144円'],
+      ['要介護4','309,380円','30,938円','61,876円','92,814円'],
+      ['要介護5','362,170円','36,217円','72,434円','108,651円'],
+    ],
+    footnotes:[
+      '単価10円にて計算。サービス事業所の所在地の地域区分およびサービス種類によって単価が異なります。',
+      '自己負担には高額介護サービス費による月額上限（一般的な所得区分で44,400円）があり、実際の負担が軽減される場合があります。',
+    ],
+  },
+  '介護付有料': {
+    careDisplay:'1.6〜2.4 万円', careNote:'※要介護1の場合', careMin:1.6, careMax:2.4,
+    careDesc:'特定施設入居者生活介護費の自己負担分（1割負担の場合）', careSub:'要介護度ごとの定額制。負担割合（1〜3割）により変動',
+    medDisplay:'0.3〜1.0 万円', medMin:0.3, medMax:1.0,
+    medDesc:'薬代などの医薬品費（1割負担の場合）', medSub:'負担割合（1〜3割）により変動',
+    lifeDisplay:'1.0〜3.0 万円', lifeMin:1.0, lifeMax:3.0,
+    lifeDesc:'おむつ代・日用品・散髪代・洗濯代など', lifeSub:'生活スタイルにより変動',
+    toggleLabel:'負担割合・要介護度別の目安を見る',
+    limitNote:null,
+    detailCols:['自己負担（1割）','自己負担（2割）','自己負担（3割）'],
+    detailRows:[
+      ['要介護1','16,260円','32,520円','48,780円'],
+      ['要介護2','18,270円','36,540円','54,810円'],
+      ['要介護3','20,370円','40,740円','61,110円'],
+      ['要介護4','22,320円','44,640円','66,960円'],
+      ['要介護5','24,390円','48,780円','73,170円'],
+    ],
+    footnotes:[
+      '単価10円にて計算。所在地の地域区分により単価が異なります。',
+      '上記は基本報酬のみの金額です。処遇改善加算等の各種加算により、実際は数千円程度上乗せされます。',
+      '自己負担には高額介護サービス費による月額上限（一般的な所得区分で44,400円）があり、実際の負担が軽減される場合があります。',
+    ],
+  },
+  'グループホーム': {
+    careDisplay:'2.3〜2.6 万円', careNote:'※要介護1の場合', careMin:2.3, careMax:2.6,
+    careDesc:'認知症対応型共同生活介護費の自己負担分（1割負担の場合）', careSub:'要介護度・ユニット数・負担割合により変動',
+    medDisplay:'0.3〜1.0 万円', medMin:0.3, medMax:1.0,
+    medDesc:'薬代などの医薬品費（1割負担の場合）', medSub:'負担割合（1〜3割）により変動',
+    lifeDisplay:'1.0〜3.0 万円', lifeMin:1.0, lifeMax:3.0,
+    lifeDesc:'おむつ代・日用品・散髪代・洗濯代など', lifeSub:'生活スタイルにより変動',
+    toggleLabel:'要介護度別の目安を見る',
+    toggleSub:'※1割負担・30日換算',
+    limitNote:null,
+    detailCols:['1ユニットの事業所','2ユニット以上の事業所'],
+    detailRows:[
+      ['要支援2','22,830円','22,470円'],
+      ['要介護1','22,950円','22,590円'],
+      ['要介護2','24,030円','23,640円'],
+      ['要介護3','24,720円','24,360円'],
+      ['要介護4','25,230円','24,840円'],
+      ['要介護5','25,770円','25,350円'],
+    ],
+    footnotes:[
+      '単価10円にて計算。所在地の地域区分により単価が異なります。',
+      '上記は基本報酬のみの金額です。認知症加算・夜間支援体制加算・処遇改善加算等により、実際は数千円程度上乗せされます。',
+      'グループホームは要支援2以上かつ認知症の診断が入居条件です。',
+      '自己負担には高額介護サービス費による月額上限（一般的な所得区分で44,400円）があり、実際の負担が軽減される場合があります。',
+    ],
+  },
+  '特養': {
+    careDisplay:'2.2〜2.9 万円', careNote:'※要介護3の場合', careMin:2.2, careMax:2.9,
+    careDesc:'施設サービス費の自己負担分（1割負担の場合）', careSub:'要介護度・居室タイプ・負担割合により変動',
+    medDisplay:'0.3〜1.0 万円', medMin:0.3, medMax:1.0,
+    medDesc:'薬代・受診費など（1割負担の場合）', medSub:'負担割合（1〜3割）により変動',
+    lifeDisplay:'0.5〜1.5 万円', lifeMin:0.5, lifeMax:1.5,
+    lifeDesc:'日用品・散髪代・嗜好品など', lifeSub:'※おむつ代は施設負担のため不要',
+    toggleLabel:'居室タイプ・要介護度別の目安を見る',
+    toggleSub:'※1割負担・30日換算',
+    limitNote:null,
+    detailCols:['従来型個室・多床室','ユニット型個室'],
+    detailRows:[
+      ['要介護1','17,670円','20,100円'],
+      ['要介護2','19,770円','22,200円'],
+      ['要介護3','21,960円','24,450円'],
+      ['要介護4','24,060円','26,580円'],
+      ['要介護5','26,130円','28,650円'],
+    ],
+    footnotes:[
+      '単価10円にて計算。所在地の地域区分により単価が異なります。',
+      '上記は基本報酬のみの金額です。処遇改善加算等の各種加算により、実際は数千円程度上乗せされます。',
+      '特養は原則要介護3以上が入居対象です（要介護1・2は特例入所）。',
+      '自己負担には高額介護サービス費による月額上限（一般的な所得区分で44,400円）があり、実際の負担が軽減される場合があります。',
+    ],
+  },
+  '老健': {
+    careDisplay:'2.2〜3.1 万円', careNote:'※要介護1の場合', careMin:2.2, careMax:3.1,
+    careDesc:'施設サービス費の自己負担分（1割負担の場合）', careSub:'要介護度・居室タイプ・施設類型・負担割合により変動',
+    medDisplay:'原則 0円', medMin:0, medMax:0,
+    medDesc:'原則不要（薬代・診察・検査費は施設サービス費に含まれ施設負担）', medSub:'専門的治療・一部の他科受診等は例外',
+    lifeDisplay:'0.5〜1.5 万円', lifeMin:0.5, lifeMax:1.5,
+    lifeDesc:'日用品・散髪代・嗜好品など', lifeSub:'※おむつ代は施設負担のため不要',
+    toggleLabel:'居室タイプ・要介護度別の目安を見る',
+    toggleSub:'※基本型・1割負担・30日換算',
+    limitNote:null,
+    detailCols:['従来型個室','多床室','ユニット型個室'],
+    detailRows:[
+      ['要介護1','21,510円','23,790円','24,060円'],
+      ['要介護2','22,890円','25,290円','25,440円'],
+      ['要介護3','24,840円','27,240円','27,390円'],
+      ['要介護4','26,490円','28,830円','29,040円'],
+      ['要介護5','27,960円','30,360円','30,540円'],
+    ],
+    footnotes:[
+      '単価10円にて計算。所在地の地域区分により単価が異なります。',
+      '上記は「基本型」の基本報酬のみの金額です。在宅強化型・療養型の老健は1〜2割程度高くなります。またリハビリ加算・処遇改善加算等により、実際は数千円程度上乗せされます。',
+      '自己負担には高額介護サービス費による月額上限（一般的な所得区分で44,400円）があり、実際の負担が軽減される場合があります。',
+    ],
+  },
+};
+COST_CATEGORIES['サ高住'] = COST_CATEGORIES['住宅型有料']; // サ高住は住宅型有料と同一の目安を使用
+
+function renderCostDetailTable(cat) {
+  const colColor = label => label.includes('2割') ? '#d97706' : label.includes('3割') ? '#dc2626' : '#2c7ba6';
+  const headerCells = cat.detailCols.map((c,i) =>
+    `<th style="padding:7px 12px;color:white;text-align:right;font-weight:700;${i<cat.detailCols.length-1?'border-right:1px solid rgba(255,255,255,.25);':''}white-space:nowrap">${c}</th>`
+  ).join('');
+  const bodyRows = cat.detailRows.map((r,i) => {
+    const bg = i % 2 === 0 ? 'background:#eef7fc;' : '';
+    const cells = r.slice(1).map((v,j) => {
+      const last = j === cat.detailCols.length - 1;
+      return `<td style="padding:6px 12px;text-align:right;color:${colColor(cat.detailCols[j])};font-weight:700;${last?'':'border-right:1px solid #d3ebf7'}">${v}</td>`;
+    }).join('');
+    return `<tr style="${bg}border-bottom:1px solid #d3ebf7"><td style="padding:6px 12px;text-align:center;font-weight:700;color:#1e293b;white-space:nowrap">${r[0]}</td>${cells}</tr>`;
+  }).join('');
+  return `
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead>
+        <tr style="background:#2c7ba6">
+          <th style="padding:7px 12px;color:white;text-align:center;font-weight:700;border-right:1px solid rgba(255,255,255,.25);white-space:nowrap">要介護度</th>
+          ${headerCells}
+        </tr>
+      </thead>
+      <tbody>${bodyRows}</tbody>
+    </table>
+    ${cat.footnotes.map(f => `<div style="font-size:10px;color:#94a3b8;margin-top:6px;line-height:1.6">※ ${f}</div>`).join('')}
+  `;
+}
+
+function renderCostBreakdownCard(type) {
+  const cat = COST_CATEGORIES[type] || COST_CATEGORIES['住宅型有料'];
+  return `
+  <div class="sec-card">
+    <div class="sec-hd">💴 その他かかる費用の目安</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:#e4f2fa;border-bottom:2px solid #bfe0f2">
+          <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:800;color:#2c7ba6;width:22%">項目</th>
+          <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:800;color:#2c7ba6;width:50%">内容</th>
+          <th style="padding:9px 14px;text-align:right;font-size:11px;font-weight:800;color:#2c7ba6;white-space:nowrap">月額目安</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:#f8fafc">
+          <td style="padding:11px 14px;font-weight:700;color:#1e293b">🏥 介護費用</td>
+          <td style="padding:11px 14px;color:#64748b;font-size:12px">
+            ${cat.careDesc}<br>
+            <span style="color:#94a3b8;font-size:11px">${cat.careSub}</span><br>
+            <button id="care-fee-btn" data-open="▼ ${cat.toggleLabel}" data-close="▲ 閉じる" onclick="toggleCareFeeDetail()" style="margin-top:7px;font-size:11px;color:#2c7ba6;background:#e4f2fa;border:1px solid #bfe0f2;border-radius:5px;padding:4px 11px;cursor:pointer;font-family:inherit;font-weight:700">▼ ${cat.toggleLabel}</button>
+          </td>
+          <td style="padding:11px 14px;text-align:right;vertical-align:top">
+            <div style="font-weight:800;color:#2c7ba6;white-space:nowrap">${cat.careDisplay}</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:3px;white-space:nowrap">${cat.careNote}</div>
+          </td>
+        </tr>
+        <tr id="care-fee-detail-row" style="display:none;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+          <td colspan="3" style="padding:4px 14px 16px">
+            ${cat.limitNote ? `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:700;color:#92400e;margin-bottom:8px;line-height:1.6">${cat.limitNote}</div>` : ''}
+            ${cat.toggleSub ? `<div style="font-size:10px;color:#94a3b8;margin-bottom:6px">${cat.toggleSub}</div>` : ''}
+            ${renderCostDetailTable(cat)}
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0">
+          <td style="padding:11px 14px;font-weight:700;color:#1e293b">💊 医療費</td>
+          <td style="padding:11px 14px;color:#64748b;font-size:12px">${cat.medDesc}<br><span style="color:#94a3b8;font-size:11px">${cat.medSub}</span></td>
+          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#2c7ba6;white-space:nowrap">${cat.medDisplay}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0;background:#f8fafc">
+          <td style="padding:11px 14px;font-weight:700;color:#1e293b">🛒 その他生活費</td>
+          <td style="padding:11px 14px;color:#64748b;font-size:12px">${cat.lifeDesc}<br><span style="color:#94a3b8;font-size:11px">${cat.lifeSub}</span></td>
+          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#2c7ba6;white-space:nowrap">${cat.lifeDisplay}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="font-size:11px;color:#94a3b8;margin-top:10px;line-height:1.7">※ 介護度・負担割合・生活スタイルにより変動します</div>
+  </div>`;
 }
 
 function render(doc) {
@@ -392,74 +593,12 @@ function render(doc) {
 
   // ── ② 介護費用の説明 ─────────────────────────────────────
   // ── ③ 追加費用3項目＋月々合計 ──────────────────────────
-  // 介護費用（1割負担）: 1.6〜2.8万円 / 医療費: 0.3〜1.0万円 / 生活費: 1.0〜3.0万円
-  const estMin = totalMan ? Math.round((totalMan + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
-  const estMax = totalMan ? Math.round((totalMan + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
+  // 施設種別（d.type）ごとの介護費用・医療費・その他生活費レンジを使用（COST_CATEGORIES参照）
+  const costCat = COST_CATEGORIES[d.type] || COST_CATEGORIES['住宅型有料'];
+  const estMin = totalMan ? Math.round((totalMan + costCat.careMin + costCat.medMin + costCat.lifeMin) * 10) / 10 : null;
+  const estMax = totalMan ? Math.round((totalMan + costCat.careMax + costCat.medMax + costCat.lifeMax) * 10) / 10 : null;
 
-  const costBreakdownCard = `
-  <div class="sec-card">
-    <div class="sec-hd">💴 その他かかる費用の目安</div>
-    <table style="width:100%;border-collapse:collapse;font-size:13px">
-      <thead>
-        <tr style="background:#e4f2fa;border-bottom:2px solid #bfe0f2">
-          <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:800;color:#2c7ba6;width:22%">項目</th>
-          <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:800;color:#2c7ba6;width:50%">内容</th>
-          <th style="padding:9px 14px;text-align:right;font-size:11px;font-weight:800;color:#2c7ba6;white-space:nowrap">月額目安</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="background:#f8fafc">
-          <td style="padding:11px 14px;font-weight:700;color:#1e293b">🏥 介護費用</td>
-          <td style="padding:11px 14px;color:#64748b;font-size:12px">
-            介護保険の自己負担分（1割負担の場合）<br>
-            <span style="color:#94a3b8;font-size:11px">要介護1〜5・負担割合により変動</span><br>
-            <button id="care-fee-btn" onclick="toggleCareFeeDetail()" style="margin-top:7px;font-size:11px;color:#2c7ba6;background:#e4f2fa;border:1px solid #bfe0f2;border-radius:5px;padding:4px 11px;cursor:pointer;font-family:inherit;font-weight:700">▼ 負担割合・要介護度別の目安を見る</button>
-          </td>
-          <td style="padding:11px 14px;text-align:right;vertical-align:top">
-            <div style="font-weight:800;color:#2c7ba6;white-space:nowrap">1.7〜3.6 万円</div>
-            <div style="font-size:10px;color:#94a3b8;margin-top:3px;white-space:nowrap">※要介護1の場合</div>
-          </td>
-        </tr>
-        <tr id="care-fee-detail-row" style="display:none;background:#f8fafc;border-bottom:1px solid #e2e8f0">
-          <td colspan="3" style="padding:4px 14px 16px">
-            <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:700;color:#92400e;margin-bottom:8px;line-height:1.6">
-              限度額内：<span style="color:#d97706">1割（所得に応じて2割、3割）</span>の自己負担　／　超えた分：全額自己負担
-            </div>
-            <table style="width:100%;border-collapse:collapse;font-size:12px">
-              <thead>
-                <tr style="background:#2c7ba6">
-                  <th style="padding:7px 12px;color:white;text-align:center;font-weight:700;border-right:1px solid rgba(255,255,255,.25);white-space:nowrap">要介護度</th>
-                  <th style="padding:7px 12px;color:white;text-align:right;font-weight:700;border-right:1px solid rgba(255,255,255,.25);white-space:nowrap">限度額（月額）</th>
-                  <th style="padding:7px 12px;color:white;text-align:right;font-weight:700;border-right:1px solid rgba(255,255,255,.25);white-space:nowrap">自己負担（1割）</th>
-                  <th style="padding:7px 12px;color:white;text-align:right;font-weight:700;border-right:1px solid rgba(255,255,255,.25);white-space:nowrap">自己負担（2割）</th>
-                  <th style="padding:7px 12px;color:white;text-align:right;font-weight:700;white-space:nowrap">自己負担（3割）</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="background:#eef7fc;border-bottom:1px solid #d3ebf7"><td style="padding:6px 12px;text-align:center;font-weight:700;color:#1e293b;white-space:nowrap">要介護1</td><td style="padding:6px 12px;text-align:right;color:#475569">166,920円</td><td style="padding:6px 12px;text-align:right;color:#2c7ba6;font-weight:700">16,692円</td><td style="padding:6px 12px;text-align:right;color:#d97706;font-weight:700">33,384円</td><td style="padding:6px 12px;text-align:right;color:#dc2626;font-weight:700">50,076円</td></tr>
-                <tr style="border-bottom:1px solid #d3ebf7"><td style="padding:6px 12px;text-align:center;font-weight:700;color:#1e293b;white-space:nowrap">要介護2</td><td style="padding:6px 12px;text-align:right;color:#475569">196,160円</td><td style="padding:6px 12px;text-align:right;color:#2c7ba6;font-weight:700">19,616円</td><td style="padding:6px 12px;text-align:right;color:#d97706;font-weight:700">39,232円</td><td style="padding:6px 12px;text-align:right;color:#dc2626;font-weight:700">58,848円</td></tr>
-                <tr style="background:#eef7fc;border-bottom:1px solid #d3ebf7"><td style="padding:6px 12px;text-align:center;font-weight:700;color:#1e293b;white-space:nowrap">要介護3</td><td style="padding:6px 12px;text-align:right;color:#475569">269,310円</td><td style="padding:6px 12px;text-align:right;color:#2c7ba6;font-weight:700">26,931円</td><td style="padding:6px 12px;text-align:right;color:#d97706;font-weight:700">53,862円</td><td style="padding:6px 12px;text-align:right;color:#dc2626;font-weight:700">80,793円</td></tr>
-                <tr style="border-bottom:1px solid #d3ebf7"><td style="padding:6px 12px;text-align:center;font-weight:700;color:#1e293b;white-space:nowrap">要介護4</td><td style="padding:6px 12px;text-align:right;color:#475569">303,060円</td><td style="padding:6px 12px;text-align:right;color:#2c7ba6;font-weight:700">30,860円</td><td style="padding:6px 12px;text-align:right;color:#d97706;font-weight:700">61,612円</td><td style="padding:6px 12px;text-align:right;color:#dc2626;font-weight:700">90,918円</td></tr>
-                <tr style="background:#eef7fc"><td style="padding:6px 12px;text-align:center;font-weight:700;color:#1e293b;white-space:nowrap">要介護5</td><td style="padding:6px 12px;text-align:right;color:#475569">360,650円</td><td style="padding:6px 12px;text-align:right;color:#2c7ba6;font-weight:700">36,065円</td><td style="padding:6px 12px;text-align:right;color:#d97706;font-weight:700">72,130円</td><td style="padding:6px 12px;text-align:right;color:#dc2626;font-weight:700">108,195円</td></tr>
-              </tbody>
-            </table>
-            <div style="font-size:10px;color:#94a3b8;margin-top:6px;line-height:1.6">※ 単価10円にて計算。サービス事業所の所在地の地域区分およびサービス種類によって単価が異なります。</div>
-          </td>
-        </tr>
-        <tr style="border-bottom:1px solid #e2e8f0">
-          <td style="padding:11px 14px;font-weight:700;color:#1e293b">💊 医療費</td>
-          <td style="padding:11px 14px;color:#64748b;font-size:12px">薬代などの医薬品費（1割負担の場合）<br><span style="color:#94a3b8;font-size:11px">負担割合（1〜3割）により変動</span></td>
-          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#2c7ba6;white-space:nowrap">0.3〜1.0 万円</td>
-        </tr>
-        <tr style="border-bottom:1px solid #e2e8f0;background:#f8fafc">
-          <td style="padding:11px 14px;font-weight:700;color:#1e293b">🛒 その他生活費</td>
-          <td style="padding:11px 14px;color:#64748b;font-size:12px">おむつ代・日用品・散髪代・洗濯代など<br><span style="color:#94a3b8;font-size:11px">生活スタイルにより変動</span></td>
-          <td style="padding:11px 14px;text-align:right;font-weight:800;color:#2c7ba6;white-space:nowrap">1.0〜3.0 万円</td>
-        </tr>
-      </tbody>
-    </table>
-    <div style="font-size:11px;color:#94a3b8;margin-top:10px;line-height:1.7">※ 介護度・負担割合・生活スタイルにより変動します</div>
-  </div>`;
+  const costBreakdownCard = renderCostBreakdownCard(d.type);
 
   const careFeeCard = '';
   const otherFeeCard = '';

@@ -529,9 +529,12 @@ function detectAlerts() {
     }
 
     // 注意書きと金額欄の矛盾。「敷金が必要」と書いてあるのに0円は記載漏れ
+    // （「敷金は不要です」等、明示的に不要と書かれている行は矛盾ではないため除外）
     if (f.depositAmount === 0 && /敷金|保証金/.test(f.feeNotes)) {
       const line = (f.feeNotes.match(/[^\n]*(?:敷金|保証金)[^\n]*/) || [''])[0].trim();
-      push('error', `敷金欄が0円だが、注意書きに敷金の記載あり：「${line.slice(0, 60)}」`);
+      if (line && !/不要|なし|無し/.test(line)) {
+        push('error', `敷金欄が0円だが、注意書きに敷金の記載あり：「${line.slice(0, 60)}」`);
+      }
     }
 
     // 必須項目
