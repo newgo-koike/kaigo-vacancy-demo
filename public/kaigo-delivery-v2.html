@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.8 | 介護施設検索システム</title>
+  <title>納品書 v2.9 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -198,12 +198,12 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.8</div>
+  <div class="v2-badge">✨ v2.9</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.8</p>
+  <p>納品書・仕様書・操作マニュアル　v2.9</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
-    <div class="delivery-meta-item"><strong>最終更新</strong>2026年7月14日</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年7月23日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
     <div class="delivery-meta-item"><strong>システム名</strong>介護施設検索システム</div>
     <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
@@ -240,6 +240,42 @@
       .cl-txt { font-size:13px; color:var(--g700); line-height:1.6; }
       .cl-txt strong { color:var(--g900); }
     </style>
+
+    <!-- 2026/7/23 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月23日</div>
+          <div class="cl-subtitle">施設データを260723版に更新（476件マージ更新）／入居時費用を「初期費用合計」1本に統一／施設種別ごとの費用目安を実装／管理画面アラートの誤検知を修正</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設データを最新版（260723リスト）に更新／全476件</strong><br>豊中市154件・吹田市116件・茨木市104件・池田市52件・箕面市50件、5市すべての最新データで<strong>全476件をマージ更新</strong>しました（新規0・削除0・エラー0）。取り込みツール（バックアップ→差分確認→適用→検証の4段階）を今回のデータ形式に合わせて用意し、更新前のバックアップJSONも取得済みです。施設ドキュメントIDは維持しているため、施設ログイン・配布済みQR・施設詳細URL・写真は影響を受けていません。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>入居時費用を「入居一時金＋敷金」の内訳から「初期費用合計」1本に統一</strong><br>元データの仕様変更に合わせ、内訳（一時金／敷金）の管理を廃止し、合計額のみを保持する方式にしました。<strong>合計額（入居時にかかる費用の総額）自体は変わりません。</strong>施設詳細の内訳表示は「敷金」欄が一律0円になりますが、これはデータ側の仕様変更によるもので、表示の不具合ではありません。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>「費用に関する注意書き」を民間・公共の2パターンに統一</strong><br>施設ごとにばらばらだった注意書きを、初期費用の有無に応じた定型文（民間施設向け／公共施設向け）の2パターンに統一。今回のデータ更新に合わせた仕様変更です。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>「その他かかる費用の目安」を施設種別ごとに表示するよう実装</strong><br>これまで全施設共通で表示していた介護費用・医療費・その他生活費の目安を、<strong>住宅型有料・サ高住／介護付有料／グループホーム／特養／老健</strong>の5区分ごとに、令和6年度介護報酬改定の基本報酬に基づく金額・説明・要介護度別の展開テーブルに出し分けるようにしました（例：特養・老健はおむつ代が施設負担のため生活費目安が低め、老健は医療費が原則0円 など）。ページ上部の「月々の費用目安」バナーも、この施設種別ごとの数値から自動計算されます。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>元データの文字化けを1件補正して取り込み（吹田市）</strong><br>新しいExcelで施設名が「ｆ」という1文字に化けている行がありました。住所・種別・賃料が一致することから既存施設「メルヴェイユ吹田」（特養）と特定し、正しい施設名で取り込むことで既存のドキュメントID・URLを維持しました。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>管理画面「⚠ 要確認データ」アラートの誤検知を修正（99件→2件）</strong><br>今回の内訳廃止に伴い敷金欄が一律0円になったことで、「敷金は不要です」という注意書きの施設まで<strong>「敷金の記載があるのに0円」と誤って検知</strong>していました（97件）。注意書きに「不要」等の否定表現がある場合は対象外にするよう判定を修正しました。</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 2026/7/14 -->
     <div class="cl-day">
@@ -668,9 +704,36 @@
   <div class="sec" style="margin-top:0">
     <div class="sec-hd">
       <div class="sec-num" style="background:var(--purple)">★</div>
-      <div class="sec-title">v2.8 で追加・変更されたこと</div>
+      <div class="sec-title">v2.9 で追加・変更されたこと</div>
     </div>
     <div class="whats-new">
+      <h3>🆕 v2.8 → v2.9 の主な変更点（2026/7/23）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">💴 施設データを260723版に更新（全476件）</div>
+          <div class="new-item-desc">5市すべての最新データで全476件をマージ更新（新規0・削除0・エラー0）。施設IDは維持したまま更新しているため、ログイン・QR・URL・写真への影響はありません。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">📦 入居時費用を「初期費用合計」1本に統一</div>
+          <div class="new-item-desc">「入居一時金＋敷金」の内訳管理を廃止し、合計額のみを保持する方式に変更。合計額自体は変わりません。元データの仕様変更に合わせた対応です。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">📋 費用の注意書きを民間・公共の2パターンに統一</div>
+          <div class="new-item-desc">施設ごとにばらばらだった注意書きを、初期費用の有無に応じた定型文2パターンに統一しました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏠 「その他かかる費用の目安」を施設種別ごとに表示</div>
+          <div class="new-item-desc">住宅型有料・サ高住／介護付有料／グループホーム／特養／老健の5区分ごとに、公式の介護報酬に基づく金額・説明・要介護度別テーブルを出し分け。月々の費用目安バナーもこの数値から自動計算されます。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔤 施設名の文字化けを補正して取り込み</div>
+          <div class="new-item-desc">吹田市の1件、Excel上で施設名が「ｆ」に化けていたのを、住所・種別・賃料から特定して「メルヴェイユ吹田」として取り込み、既存IDを維持しました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">⚠ 要確認データの誤検知を修正（99件→2件）</div>
+          <div class="new-item-desc">敷金内訳廃止に伴い、「敷金は不要です」という注意書きまで誤って要確認扱いにしていたのを修正しました。</div>
+        </div>
+      </div>
       <h3>🆕 v2.7 → v2.8 の主な変更点（2026/7/14）</h3>
       <div class="new-grid">
         <div class="new-item">
@@ -781,6 +844,11 @@
       </div>
       <h3 style="margin-top:26px">📜 これまでのアップデート履歴</h3>
       <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-top:8px">
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.9</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/23</span>
+          <span>施設データを260723版に更新（全476件マージ更新）／入居時費用を「初期費用合計」1本に統一／費用注意書きを民間・公共の2パターンに統一／施設種別ごとの「その他かかる費用の目安」を実装／施設名の文字化けを補正／要確認データの誤検知を修正</span>
+        </div>
         <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
           <span style="font-weight:800;color:var(--purple);min-width:66px">v2.8</span>
           <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/14</span>
@@ -1844,7 +1912,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  介護施設検索システム v2.8<br>
+  介護施設検索システム v2.9<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>
