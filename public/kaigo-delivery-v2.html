@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.9 | 介護施設検索システム</title>
+  <title>納品書 v2.9.1 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -46,7 +46,7 @@
     /* WHAT'S NEW */
     .whats-new { background:linear-gradient(135deg, #f5f3ff, #e4f2fa); border:1px solid #c4b5fd; border-radius:18px; padding:24px 28px; margin-top:32px; }
     .whats-new h3 { font-size:16px; font-weight:800; color:var(--purple); margin-bottom:14px; }
-    .new-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .new-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
     @media(max-width:900px){ .new-grid { grid-template-columns:1fr 1fr; } }
     @media(max-width:600px){ .new-grid { grid-template-columns:1fr; } }
     .new-item { background:white; border-radius:12px; padding:14px 16px; border:1px solid #e9d5ff; }
@@ -189,21 +189,114 @@
     }
 
     .footer { text-align:center; padding:40px; font-size:12px; color:var(--g400); background:var(--g900); margin-top:60px; }
+
+    /* ── 常時表示のリンクバー ───────────────────────────── */
+    .topbar { position:sticky; top:0; z-index:60; background:#0f172a; border-bottom:1px solid rgba(255,255,255,.12); }
+    .topbar-inner { max-width:1600px; margin:0 auto; padding:10px 40px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+    .topbar-brand { color:white; font-size:14px; font-weight:800; text-decoration:none; white-space:nowrap; }
+    .topbar-ver { font-size:10px; font-weight:800; color:#c4b5fd; background:rgba(124,58,237,.25); border-radius:20px; padding:2px 9px; margin-left:4px; vertical-align:middle; }
+    .topbar-links { display:flex; gap:8px; flex-wrap:wrap; margin-left:auto; }
+    .tb-btn { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:white; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); border-radius:8px; padding:7px 13px; text-decoration:none; cursor:pointer; font-family:inherit; transition:background .15s,border-color .15s; white-space:nowrap; }
+    .tb-btn:hover { background:rgba(255,255,255,.2); }
+    .tb-primary { background:var(--brand); border-color:var(--brand); }
+    .tb-primary:hover { background:var(--brand-d); }
+    .tb-toc[aria-expanded="true"] { background:var(--purple); border-color:var(--purple); }
+    .toc-panel { border-top:1px solid rgba(255,255,255,.12); background:rgba(15,23,42,.99); max-height:70vh; overflow-y:auto; }
+    .toc-panel-inner { max-width:1600px; margin:0 auto; padding:16px 40px 22px; display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:2px 24px; }
+    .toc-panel .toc-group { grid-column:1/-1; font-size:10.5px; font-weight:800; letter-spacing:.08em; color:#7dd3fc; margin:12px 0 4px; }
+    .toc-panel .toc-group:first-child { margin-top:0; }
+    .toc-plink { display:flex; align-items:center; gap:9px; font-size:12.5px; color:#cbd5e1; text-decoration:none; padding:6px 8px; border-radius:7px; }
+    .toc-plink:hover { background:rgba(255,255,255,.1); color:white; }
+    .toc-plink .toc-n { background:rgba(255,255,255,.14); color:white; }
+
+    /* ── 左ペインの目次 ──────────────────────────────────── */
+    .toc-card { background:white; border:1px solid var(--g200); border-radius:18px; padding:18px 16px; box-shadow:0 2px 12px rgba(0,0,0,.05); }
+    .toc-hd { font-size:14px; font-weight:800; color:var(--g900); padding:0 8px 12px; border-bottom:1px solid var(--g100); margin-bottom:10px; }
+    .toc-group { font-size:10.5px; font-weight:800; letter-spacing:.08em; color:var(--brand-d); margin:14px 8px 5px; }
+    .toc-group:first-of-type { margin-top:4px; }
+    .toc-link { display:flex; align-items:center; gap:9px; font-size:12.5px; color:var(--g600); text-decoration:none; padding:7px 8px; border-radius:8px; line-height:1.4; }
+    .toc-link:hover { background:var(--g50); color:var(--g900); }
+    .toc-link.active { background:var(--brand-l); color:var(--brand-d); font-weight:700; }
+    .toc-n { flex-shrink:0; width:20px; height:20px; border-radius:6px; background:var(--g100); color:var(--g500); font-size:10.5px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+    .toc-link.active .toc-n { background:var(--brand); color:white; }
+
+    /* ── 折りたたみ ─────────────────────────────────────── */
+    .fold { margin-top:16px; border:1px solid var(--g200); border-radius:12px; background:white; overflow:hidden; }
+    .fold > summary { cursor:pointer; font-size:12.5px; font-weight:700; color:var(--g600); padding:12px 16px; list-style:none; display:flex; align-items:center; gap:8px; }
+    .fold > summary::-webkit-details-marker { display:none; }
+    .fold > summary::before { content:"▸"; color:var(--brand); font-size:12px; transition:transform .15s; }
+    .fold[open] > summary::before { transform:rotate(90deg); }
+    .fold > summary:hover { background:var(--g50); }
+    .fold-body { padding:4px 16px 16px; border-top:1px solid var(--g100); }
+    .hist-h { font-size:16px; font-weight:800; color:var(--g900); margin:36px 0 14px; }
+
+    .sec { scroll-margin-top:76px; }
+
+    @media(max-width:1100px) { .toc-card { display:none; } }
+    @media(max-width:768px) {
+      .topbar-inner { padding:9px 16px; gap:10px; }
+      .topbar-links { margin-left:0; width:100%; }
+      .tb-btn { font-size:11px; padding:6px 10px; }
+      .toc-panel-inner { padding:14px 16px 18px; }
+    }
+    @media print {
+      .topbar, .pane-left { display:none !important; }
+      .fold > summary { display:none; }
+      .fold > *:not(summary) { display:block !important; }
+      .two-pane { grid-template-columns:1fr !important; }
+    }
     .diff-badge { display:inline-block; font-size:9px; font-weight:800; padding:1px 6px; border-radius:4px; background:var(--purple-bg); color:var(--purple); margin-left:6px; vertical-align:middle; }
   </style>
 </head>
 <body>
+<a id="top"></a>
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="#top">🏥 介護施設検索システム <span class="topbar-ver">v2.9.1</span></a>
+    <div class="topbar-links">
+      <a class="tb-btn tb-primary" href="kaigo-search.html" target="_blank">🔍 施設検索</a>
+      <a class="tb-btn" href="kaigo-login.html" target="_blank">🔑 医療機関ログイン</a>
+      <a class="tb-btn" href="kaigo-facility-login.html" target="_blank">🏠 施設ログイン</a>
+      <a class="tb-btn" href="kaigo-master.html" target="_blank">⚙ 管理画面</a>
+      <a class="tb-btn" href="kaigo-apply.html" target="_blank">📝 アカウント申請</a>
+      <button class="tb-btn tb-toc" id="tocToggle" aria-expanded="false">☰ 目次</button>
+    </div>
+  </div>
+  <div class="toc-panel" id="tocPanel" hidden>
+    <div class="toc-panel-inner">
+      <div class="toc-group">まず見る</div>
+      <a class="toc-plink" href="#sec1"><span class="toc-n">1</span>ツール一覧（全10ページ）</a>
+      <a class="toc-plink" href="#sec2"><span class="toc-n">2</span>現在のデータ状況</a>
+      <div class="toc-group">日々の運用</div>
+      <a class="toc-plink" href="#sec3"><span class="toc-n">3</span>操作マニュアル</a>
+      <a class="toc-plink" href="#sec4"><span class="toc-n">4</span>アカウント登録フロー</a>
+      <a class="toc-plink" href="#sec5"><span class="toc-n">5</span>運用上の注意事項</a>
+      <div class="toc-group">広める（営業・訪問）</div>
+      <a class="toc-plink" href="#sec6"><span class="toc-n">6</span>病院への訪問マニュアル</a>
+      <a class="toc-plink" href="#sec7"><span class="toc-n">7</span>施設への営業・オンボーディング手順</a>
+      <a class="toc-plink" href="#sec8"><span class="toc-n">8</span>3者のユーザーエクスペリエンス</a>
+      <div class="toc-group">仕様とデータ</div>
+      <a class="toc-plink" href="#sec9"><span class="toc-n">9</span>システム構成・仕様</a>
+      <a class="toc-plink" href="#sec10"><span class="toc-n">10</span>データ構造（Firestore）</a>
+      <a class="toc-plink" href="#sec11"><span class="toc-n">11</span>施設データの収集・入力フロー</a>
+      <a class="toc-plink" href="#sec12"><span class="toc-n">12</span>検索データの蓄積と活用</a>
+      <div class="toc-group">記録</div>
+      <a class="toc-plink" href="#sec13"><span class="toc-n">13</span>更新履歴</a>
+    </div>
+  </div>
+</div>
+
 
 <div class="page-hdr">
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.9</div>
+  <div class="v2-badge">✨ v2.9.1</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.9</p>
+  <p>納品書・仕様書・操作マニュアル　v2.9.1</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
-    <div class="delivery-meta-item"><strong>最終更新</strong>2026年7月23日</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年7月27日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
     <div class="delivery-meta-item"><strong>システム名</strong>介護施設検索システム</div>
     <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
@@ -213,673 +306,36 @@
 <div class="container">
 <div class="two-pane">
 
-<!-- ═══ LEFT: アーカイブ ══════════════════════════════════════ -->
+<!-- ═══ LEFT: 目次ナビ ══════════════════════════════════ -->
 <div class="pane-left">
-
-  <!-- CHANGELOG -->
-  <div class="sec">
-    <div class="sec-hd">
-      <div class="sec-num" style="background:var(--purple)">📅</div>
-      <div class="sec-title">アップデート履歴</div>
-    </div>
-
-    <style>
-      .cl-day { background:white; border-radius:18px; border:1px solid var(--g200); overflow:hidden; margin-bottom:20px; box-shadow:0 2px 12px rgba(0,0,0,.05); }
-      .cl-day-hd { display:flex; align-items:center; gap:14px; padding:18px 24px; background:var(--g900); }
-      .cl-date { font-size:18px; font-weight:800; color:white; letter-spacing:-.3px; }
-      .cl-subtitle { font-size:12px; color:var(--g400); margin-top:2px; }
-      .cl-items { padding:16px 24px; display:flex; flex-direction:column; gap:10px; }
-      .cl-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:10px; border:1px solid var(--g100); background:var(--g50); }
-      .cl-item.added   { border-color:#d3ebf7; background:#eef7fc; }
-      .cl-item.fixed   { border-color:#bfdbfe; background:#eff6ff; }
-      .cl-item.changed { border-color:#e9d5ff; background:#f5f3ff; }
-      .cl-tag { font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
-      .cl-tag.added   { background:#e4f2fa; color:var(--ok); }
-      .cl-tag.fixed   { background:#dbeafe; color:var(--blue); }
-      .cl-tag.changed { background:#ede9fe; color:var(--purple); }
-      .cl-txt { font-size:13px; color:var(--g700); line-height:1.6; }
-      .cl-txt strong { color:var(--g900); }
-    </style>
-
-    <!-- 2026/7/23 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年7月23日</div>
-          <div class="cl-subtitle">施設データを260723版に更新（476件マージ更新）／入居時費用を「初期費用合計」1本に統一／施設種別ごとの費用目安を実装／管理画面アラートの誤検知を修正</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>施設データを最新版（260723リスト）に更新／全476件</strong><br>豊中市154件・吹田市116件・茨木市104件・池田市52件・箕面市50件、5市すべての最新データで<strong>全476件をマージ更新</strong>しました（新規0・削除0・エラー0）。取り込みツール（バックアップ→差分確認→適用→検証の4段階）を今回のデータ形式に合わせて用意し、更新前のバックアップJSONも取得済みです。施設ドキュメントIDは維持しているため、施設ログイン・配布済みQR・施設詳細URL・写真は影響を受けていません。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>入居時費用を「入居一時金＋敷金」の内訳から「初期費用合計」1本に統一</strong><br>元データの仕様変更に合わせ、内訳（一時金／敷金）の管理を廃止し、合計額のみを保持する方式にしました。<strong>合計額（入居時にかかる費用の総額）自体は変わりません。</strong>施設詳細の内訳表示は「敷金」欄が一律0円になりますが、これはデータ側の仕様変更によるもので、表示の不具合ではありません。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>「費用に関する注意書き」を民間・公共の2パターンに統一</strong><br>施設ごとにばらばらだった注意書きを、初期費用の有無に応じた定型文（民間施設向け／公共施設向け）の2パターンに統一。今回のデータ更新に合わせた仕様変更です。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>「その他かかる費用の目安」を施設種別ごとに表示するよう実装</strong><br>これまで全施設共通で表示していた介護費用・医療費・その他生活費の目安を、<strong>住宅型有料・サ高住／介護付有料／グループホーム／特養／老健</strong>の5区分ごとに、令和6年度介護報酬改定の基本報酬に基づく金額・説明・要介護度別の展開テーブルに出し分けるようにしました（例：特養・老健はおむつ代が施設負担のため生活費目安が低め、老健は医療費が原則0円 など）。ページ上部の「月々の費用目安」バナーも、この施設種別ごとの数値から自動計算されます。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>元データの文字化けを1件補正して取り込み（吹田市）</strong><br>新しいExcelで施設名が「ｆ」という1文字に化けている行がありました。住所・種別・賃料が一致することから既存施設「メルヴェイユ吹田」（特養）と特定し、正しい施設名で取り込むことで既存のドキュメントID・URLを維持しました。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>管理画面「⚠ 要確認データ」アラートの誤検知を修正（99件→2件）</strong><br>今回の内訳廃止に伴い敷金欄が一律0円になったことで、「敷金は不要です」という注意書きの施設まで<strong>「敷金の記載があるのに0円」と誤って検知</strong>していました（97件）。注意書きに「不要」等の否定表現がある場合は対象外にするよう判定を修正しました。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/7/14 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年7月14日</div>
-          <div class="cl-subtitle">施設データを5市・計476施設に刷新（池田市・箕面市を新規追加）／入居時費用まわりの表示・絞り込みを「一時金＋敷金」に統一／病院アカウントの担当者名を整備</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設データを最新版（260712リスト）に全面更新／計476施設</strong><br>豊中市154件・吹田市116件・茨木市104件・<strong>池田市52件・箕面市50件</strong>の5市を最新の介護情報リストで刷新。池田市・箕面市は新規追加です。既存374施設は最新の費用（入居一時金・敷金・家賃・食費・管理費）と注意書きに更新し、新規102施設を追加、今回のリストから外れた12施設（豊中4・吹田8）を削除しました。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>取り込み専用ツールを新設（バックアップ→差分確認→適用→検証の4段階）</strong><br>書き込み前に必ず全データをJSONでバックアップし、「何件が更新・追加・削除されるか」を1件も書き込まずに確認してから実行する方式に。<strong>施設ドキュメントIDを維持したまま更新</strong>するため、施設ログイン・配布済みQR・施設詳細URL・写真の保存先が切れません。取り込み後は全476件×全項目を照合し、取りこぼし・入力誤りがないことを検証済みです。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>検索結果カードの費用欄を見やすく改善</strong><br>施設名と費用欄の間が空きすぎて費用の内訳（賃料・管理費・食費）が小さく潰れていた問題を解消。結果リストに最大幅を設定して余白を詰め、費用欄を約1.8倍に拡張。内訳の数字が判読できるサイズになりました。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>施設種別の表記ゆれを吸収</strong><br>元Excelの略記（介護付／住宅型／GH）を、検索画面の絞り込みが使う正式名称（介護付有料／住宅型有料／グループホーム）に変換して登録。そのまま入れると種別で絞り込んだ際に該当施設が表示されない状態になるため。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>病院コードを連番からランダム4桁に変更（136病院）</strong><br>これまでの病院コードはエリア順の連番で、4桁と5桁が混在していました（コードから病院数やエリアが推測できてしまう状態）。<strong>重複しないランダム4桁</strong>に一括で付け替え、全病院のログインIDを <code>####-01</code> の形式に統一。<strong>今後、病院を追加する際も未使用のランダム4桁が自動採番</strong>されます。<br><span style="color:var(--ok);font-weight:700">※ IDはまだ配布前のため、影響はありません。</span></div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>管理者ダッシュボードに「病院一覧（ログインID配布用）」</strong><br>病院名・エリア・ログインID・パスワード・担当者を一覧表示。絞り込み、<strong>配布用CSV出力</strong>、印刷に対応しました。<strong>「＋病院を追加」</strong>から病院名を入れるだけで、未使用のランダム4桁を採番してアカウントを即発行できます。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>「入居一時金あり」で絞り込むと大半の施設が出てこなかった問題を修正（26件→234件）</strong><br>絞り込みが<strong>Excelの「入居一時金」列だけを見ていて、敷金・保証金を無視していた</strong>ことが原因です。入居時費用がかかる234施設のうち<strong>208施設が検索から漏れて</strong>いました（池田市は52件中2件しかヒットしない状態）。<br>表示側と揃えて<strong>「入居一時金＋敷金のいずれかがかかる施設＝あり」</strong>に統一し、項目名も<strong>「入居時費用（一時金＋敷金）」</strong>に変更しました。<br><span style="color:var(--g500)">修正後：豊中13→70件・吹田6→58件・茨木2→45件・池田2→31件・箕面3→30件。「なし」側に費用のある施設が混ざっていないことも全476件で検証済みです（特養68件・老健29件は制度上0円のため正しく「なし」になります）。</span></div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>施設詳細ページの入居時費用が0円と表示されていた問題を修正（211施設）</strong><br>検索結果には入居時費用が出ているのに、施設をクリックした詳細ページでは0円と表示される施設がありました。詳細ページが<strong>敷金を合算していなかった</strong>ことが原因です。検索・詳細・資料出力の3画面すべてで<strong>「入居一時金＋敷金」</strong>の合算に統一しました。データ自体は正しく入っており、表示だけの問題でした。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>敷金の表示を統一（「0円」と空欄が混在していた問題）</strong><br>施設詳細の費用欄で、敷金が「0円」と出る施設と何も表示されない施設が混在していました。<strong>常に「一時金」「敷金」の内訳を並べて表示</strong>するよう統一し、「一時金は返還なし／敷金は退去時に返還されます」の注記も追加しました。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>管理者ダッシュボードに「⚠ 要確認データ」アラート</strong><br>明らかにおかしい数値を自動で検出して一覧表示します（食費が1食あたり極端に安い／高い、月額が全項目0円、注意書きに敷金の記載があるのに敷金欄が0円、住所や最寄り駅の未入力 など）。<br><span style="color:var(--g500)">※「相場より高い／安い」ではなく<strong>入力ミスと判断できるもの</strong>だけを出します。入居一時金1,800万円のような高額施設は正常なため、アラートにはなりません。</span></div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>病院アカウントの「担当者名」と「病院名」を分離（136病院）</strong><br>一括発行した各病院の <code>-01</code> アカウントは、担当者名の欄にも病院名が入っていました。あとから追加した担当者は個人名なので、同じ欄に病院名と個人名が混ざっていた状態です。<strong>担当者名＝個人名、病院名＝病院名</strong>と役割を分け、担当者名がわからないうちは<strong>「担当者名 未設定」</strong>と表示するようにしました。検索画面のヘッダーも「〇〇病院 さん」ではなく病院名を表示します。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>担当者名を管理画面から入力できるように</strong><br>病院一覧で担当者ごとに <strong>✏️</strong> を押すと、その場で担当者名を入力・変更できます。上部に「担当者名 未設定 ○名」と残数が出るので、訪問して聞けた病院から順に埋めていけます。病院を追加するフォームにも<strong>担当者名（任意）</strong>欄を追加しました。病院側の担当者管理画面からも入力できます（安全のため、病院が変更できるのは自病院の担当者の<strong>名前だけ</strong>です）。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>病院への訪問マニュアルを追加</strong><br>「使ってみてください」と渡すまでの7ステップと想定問答をセクション7にまとめました。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>元データの確認事項をまとめた別紙を作成</strong><br>全476件を照合して見つかった「元データ側で確認が必要な点」を <a href="kaigo-data-check-260714.html" style="color:var(--blue);font-weight:700">別紙ページ</a> にまとめました（印刷・PDF保存に対応）。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/7/9 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年7月9日</div>
-          <div class="cl-subtitle">検索体験の改善・資料出力の統一・病院アカウント運用の強化</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>検索結果の表示件数切替（25/50/100件）＋「もっと見る」</strong><br>初期表示を25件に絞ることで検索後の表示を高速化。件数バーから25/50/100件に切り替えられ、続きは「もっと見る」で追加表示。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>「検索に戻る」で検索結果を復元</strong><br>施設詳細を見てから検索に戻ったとき、絞り込み条件・並び順・スクロール位置まで元の検索結果に戻るように（毎回トップに戻らない）。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設詳細の「印刷」を資料出力と同じ体裁に統一</strong><br>施設詳細ページの「印刷」ボタンと、検索結果で1件選んで出す資料が、同じA4縦の見やすいレイアウトになるよう共通化（<code>kaigo-print.js</code>）。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>病院ユーザーが自分でパスワードを変更可能に</strong><br>担当者管理画面に「自分のパスワードを変更」を新設。現在のパスワード確認のうえ、新しいパスワード（6文字以上）に変更できる。ログインIDは不変。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>管理画面に「病院一覧」ビュー</strong><br>ユーザー管理タブに、病院ごとにまとめた一覧（病院コード・病院名・担当者数、絞り込み検索）を追加。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>空室状況を全て「要問い合わせ」表示に（暫定）</strong><br>空室データ整備中のため、当面は全施設を「要問い合わせ」に統一表示。空室での絞り込みも一時的に非表示。データ整備後は通常の空き表示に戻せる設定。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>検索対象を大阪府のみに限定（暫定）</strong><br>当面は大阪府の施設のみ表示（他府県は非表示）。1つの設定で元に戻せる。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>ログイン保持の明示化＋検索条件の解除ボタン</strong><br>一度ログインすればログアウトするまで維持されるよう明示化。検索条件を保存した場合に「保存を解除」できるボタンも追加。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/7/8 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年7月8日</div>
-          <div class="cl-subtitle">病院アカウントの個人ID体系化・担当者セルフ追加・セキュリティ整備</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>病院ログインをID＋パスワード方式に</strong><br>メールアドレス不要。IDとパスワードだけでログインできるように（ID＝パスワード）。内部でIDをダミーメール <code>{loginId}@meets-medical.jp</code> に自動変換し、既存の認証基盤を活用。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>北摂136病院のアカウント発行＋個人単位ID体系</strong><br>北摂14エリア136病院にログインアカウントを発行。「病院コード-番号」形式（例：あおい病院＝1001-01）に整備し、各アカウントに所属病院（hospitalId・病院名）を紐付けて病院ごとに区別・集計できるように。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>病院による担当者セルフ追加機能</strong><br>病院がログイン後、<code>kaigo-hospital-members.html</code> から自分で担当者を追加できる画面を新設。名前を入れると次の空き番号（1001-02…）で自動発行。同じ病院なら誰でも追加可能。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>セキュリティルールを整備（重要）</strong><br>Firestoreが「誰でも全データを読み書き・削除できる」開発初期の設定のままだった問題を是正。ロールベースのアクセス制御を適用し、未認証アクセスを遮断。病院は自病院の担当者のみ追加可・管理者権限は作成不可に。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/7/4 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年7月4日</div>
-          <div class="cl-subtitle">施設データ拡充（吹田市・茨木市を追加／計386施設）・UIデザイン案の提示</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設データを大幅拡充（計386施設）</strong><br>吹田市124件・茨木市104件を新たに投入し、豊中市158件と合わせて計386施設に拡大。豊中市の全施設に管理IDを付与し、データ投入タブの件数ラベルも 158 → 386 に更新。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>UIデザインのリニューアル案を提示（6案・比較用）</strong><br>「AI感を抑えたい」というご要望を踏まえ、参考サイトのトーンを落とし込んだデザイン案を6種類作成。中身のデータ・項目は同じまま、見た目のトーンだけを比較できます。<br><a href="https://kaigo-ui-mockups.surge.sh" target="_blank" style="color:var(--blue);font-weight:700;text-decoration:underline">https://kaigo-ui-mockups.surge.sh</a></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/6/23 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年6月23日</div>
-          <div class="cl-subtitle">施設詳細ページ構成改善・負担割合テーブル追加・印刷A4縦対応</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>介護費用の負担割合テーブル（クリックで展開）</strong><br>「その他かかる費用の目安」内の介護費用行に「▼ 負担割合・要介護度別の目安を見る」ボタンを追加。クリックすると要介護1〜5 × 自己負担1割・2割・3割の公式支給限度額を一覧表示。印刷・PDF時は自動展開して出力。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>費用セクション構成の見直し</strong><br>「月々にかかる費用の内訳目安」→「その他かかる費用の目安」に改名。施設費用行・合計行を削除し、介護費用・医療費・その他生活費の3項目のみ表示。セクション順序を「基本料金 → 費用に関する詳細 → その他かかる費用の目安」に変更。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>介護費用の月額目安を公式データに修正</strong><br>1.6〜2.8万円（誤推計）→ 1.7〜3.6万円（要介護1〜5・1割負担の正確な支給限度額）に修正。「※要介護1の場合」の注記も追加。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>備考・お知らせを箇条書きに変更</strong><br>施設詳細ページ下部の備考欄を、改行区切りのテキストから &lt;ul&gt;&lt;li&gt; の箇条書きリストに変更。複数項目がある場合に視認性が向上。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>印刷・PDF：A4縦1枚レイアウトを再最適化</strong><br>全セクションのフォントサイズ・パディングを圧縮し、負担割合テーブルも含めた全情報がA4縦1枚に収まるよう @media print を全面調整。印刷時は負担割合テーブルを自動展開、ボタンは非表示。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/6/21-22 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年6月21日〜22日</div>
-          <div class="cl-subtitle">検索バグ修正・印刷A4最適化・ヘッダー統一・インポート強化</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>月額費用の範囲検索が機能しない問題を修正</strong><br>Firestoreに円単位（例：169,304円）で保存されているデータをフィルターが万円単位（例：15）と直接比較していたため、すべての施設が除外されていた。mapDoc() で全費用を万円に変換し、元の円値は *Yen フィールドとして別途保持するよう修正。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>入居一時金が0円と表示される問題を修正（敷金のみ施設）</strong><br>ボナール豊中など「入居一時金なし・敷金あり」の施設で initialFee フラグのみを参照していたため、敷金（depositAmount）が表示されなかった。initialFeeAmount + depositAmount を合算して表示するよう修正。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>管理画面のデータ投入ボタンが動作しない問題を修正</strong><br>「▶ インポート開始」「⚠ 全施設削除」ボタンのクリックイベントに割り当てられた runImport()・clearAllFacilities() 関数が未定義だった。両関数を新規実装し、進捗をリアルタイムで表示するログ出力機能も追加。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>インポート時の重複チェック（同名施設は自動更新）</strong><br>「▶ インポート開始」実行時に Firestore の同名施設を検索し、存在すれば update・なければ add を自動判別。2回目以降もボタン1つで最新データへ上書き更新できる。削除→再投入の手順が不要に。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>印刷・PDF：月々の合計費用を中央に大きくヒーロー表示</strong><br>施設詳細ページ（kaigo-facility-view.html）の印刷レイアウトを改修。「月々の費用（目安・すべて含む）」の金額を緑バナー内に中央揃えで大きく配置。@media print 内の .est-big を 36pt に設定し、ページ全体を A4 一枚に収まるようパディングを最適化。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>施設詳細ページのヘッダーを検索画面と統一</strong><br>ダークネイビー背景＋絵文字だったヘッダーを、白背景・logo.png・ダークティール文字「介護施設検索」に変更。検索画面と施設詳細画面で統一した見た目を実現。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/6/19 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年6月19日</div>
-          <div class="cl-subtitle">一括インポートツール・施設詳細整備・納品書v2・UI改善</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設データ一括インポートツール（158施設対応）</strong><br>豊中市の実施設データ158件（介護付17・住宅型46・サ高住38・GH29・特養14・老健10・高齢者住宅4）をFirestoreに一括投入するツールを追加。管理者がボタン1つで全施設を登録可能。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>納品書 v2 デザイン全面刷新（本ページ）</strong><br>Inter + Noto Sans JP フォント採用、グラデーションヘッダー（ダークネイビー→ダークグリーン）、赤バッジ・ステータスインジケーターなど全体デザインをリニューアル。アップデート履歴を日付別に見やすく整理。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>施設詳細ページ（kaigo-facility-view.html）整備完了</strong><br>Noto Sans JP フォント導入・CSS変数整理・タイトル統一。費用内訳・介護費用目安・月々合計表示などの情報を整備し、病院・ケアマネが施設を検討する際に必要な情報がすべて揃う状態に。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>検索画面カラースキームリニューアル（エメラルド緑）</strong><br>ブランドカラーをエメラルドグリーン（#2c7ba6）に統一し、シャドウ変数（--sh1/2/3/sh-brand）を体系化。ピンクアクセントも整理し、全体の視覚的一貫性を向上。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>空室更新ページ（kaigo-manage.html）に Firebase Auth 認証ガード追加</strong><br>未ログイン状態でURLを直接開いた場合、自動的にログイン画面へリダイレクト。認証前のコンテンツ表示を防ぐ visibility:hidden 対応も追加。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">改善</span>
-          <div class="cl-txt"><strong>検索ボタン押下後の画面切替をスムーズ化</strong><br>全画面検索フォームから左サイドバー＋結果表示へ切り替わる際のカクつきを解消。フェードアウト→レイアウト切替→フェードイン の3ステップで視覚的に滑らかな遷移を実現。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/6/18 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年6月18日</div>
-          <div class="cl-subtitle">費用内訳表・PDF印刷・登録フォーム・ロックカード削除ほか</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>施設詳細：費用内訳を収支表スタイルに刷新</strong><br>「施設費用・介護費用・医療費・その他生活費」を項目／内容／月額目安の3列テーブルで表示。合計行をグリーングラデーションで強調し、費用の全体像が一目でわかるデザインに変更。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>PDF出力をA4大文字レイアウトに最適化</strong><br>印刷用ページをA4縦・余白ゼロ・大きなフォントサイズに再設計。高齢の家族が紙で確認する場面を想定し、1施設1枚に収まる視認性の高いレイアウトに。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設登録フォームに路線名入力欄を追加</strong><br>最寄駅情報に「路線名」テキスト欄（stationLine）を追加。「阪急宝塚線」「JR東海道線」など複数路線を「、」区切りで入力でき、検索時に路線名でのフリーワード検索が可能に。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>施設詳細ページのロックカード（🔒）を削除</strong><br>有料プラン誘導のロックブロックを完全削除。ページをシンプルに整理し、費用情報に集中できるレイアウトに。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>検索画面：白背景＋やわらかい配色に刷新</strong><br>ダークグラデーション＋ノイズテクスチャだった検索画面を、白背景＋エメラルドグリーン＆ピンクのやわらかい色調に変更。ソーシャルワーカー・ケアマネが使いやすい明るい印象に。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>検索ボタンをフォーム下部に固定</strong><br>「検索」「保存した条件」ボタンをサイドバー最下部にスティッキー表示。フォームが長くてもスクロール不要でいつでも押せる配置に。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>初期検索画面で「空室状況・入居条件」を非表示に</strong><br>検索前の全画面表示時は「施設種別」のみ表示。検索後に空室・入居条件フィルターが展開する設計に変更し、最初の一歩のハードルを下げた。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設詳細：基本料金セクション強化</strong><br>「基本料金（施設への直接支払い）」として入居一時金・月額利用料・食費・管理費を整理。施設側が入力したデータを見やすいカード形式で表示。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設詳細：介護費用の目安（介護度別）を追加</strong><br>要介護1〜5それぞれの月額介護費用目安（1.6〜2.8万円）を表で表示。「これは施設に払うお金ではなく介護保険で支払う費用です」という説明付きで、家族が混乱しないよう配慮。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設詳細：その他費用リストを追加</strong><br>おむつ代・洗濯代・散髪代・医療費・日用品・被服費など、月額料金に含まれない追加費用の目安を一覧表示。入居検討時の総コスト計算に役立てられる。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設詳細：月々の合計目安を大きく表示</strong><br>基本料金＋介護費用＋その他の合計から算出した「月々の目安：〇〇〜〇〇万円」を大きなカードで表示。家族が一番気にする数字を一目でわかるように。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設詳細：最寄駅を沿線別に複数表示・路線名を全表示</strong><br>複数路線・駅名を「🚉 阪急宝塚線　服部天神駅　徒歩5分」形式で1行ずつ表示。すべての駅エントリーに路線名が含まれるよう統一。Firestoreの stations[] 配列と旧形式（station / stationLine / stationDistance）の両方に対応。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>施設詳細「検索に戻る」ボタンが初期画面に戻る問題を修正</strong><br>施設詳細ページから「← 検索に戻る」を押すと検索結果一覧に戻るよう修正（従来は検索条件がリセットされた初期画面に遷移していた）。ブラウザの history.back() を利用し、検索結果・スクロール位置を保持して戻れるように。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/6/17 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年6月17日</div>
-          <div class="cl-subtitle">検索UX大幅改善・デザイン全面刷新・ロゴ・スケルトンローディング・フィルターチップ</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>検索画面：フルページ検索UI</strong><br>初期表示は画面いっぱいに検索フォームを表示。検索後は左サイドバーに収まり、右に結果がスライドイン表示されます。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設カードへのチェックボックス＋資料出力ボタン</strong><br>気になる施設にチェックを入れて「📄 資料出力」を押すと、複数施設をまとめた印刷用ページが開きます（PDF保存も可）。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>CSVインポート機能（管理画面）</strong><br>スプレッドシートからエクスポートしたCSVをドラッグ＆ドロップするだけで施設データを一括登録・更新。列のマッピングは自動判定＋手動調整可能。</div>
-        </div>
-        <div class="cl-item fixed">
-          <span class="cl-tag fixed">修正</span>
-          <div class="cl-txt"><strong>都道府県フィルターが効かない不具合を修正</strong><br>大阪府で検索しても施設が表示されなかった問題を修正。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>施設詳細ページの「有料/無料プラン」表記を削除</strong><br>「空室状況・連絡先は有料プランで掲載」→「Meets Medicalまでお問い合わせください」に変更。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>文字サイズ・ボタンを全体的に拡大</strong><br>ソーシャルワーカー・ケアマネが使いやすいよう、フォントサイズとタップ領域を大きめに調整。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>CSS全面刷新・スタイリッシュデザインへ</strong><br>カスタムプロパティ（CSS変数）によるカラー・シャドウシステムを導入。施設カードにホバーリフトアニメーション・グラデーション背景・Noto Sans JP フォントを適用し、モダンSaaS UIに刷新。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>アニメーションノイズグラデーション背景</strong><br>フルページ検索モード時の背景に、12秒周期で動く暗いグラデーション＋SVGノイズテクスチャオーバーレイを実装。検索画面に高級感のある雰囲気を演出。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>スケルトンローディングアニメーション</strong><br>検索ボタンを押した直後、Firestoreからデータが返ってくる前に5枚のシマーアニメーション付きスケルトンカードを表示。「読み込み中」感を排除し、レスポンスの良いUIを実現。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>アクティブフィルターチップ</strong><br>検索結果の上部に、現在有効な絞り込み条件（都道府県・市区町村・駅名・月額・空室・入居条件・施設種別など）をタグとして表示。各チップの × ボタンで個別クリア、「すべてクリア」で一括リセット可能。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>ロゴ画像の差し替えと背景透明化処理</strong><br>ヘッダー・ヒーローに専用ロゴPNG（建物＋木＋人のアイコン）を採用。Pythonで白背景をフラッドフィル除去し、透過PNG化。ヘッダーの暗いバーとヒーローのグラデーション背景にそのまま溶け込む表示に。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2026/6/16 -->
-    <div class="cl-day">
-      <div class="cl-day-hd">
-        <div>
-          <div class="cl-date">2026年6月16日</div>
-          <div class="cl-subtitle">MTG後の対応・施設詳細ページ刷新</div>
-        </div>
-      </div>
-      <div class="cl-items">
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>施設詳細ページを全面リニューアル</strong><br>施設ページをクリックすると、入居時費用・月額費用・空室状況・アクセス・入居条件・連絡先・タグ・備考が一覧表示。印刷・PDFボタン付き。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>アカウント申請ページ（公開）</strong><br>病院・ケアマネ向けのアカウント申請フォームを新設。承認は管理者が行い、招待メールを送信する流れ。</div>
-        </div>
-        <div class="cl-item added">
-          <span class="cl-tag added">追加</span>
-          <div class="cl-txt"><strong>検索ログの蓄積・管理画面での確認</strong><br>誰がいつどのような条件で検索したかを自動記録。管理画面「📋 検索履歴」タブで確認可能。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>こだわり・タグのパネルを非表示に</strong><br>検索データが整うまで、タグ絞り込みパネルを非表示に変更（将来的に復活予定）。</div>
-        </div>
-        <div class="cl-item changed">
-          <span class="cl-tag changed">変更</span>
-          <div class="cl-txt"><strong>初期検索の表示ロジック変更</strong><br>以前は画面を開くと全件表示されていた動作を廃止。「検索ボタンを押してから結果が表示される」設計に変更。</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-</div><!-- /pane-left -->
+  <nav class="toc-card" aria-label="目次">
+    <div class="toc-hd">📖 目次</div>
+      <div class="toc-group">まず見る</div>
+      <a class="toc-link" href="#sec1"><span class="toc-n">1</span>ツール一覧（全10ページ）</a>
+      <a class="toc-link" href="#sec2"><span class="toc-n">2</span>現在のデータ状況</a>
+      <div class="toc-group">日々の運用</div>
+      <a class="toc-link" href="#sec3"><span class="toc-n">3</span>操作マニュアル</a>
+      <a class="toc-link" href="#sec4"><span class="toc-n">4</span>アカウント登録フロー</a>
+      <a class="toc-link" href="#sec5"><span class="toc-n">5</span>運用上の注意事項</a>
+      <div class="toc-group">広める（営業・訪問）</div>
+      <a class="toc-link" href="#sec6"><span class="toc-n">6</span>病院への訪問マニュアル</a>
+      <a class="toc-link" href="#sec7"><span class="toc-n">7</span>施設への営業・オンボーディング手順</a>
+      <a class="toc-link" href="#sec8"><span class="toc-n">8</span>3者のユーザーエクスペリエンス</a>
+      <div class="toc-group">仕様とデータ</div>
+      <a class="toc-link" href="#sec9"><span class="toc-n">9</span>システム構成・仕様</a>
+      <a class="toc-link" href="#sec10"><span class="toc-n">10</span>データ構造（Firestore）</a>
+      <a class="toc-link" href="#sec11"><span class="toc-n">11</span>施設データの収集・入力フロー</a>
+      <a class="toc-link" href="#sec12"><span class="toc-n">12</span>検索データの蓄積と活用</a>
+      <div class="toc-group">記録</div>
+      <a class="toc-link" href="#sec13"><span class="toc-n">13</span>更新履歴</a>
+  </nav>
+</div>
 
 <!-- ═══ RIGHT: その他セクション ═══════════════════════════════ -->
 <div class="pane-right">
 
-  <!-- v2新機能まとめ -->
-  <div class="sec" style="margin-top:0">
-    <div class="sec-hd">
-      <div class="sec-num" style="background:var(--purple)">★</div>
-      <div class="sec-title">v2.9 で追加・変更されたこと</div>
-    </div>
-    <div class="whats-new">
-      <h3>🆕 v2.8 → v2.9 の主な変更点（2026/7/23）</h3>
-      <div class="new-grid">
-        <div class="new-item">
-          <div class="new-item-title">💴 施設データを260723版に更新（全476件）</div>
-          <div class="new-item-desc">5市すべての最新データで全476件をマージ更新（新規0・削除0・エラー0）。施設IDは維持したまま更新しているため、ログイン・QR・URL・写真への影響はありません。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">📦 入居時費用を「初期費用合計」1本に統一</div>
-          <div class="new-item-desc">「入居一時金＋敷金」の内訳管理を廃止し、合計額のみを保持する方式に変更。合計額自体は変わりません。元データの仕様変更に合わせた対応です。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">📋 費用の注意書きを民間・公共の2パターンに統一</div>
-          <div class="new-item-desc">施設ごとにばらばらだった注意書きを、初期費用の有無に応じた定型文2パターンに統一しました。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🏠 「その他かかる費用の目安」を施設種別ごとに表示</div>
-          <div class="new-item-desc">住宅型有料・サ高住／介護付有料／グループホーム／特養／老健の5区分ごとに、公式の介護報酬に基づく金額・説明・要介護度別テーブルを出し分け。月々の費用目安バナーもこの数値から自動計算されます。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🔤 施設名の文字化けを補正して取り込み</div>
-          <div class="new-item-desc">吹田市の1件、Excel上で施設名が「ｆ」に化けていたのを、住所・種別・賃料から特定して「メルヴェイユ吹田」として取り込み、既存IDを維持しました。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">⚠ 要確認データの誤検知を修正（99件→2件）</div>
-          <div class="new-item-desc">敷金内訳廃止に伴い、「敷金は不要です」という注意書きまで誤って要確認扱いにしていたのを修正しました。</div>
-        </div>
-      </div>
-      <h3>🆕 v2.7 → v2.8 の主な変更点（2026/7/14）</h3>
-      <div class="new-grid">
-        <div class="new-item">
-          <div class="new-item-title">🏙 池田市・箕面市を新規追加（5市・計476施設）</div>
-          <div class="new-item-desc">池田市52件・箕面市50件を新たに登録。豊中市154件・吹田市116件・茨木市104件と合わせ、北摂5市で計476施設になりました。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">💴 全施設の費用を最新リストに刷新</div>
-          <div class="new-item-desc">既存374施設の入居一時金・敷金・家賃・食費・管理費・注意書きを260712リストの内容に更新。リストから外れた12施設は削除しました。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🔍 検索カードの費用欄を見やすく</div>
-          <div class="new-item-desc">施設名と費用の間の余白を詰め、費用欄を約1.8倍に拡張。潰れていた賃料・管理費・食費の内訳が判読できるサイズになりました。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🛡 取り込みツールを安全化（4段階方式）</div>
-          <div class="new-item-desc">バックアップ →（書き込まずに）差分確認 → 適用 → 検証の順に進む方式に。施設IDを維持したまま更新するので、ログイン・QR・URL・写真が切れません。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">💰 入居時費用を「一時金＋敷金」に統一</div>
-          <div class="new-item-desc">絞り込みが敷金を無視していたため「入居一時金あり」で26件しか出ませんでした（実際は234件）。検索・詳細・資料出力の3画面すべてを合算表示に揃えました。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🏥 病院IDをランダム4桁に・担当者名を整備</div>
-          <div class="new-item-desc">連番だったコードを重複しないランダム4桁に一括変更。担当者名と病院名を分離し、管理画面の ✏️ から担当者名を入力できるようにしました。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">⚠ 要確認データの自動アラート</div>
-          <div class="new-item-desc">食費が1食あたり極端に安い／高い、月額が全項目0円、注意書きに敷金の記載があるのに0円 など、入力ミスと判断できるものを管理画面に一覧表示します。</div>
-        </div>
-      </div>
-      <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">
-        <strong>⚠ 元データについて確認をお願いしたい点</strong>：全476件を1件ずつ照合したところ、<strong>食費が1食あたり133円になっている2施設</strong>と、<strong>注意書きに「敷金が必要」とあるのに敷金欄が0円の5施設</strong>が見つかりました。正しい金額をご教示ください。また<strong>前回リストにあった12施設が今回のリストから外れて</strong>いたため削除しています。<br>
-        なお「月額合計」欄と内訳が一致しない6件は、<strong>内訳の合計が正しい旨をご確認いただき解決済み</strong>です（システムは内訳から再計算しているため、表示は正しい金額になっています）。<br>
-        <a href="kaigo-data-check-260714.html" style="display:inline-block;margin-top:6px;color:var(--blue);font-weight:800;text-decoration:underline">▶ 詳細はこちら（該当施設の一覧・確認事項）</a>
-      </div>
-      <h3>🆕 v2.6 → v2.7 の主な変更点（2026/7/9）</h3>
-      <div class="new-grid">
-        <div class="new-item">
-          <div class="new-item-title">📄 表示件数の切替（25/50/100件）＋もっと見る</div>
-          <div class="new-item-desc">初期表示を25件に絞って検索後の表示を高速化。件数バーから切り替えでき、続きは「もっと見る」で追加表示。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">↩ 「検索に戻る」で結果を復元</div>
-          <div class="new-item-desc">施設を見てから検索に戻ると、絞り込み条件・並び順・スクロール位置まで元の検索結果に戻る（毎回トップに戻らない）。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🖨 施設詳細の「印刷」を資料出力と統一</div>
-          <div class="new-item-desc">施設詳細の「印刷」と、検索結果から1件選んで出す資料が、同じA4縦の見やすいレイアウトになるよう共通化。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🔑 病院ユーザーのパスワード変更</div>
-          <div class="new-item-desc">担当者管理画面に「自分のパスワードを変更」を新設。現在のパスワード確認のうえ変更可能（ログインIDは不変）。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🏥 管理画面に「病院一覧」ビュー</div>
-          <div class="new-item-desc">病院ごとにまとめた一覧（病院コード・病院名・担当者数、絞り込み検索）を管理画面のユーザー管理タブに追加。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">📌 空室は全て「要問い合わせ」／大阪府のみ（暫定）</div>
-          <div class="new-item-desc">空室データ整備中のため空室状況は全施設「要問い合わせ」表示、検索対象は当面大阪府のみ。どちらも設定1つで通常表示に戻せる。</div>
-        </div>
-      </div>
-      <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">
-        <strong>✅ 実装済み</strong>：担当者は「<code>病院コード-01</code>」形式の個人IDでログイン（<strong>初期パスワードはログインIDと同じ文字列</strong>）。担当者追加時は <code>-02</code>, <code>-03</code>… と自動採番されます。一度ログインすればセッションは維持され、毎回のログインは不要です。病院コードは<strong>重複しないランダム4桁</strong>（v2.8で連番から移行済み）。
-      </div>
-      <h3>🆕 v2.5 → v2.6 の主な変更点（2026/7/8）</h3>
-      <div class="new-grid">
-        <div class="new-item">
-          <div class="new-item-title">🔑 病院ログインをID＋パスワード方式に</div>
-          <div class="new-item-desc">メールアドレス不要。IDとパスワードだけでログイン（ID＝パスワード）。内部でIDをダミーメールに自動変換し、既存の認証基盤を活用。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">👥 個人単位のID体系＋病院ごとの区別</div>
-          <div class="new-item-desc">「病院コード-番号」形式（例：あおい病院＝1001-01）に整備。各アカウントに所属病院（hospitalId・病院名）を紐付け、病院ごとに区別・集計可能に。北摂136病院を発行済み。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">➕ 病院による担当者セルフ追加</div>
-          <div class="new-item-desc">病院がログイン後、自分で担当者を追加できる画面（kaigo-hospital-members.html）を新設。名前を入れると次の空き番号で自動発行。同じ病院なら誰でも追加可能。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🔒 セキュリティルールの整備</div>
-          <div class="new-item-desc">Firestoreが「誰でも全データ読み書き可能」だった状態を是正。ロールベースのアクセス制御を適用し、未認証アクセス遮断・病院は自病院の担当者のみ追加可・管理者権限は作成不可に。</div>
-        </div>
-      </div>
-      <h3>🆕 v2.4 → v2.5 の主な変更点（2026/6/23）</h3>
-      <div class="new-grid">
-        <div class="new-item">
-          <div class="new-item-title">📋 介護費用の負担割合テーブル</div>
-          <div class="new-item-desc">介護費用行にトグルボタンを追加。クリックで要介護1〜5 × 1割・2割・3割の公式支給限度額テーブルを展開表示。印刷時は自動展開されて出力される。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🗂 費用セクション構成の見直し</div>
-          <div class="new-item-desc">「月々にかかる費用の内訳目安」→「その他かかる費用の目安」に改名。施設費用・合計行を削除し介護費用・医療費・その他生活費の3項目に絞る。順序：基本料金→費用詳細→その他費用。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🔢 介護費用の数値を公式データに修正</div>
-          <div class="new-item-desc">1割負担の月額目安を 1.6〜2.8万円（誤）→ 1.7〜3.6万円（要介護1〜5の正確な支給限度額）に修正。「※要介護1の場合」の補足注記も追加。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">📝 備考を箇条書き表示に変更</div>
-          <div class="new-item-desc">施設詳細ページ下部の備考欄を改行テキストから &lt;ul&gt;&lt;li&gt; の箇条書きリストに変更。複数項目が整理されて読みやすくなった。</div>
-        </div>
-        <div class="new-item">
-          <div class="new-item-title">🖨 印刷A4縦1枚に再最適化</div>
-          <div class="new-item-desc">全セクションのフォント・パディングを圧縮し、負担割合テーブルを含む全情報がA4縦1枚に収まるよう @media print を全面調整。印刷プレビューで確認済み。</div>
-        </div>
-      </div>
-      <h3 style="margin-top:26px">📜 これまでのアップデート履歴</h3>
-      <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-top:8px">
-        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
-          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.9</span>
-          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/23</span>
-          <span>施設データを260723版に更新（全476件マージ更新）／入居時費用を「初期費用合計」1本に統一／費用注意書きを民間・公共の2パターンに統一／施設種別ごとの「その他かかる費用の目安」を実装／施設名の文字化けを補正／要確認データの誤検知を修正</span>
-        </div>
-        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
-          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.8</span>
-          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/14</span>
-          <span>施設データを5市・計476施設に刷新（池田市・箕面市を新規追加／更新374・新規102・削除12）／取り込みツールを4段階の安全方式で新設（施設IDを維持）／検索カードの費用欄を可読化／施設種別の表記ゆれを吸収</span>
-        </div>
-        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
-          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.7</span>
-          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/9</span>
-          <span>表示件数切替（25/50/100件）＋もっと見る／「検索に戻る」で結果復元／施設詳細の印刷を資料出力と統一／病院ユーザーのパスワード変更／管理画面に病院一覧／空室は全て要問い合わせ・大阪府のみ（暫定）／ログイン保持の明示化</span>
-        </div>
-        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
-          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.6</span>
-          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/8</span>
-          <span>病院ログインをID＋パスワード方式に／個人単位ID体系（病院コード-番号）＋病院ごとの区別／病院による担当者セルフ追加／セキュリティルール整備（全開放→ロールベース）</span>
-        </div>
-        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
-          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.5</span>
-          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/6/23</span>
-          <span>介護費用の負担割合テーブル追加／費用セクション構成の見直し／介護費用の数値を公式データに修正／印刷A4縦1枚に再最適化</span>
-        </div>
-        <div style="display:flex;gap:12px;padding:11px 14px;font-size:12.5px;align-items:baseline">
-          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.1〜2.4</span>
-          <span style="color:#94a3b8;min-width:74px;font-size:11px">〜2026/6</span>
-          <span>アカウント登録フロー・3ロール認証（admin / hospital / facility）・法人／ユーザー／申請コレクション・Tailwind導入など基盤機能を整備</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ① ツール一覧 -->
-  <div class="sec">
+  <div class="sec" id="sec1">
     <div class="sec-hd">
       <div class="sec-num">1</div>
       <div class="sec-title">ツール一覧（全10ページ）</div>
@@ -1061,11 +517,108 @@
     </div>
   </div>
 
-  <!-- ② アカウント登録フロー -->
-  <div class="sec">
+  <!-- ⑤ 現在のデータ状況 -->
+  <div class="sec" id="sec2">
     <div class="sec-hd">
       <div class="sec-num">2</div>
-      <div class="sec-title">アカウント登録フロー（v2.1新機能）</div>
+      <div class="sec-title">現在のデータ状況（2026年7月27日時点）</div>
+    </div>
+
+    <div class="data-status-grid">
+      <div class="data-status-card ok">
+        <div class="data-status-label">登録施設数</div>
+        <div class="data-status-value">476件</div>
+        <div class="data-status-note">豊中154・吹田116・茨木104・池田52・箕面50（北摂5市）</div>
+      </div>
+      <div class="data-status-card warn">
+        <div class="data-status-label">空室数（要更新）</div>
+        <div class="data-status-value">すべて0</div>
+        <div class="data-status-note">未収集のため、検索画面では全施設「要問い合わせ」と表示中</div>
+      </div>
+      <div class="data-status-card warn">
+        <div class="data-status-label">施設アカウント</div>
+        <div class="data-status-value">0件</div>
+        <div class="data-status-note">施設側が自分で空室を更新するには発行が必要</div>
+      </div>
+      <div class="data-status-card">
+        <div class="data-status-label">病院アカウント</div>
+        <div class="data-status-value">136病院</div>
+        <div class="data-status-note">北摂14エリアに発行済み。担当者は病院側で追加可</div>
+      </div>
+    </div>
+
+    <table class="spec-table">
+      <tr><th>項目</th><th>状況</th></tr>
+      <tr><td>データ出所</td><td>各市の介護情報リスト（Excel・260723版／豊中・吹田・茨木・池田・箕面の5ファイル）から一括インポート<br><span style="font-size:11px;color:var(--g500)">▶ 2026/7/27 に特養・老健97件の「費用に関する注意書き」を改訂（金額の変更なし）</span></td></tr>
+      <tr><td>入力済み</td><td>施設名・種別・住所・アクセス（路線／最寄り駅／徒歩・バス所要時間）・初期費用合計・家賃・食費・管理費・費用の注意書き・出典URL・介護事業所番号</td></tr>
+      <tr><td>仮設定済み</td><td>こだわりタグ・入居条件（生活保護・身元保証・介護認定）= 施設種別に応じたデフォルト値。実態と異なる可能性あり</td></tr>
+      <tr><td>未入力</td><td>電話番号・担当者名・写真（元リストに項目がないため）</td></tr>
+      <tr><td>要確認・更新</td><td>空室数（現在すべて0）・写真・タグの正確性・入居条件の正確な可否<br><span style="font-size:11px;color:var(--amber)">▶ 施設への訪問時に確認・修正を推奨</span><br>元Excelの食費が疑わしい2施設・敷金が0円のまま注意書きに記載がある5施設（別紙「確認事項」参照）</td></tr>
+      <tr><td>次フェーズ</td><td>空室情報の収集と施設アカウントの発行 ／ 他市への展開（全国展開は1,000〜4,000件想定）</td></tr>
+    </table>
+  </div>
+
+  <!-- ⑧ 操作マニュアル -->
+  <div class="sec" id="sec3">
+    <div class="sec-hd">
+      <div class="sec-num">3</div>
+      <div class="sec-title">操作マニュアル</div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 担当者</div>
+      <h3>アカウント申請を承認する</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>管理者ダッシュボードを開く</strong><br><code>kaigo-master.html</code> → ユーザー管理タブをクリック</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>「申請一覧」で未処理の申請を確認</strong><br>黄色の「未処理」バッジがついた申請が表示される</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>「✅ 承認・アカウント発行へ」をクリック</strong><br>上の「新規アカウントを発行」フォームに申請者の名前・メールが自動入力される</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>パスワードを入力して「アカウントを発行する」</strong><br>仮パスワードを設定（申請者が後で変更するため何でもOK。8文字以上）</div></li>
+        <li><div class="step-num">5</div><div class="step-txt"><strong>「📧 招待メールを送る」をクリック</strong><br>Firebaseからパスワード設定リンクがメール送信される。申請者がリンクをクリックして自分のパスワードを設定する。</div></li>
+      </ol>
+      <div class="manual-note">申請は自動的に「承認済み」に更新されます。招待メールの件名は Firebase からの自動送信になります（「パスワードのリセット」という件名）。</div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 担当者</div>
+      <h3>施設情報を更新・修正する</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>マスター管理ページを開く</strong><br><code>kaigo-master.html</code> → 施設管理タブ</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>対象施設の「📝 編集」ボタンをクリック</strong><br>施設名で絞り込んで対象を探す</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>修正したい項目を変更する</strong><br>タグ・入居条件・住所・電話番号・費用などを修正</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>「✅ この内容で更新する」をクリック</strong><br>保存後、検索ページに即時反映</div></li>
+      </ol>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-facility" style="background:var(--ok-bg);color:var(--ok)">施設担当者（法人アカウント）</div>
+      <h3>空室情報を更新する</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>施設専用ログイン画面を開く</strong><br><code>kaigo-facility-login.html</code> にアクセスしてログイン</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>法人ダッシュボードで更新したい施設を選ぶ</strong><br>管理している施設の一覧が表示される。対象施設の「更新」ボタンをクリック</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>「空室数」を現在の数に変更</strong><br>満室の場合は「0」を入力</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>備考があれば記入（任意）</strong><br>「来月2名入居予定」「見学受付中」など自由に入力</div></li>
+        <li><div class="step-num">5</div><div class="step-txt"><strong>「更新する」をクリック</strong><br>即座に検索ページに反映されます</div></li>
+      </ol>
+      <div class="manual-note">ダッシュボードには「14日以上未更新」の施設が赤字で警告表示されます。定期的にログインして更新をお願いします。</div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-public" style="background:var(--blue-bg);color:var(--blue)">ケアマネ・MSW・病院担当者</div>
+      <h3>施設を検索する</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>ログイン画面を開く</strong><br><code>kaigo-login.html</code> にアクセスしてメール・パスワードでログイン</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>エリア・費用・施設種別でフィルタリング</strong><br>左サイドバーで条件を設定して「この条件で検索」をクリック</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>こだわり条件・医療体制タグで絞り込み</strong><br>中央列で複数タグを選択（AND検索）</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>「💾 この条件を保存」をクリック</strong><br>次回ログイン時に同じ条件が自動で復元されます</div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ② アカウント登録フロー -->
+  <div class="sec" id="sec4">
+    <div class="sec-hd">
+      <div class="sec-num">4</div>
+      <div class="sec-title">アカウント登録フロー</div>
     </div>
 
     <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:13px;line-height:1.7">
@@ -1147,237 +700,53 @@
     </div>
   </div>
 
-  <!-- ③ システム構成 -->
-  <div class="sec">
-    <div class="sec-hd">
-      <div class="sec-num">3</div>
-      <div class="sec-title">システム構成・仕様</div>
-    </div>
-
-    <div class="arch-box">
-      <p style="font-size:13px;font-weight:700;color:var(--g700);margin-bottom:8px">全体のデータフロー</p>
-      <div class="arch-flow">
-        <div class="arch-node hl2">Firebase Auth<br><span style="font-size:10px">ロール認証（3種）</span></div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-node hl">Firebase Firestore<br><span style="font-size:10px">施設・法人・ユーザー・申請</span></div>
-        <div class="arch-arrow">↔</div>
-        <div class="arch-node">各HTMLページ<br><span style="font-size:10px">Firebase Hosting</span></div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-node">閲覧者<br><span style="font-size:10px">ケアマネ・施設担当・管理者</span></div>
-      </div>
-      <div class="arch-list">
-        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>認証レイヤー（NEW）：</strong>Firebase Auth でログイン必須。role（admin / hospital / facility）に応じてリダイレクト先が変わる。未認証ユーザーはログイン画面へ自動遷移。</div></div>
-        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>リアルタイム同期：</strong>施設が空室を更新すると、検索画面に即座に反映（約1〜3秒）。</div></div>
-        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>法人グルーピング（NEW）：</strong>corporationId で施設と法人アカウントを紐づけ。法人ダッシュボードには自分の法人の施設だけが表示される。</div></div>
-        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>サーバー不要：</strong>Firebase Hosting（静的HTML）＋ Firestore のみ。サーバー管理・メンテナンス費用なし。</div></div>
-      </div>
-    </div>
-
-    <div style="margin-top:16px">
-      <table class="spec-table">
-        <tr><th>項目</th><th>内容</th></tr>
-        <tr><td>ホスティング</td><td>Firebase Hosting — <code>kaigo-link-dev-59bc5.web.app</code>（自動デプロイ設定：GitHub Actions 連携済み）</td></tr>
-        <tr><td>認証</td><td>Firebase Authentication — メール/パスワード認証。3ロール（admin / hospital / facility）。病院はID＋パスワードでログイン（内部でID→ダミーメール <code>{loginId}@meets-medical.jp</code> に自動変換）<span class="diff-badge">v2.6</span></td></tr>
-        <tr><td>データベース</td><td>Firebase Firestore — コレクション: <code>facilities</code> / <code>corporations</code> / <code>users</code> / <code>applications</code></td></tr>
-        <tr><td>写真保存</td><td>Firebase Storage — パス: <code>facilities/【施設ID】/photo.jpg</code></td></tr>
-        <tr><td>フロントエンド</td><td>HTML + CSS + Vanilla JavaScript。新規ページは Tailwind CSS（CDN）+ Noto Sans JP フォント<span class="diff-badge">v2.1 NEW</span></td></tr>
-        <tr><td>外部ライブラリ</td><td>Firebase SDK v10.7.1、QRCode.js v1.0.0、Tailwind CSS（CDN）</td></tr>
-        <tr><td>対応ブラウザ</td><td>Chrome・Safari・Edge 最新版、iOS Safari、Android Chrome</td></tr>
-        <tr><td>プロジェクトID</td><td><code>kaigo-link-dev-59bc5</code></td></tr>
-        <tr><td>GitHubリポジトリ</td><td><code>newgo-koike/kaigo-vacancy-demo</code></td></tr>
-      </table>
-    </div>
-  </div>
-
-  <!-- ④ データ構造 -->
-  <div class="sec">
-    <div class="sec-hd">
-      <div class="sec-num">4</div>
-      <div class="sec-title">データ構造（Firestoreコレクション）</div>
-    </div>
-
-    <!-- corporations -->
-    <div class="field-group">
-      <div class="field-group-hd purple">corporations（法人・運営母体）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
-      <div class="field-list">
-        <div class="field-item"><div class="field-name">name</div><div class="field-desc">法人名・運営母体名（例：社会福祉法人○○会）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">contactEmail</div><div class="field-desc">担当者メールアドレス（任意）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">createdAt</div><div class="field-desc">登録日時</div><div class="field-type">timestamp</div></div>
-      </div>
-    </div>
-
-    <!-- users -->
-    <div class="field-group">
-      <div class="field-group-hd purple">users（ユーザーアカウント）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
-      <div class="field-list">
-        <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者名（病院の初期アカウントは病院名）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス（病院は <code>{loginId}@meets-medical.jp</code> のダミー）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">role</div><div class="field-desc">権限（admin / hospital / facility）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">loginId</div><div class="field-desc">ログインID（例 <code>1001-01</code>＝病院コード-番号）<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">hospitalId</div><div class="field-desc">hospitalロールのみ。所属病院コード（例 <code>1001</code>）。病院ごとの区別・集計に使用<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">hospitalName</div><div class="field-desc">hospitalロールのみ。所属病院名<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">facilityロールのみ。どの法人に属するかを示す</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">createdAt</div><div class="field-desc">アカウント作成日時</div><div class="field-type">timestamp</div></div>
-      </div>
-    </div>
-
-    <!-- applications -->
-    <div class="field-group">
-      <div class="field-group-hd purple">applications（アカウント申請）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
-      <div class="field-list">
-        <div class="field-item"><div class="field-name">organizationName</div><div class="field-desc">病院名・施設名・法人名</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者氏名</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">tel</div><div class="field-desc">電話番号（任意）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">message</div><div class="field-desc">ご要望・メッセージ（任意）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">status</div><div class="field-desc">申請ステータス（pending / approved）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">appliedAt</div><div class="field-desc">申請日時</div><div class="field-type">timestamp</div></div>
-        <div class="field-item"><div class="field-name">approvedAt</div><div class="field-desc">承認日時（承認後に追加）</div><div class="field-type">timestamp</div></div>
-      </div>
-    </div>
-
-    <!-- facilities -->
-    <div class="field-group">
-      <div class="field-group-hd">facilities（施設情報）</div>
-      <div class="field-list">
-        <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">法人ID（どの法人が管理するかの紐づけ）<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.1 NEW</span></div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">name</div><div class="field-desc">施設名</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">type</div><div class="field-desc">施設種別（特養 / 老健 / グループホーム / サ高住 / 介護付有料 / 住宅型有料）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">prefecture</div><div class="field-desc">都道府県（大阪府 など）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">city</div><div class="field-desc">市区町村（豊中市 / 吹田市 / 茨木市 / 池田市 / 箕面市）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">area</div><div class="field-desc">エリア名（庄内 / 岡町 / 曽根 など）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">address</div><div class="field-desc">住所</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">station</div><div class="field-desc">最寄り駅名</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">stationDistance</div><div class="field-desc">駅からの距離（例: 徒歩5分）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">vacancy</div><div class="field-desc">空室数（0=満室）</div><div class="field-type">number</div></div>
-        <div class="field-item"><div class="field-name">vacancyNotes</div><div class="field-desc">空室に関する補足（待機リスト状況など）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">rent</div><div class="field-desc">家賃（万円）</div><div class="field-type">number</div></div>
-        <div class="field-item"><div class="field-name">managementFee</div><div class="field-desc">管理費（万円）</div><div class="field-type">number</div></div>
-        <div class="field-item"><div class="field-name">mealFee</div><div class="field-desc">食費（万円）</div><div class="field-type">number</div></div>
-        <div class="field-item"><div class="field-name">monthlyTotal</div><div class="field-desc">月額合計（万円・自動計算）</div><div class="field-type">number</div></div>
-        <div class="field-item"><div class="field-name">initialFee</div><div class="field-desc">入居一時金あり/なし</div><div class="field-type">boolean</div></div>
-        <div class="field-item"><div class="field-name">initialFeeAmount</div><div class="field-desc">入居一時金額（万円）</div><div class="field-type">number</div></div>
-        <div class="field-item"><div class="field-name">seikatsuHogo</div><div class="field-desc">生活保護 可否（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">mimonHosho</div><div class="field-desc">身元保証なし可否（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">kaigoNintei</div><div class="field-desc">介護認定なし受入（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">features</div><div class="field-desc">こだわり・特徴（44種）・看護医療体制（31種）タグ</div><div class="field-type">string[]</div></div>
-        <div class="field-item"><div class="field-name">photoUrl</div><div class="field-desc">施設写真のダウンロードURL（Firebase Storage）</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">plan</div><div class="field-desc">プラン（free / paid）。有料のみ連絡先表示</div><div class="field-type">string</div></div>
-        <div class="field-item"><div class="field-name">approved</div><div class="field-desc">掲載承認済みフラグ</div><div class="field-type">boolean</div></div>
-        <div class="field-item"><div class="field-name">updatedAt</div><div class="field-desc">最終更新日時</div><div class="field-type">timestamp</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ⑤ 現在のデータ状況 -->
-  <div class="sec">
+  <!-- ⑧ 運用・注意事項 -->
+  <div class="sec" id="sec5">
     <div class="sec-hd">
       <div class="sec-num">5</div>
-      <div class="sec-title">現在のデータ状況（2026年7月14日時点）</div>
+      <div class="sec-title">運用上の注意事項</div>
     </div>
-
-    <div class="data-status-grid">
-      <div class="data-status-card ok">
-        <div class="data-status-label">登録施設数</div>
-        <div class="data-status-value">476件</div>
-        <div class="data-status-note">豊中154・吹田116・茨木104・池田52・箕面50（北摂5市）</div>
-      </div>
-      <div class="data-status-card warn">
-        <div class="data-status-label">空室数（要更新）</div>
-        <div class="data-status-value">すべて0</div>
-        <div class="data-status-note">未収集のため、検索画面では全施設「要問い合わせ」と表示中</div>
-      </div>
-      <div class="data-status-card warn">
-        <div class="data-status-label">施設アカウント</div>
-        <div class="data-status-value">0件</div>
-        <div class="data-status-note">施設側が自分で空室を更新するには発行が必要</div>
-      </div>
-      <div class="data-status-card">
-        <div class="data-status-label">病院アカウント</div>
-        <div class="data-status-value">136病院</div>
-        <div class="data-status-note">北摂14エリアに発行済み。担当者は病院側で追加可</div>
-      </div>
-    </div>
-
     <table class="spec-table">
-      <tr><th>項目</th><th>状況</th></tr>
-      <tr><td>データ出所</td><td>各市の介護情報リスト（Excel・260712版／豊中・吹田・茨木・池田・箕面の5ファイル）から一括インポート</td></tr>
-      <tr><td>入力済み</td><td>施設名・種別・住所・アクセス（路線／最寄り駅／徒歩・バス所要時間）・入居一時金・敷金・家賃・食費・管理費・費用の注意書き・出典URL・介護事業所番号</td></tr>
-      <tr><td>仮設定済み</td><td>こだわりタグ・入居条件（生活保護・身元保証・介護認定）= 施設種別に応じたデフォルト値。実態と異なる可能性あり</td></tr>
-      <tr><td>未入力</td><td>電話番号・担当者名・写真（元リストに項目がないため）</td></tr>
-      <tr><td>要確認・更新</td><td>空室数（現在すべて0）・写真・タグの正確性・入居条件の正確な可否<br><span style="font-size:11px;color:var(--amber)">▶ 施設への訪問時に確認・修正を推奨</span><br>元Excelの食費が疑わしい2施設・敷金が0円のまま注意書きに記載がある5施設（別紙「確認事項」参照）</td></tr>
-      <tr><td>次フェーズ</td><td>空室情報の収集と施設アカウントの発行 ／ 他市への展開（全国展開は1,000〜4,000件想定）</td></tr>
+      <tr><th>項目</th><th>内容</th></tr>
+      <tr>
+        <td>アカウント管理<span class="diff-badge">v2.1</span></td>
+        <td>管理者ダッシュボードのユーザー管理タブから全操作可能。Firebase コンソールを操作する必要はありません。</td>
+      </tr>
+      <tr>
+        <td>招待メールの件名</td>
+        <td>Firebase が自動送信するため件名は「パスワードのリセット」になります。申請者に事前に「このメールが届きます」と伝えておくとスムーズです。</td>
+      </tr>
+      <tr>
+        <td>法人アカウント</td>
+        <td>1法人で複数施設を管理する場合は法人を先に登録し、そのcorporationIdに紐づけた施設を登録してください。法人アカウントには自動的に紐づいた施設のみが表示されます。</td>
+      </tr>
+      <tr>
+        <td>タグ・入居条件の正確性</td>
+        <td>現在のタグは施設タイプに基づくデフォルト設定。施設への訪問時に正確な情報に更新してください。</td>
+      </tr>
+      <tr>
+        <td>有料プランバッジ</td>
+        <td>有料プランの施設には緑の丸チェック（✓）が表示されます。マスター管理のプランボタンでワンクリック切り替え。</td>
+      </tr>
+      <tr>
+        <td>更新の督促</td>
+        <td>マスター管理・法人ダッシュボード双方で「14日以上未更新」施設が赤字警告表示されます。定期的にLINEで更新を促してください。</td>
+      </tr>
+      <tr>
+        <td>Firebase費用目安</td>
+        <td>1日300アクセス程度まで無料枠で運用可能。ケアマネ・MSWが日常的に使い始め1日100〜200人規模になったら有料プラン（Blaze：従量課金、月$25〜）への移行を検討。</td>
+      </tr>
+      <tr>
+        <td>今後の予定</td>
+        <td>空室情報の収集・施設アカウントの発行（空室が入れば「要問い合わせ」表示を解除） / 他市への展開 / 検索履歴のFirestore保存 / 地図表示（Google Maps連携） / GitHub Actions 自動デプロイ</td>
+      </tr>
     </table>
   </div>
 
-  <!-- ⑥ 営業・オンボーディング -->
-  <div class="sec">
+  <!-- ⑦ 病院への訪問マニュアル -->
+  <div class="sec" id="sec6">
     <div class="sec-hd">
       <div class="sec-num">6</div>
-      <div class="sec-title">施設への営業・オンボーディング手順</div>
-    </div>
-
-    <div class="manual-block">
-      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 営業担当</div>
-      <h3>施設を開拓して空室更新を依頼するまでの流れ</h3>
-      <div class="onboarding-flow" style="margin-top:16px">
-        <div class="onboarding-step">
-          <div class="onboarding-left"><div class="onboarding-circle">1</div><div class="onboarding-line"></div></div>
-          <div class="onboarding-content">
-            <div class="onboarding-title">管理者ダッシュボードで対象施設を確認</div>
-            <div class="onboarding-desc"><code>kaigo-master.html</code> の施設管理タブで施設名を検索。共有ページURLをコピー・QRコードを確認しておく。</div>
-          </div>
-        </div>
-        <div class="onboarding-step">
-          <div class="onboarding-left"><div class="onboarding-circle">2</div><div class="onboarding-line"></div></div>
-          <div class="onboarding-content">
-            <div class="onboarding-title">施設に訪問 → 検索ページを見せる</div>
-            <div class="onboarding-desc"><code>kaigo-search.html</code> でその施設の表示を見せる。「すでに基本情報を入れてあります。一緒に確認させてください」とヒアリングのきっかけにする。</div>
-          </div>
-        </div>
-        <div class="onboarding-step">
-          <div class="onboarding-left"><div class="onboarding-circle">3</div><div class="onboarding-line"></div></div>
-          <div class="onboarding-content">
-            <div class="onboarding-title">ヒアリングして情報を正確に埋める</div>
-            <div class="onboarding-desc">
-              ① タグ（こだわり・医療体制）が実態と合っているか<br>
-              ② 入居条件（生活保護・身元保証・介護認定）の正確な可否<br>
-              ③ 施設HP・公式サイトのURL<br>
-              ④ 担当者名・直通電話番号（有料プラン用）<br>
-              ⑤ 施設写真（あれば提供してもらうか後日送付）
-            </div>
-          </div>
-        </div>
-        <div class="onboarding-step">
-          <div class="onboarding-left"><div class="onboarding-circle">4</div><div class="onboarding-line"></div></div>
-          <div class="onboarding-content">
-            <div class="onboarding-title">掲載許可取得 → 「掲載承認」をオンにする</div>
-            <div class="onboarding-desc">了承を得たら <code>kaigo-master.html</code> の「掲載承認」列を✅済にする。</div>
-          </div>
-        </div>
-        <div class="onboarding-step">
-          <div class="onboarding-left"><div class="onboarding-circle">5</div><div class="onboarding-line"></div></div>
-          <div class="onboarding-content">
-            <div class="onboarding-title">管理者で法人登録 → 施設担当者アカウントを発行</div>
-            <div class="onboarding-desc">ユーザー管理タブで法人を登録 → 法人アカウント（facilityロール）を発行 → 招待メールを送信。担当者がパスワードを設定してログイン完了。</div>
-          </div>
-        </div>
-        <div class="onboarding-step">
-          <div class="onboarding-left"><div class="onboarding-circle">6</div></div>
-          <div class="onboarding-content">
-            <div class="onboarding-title">有料プランの案内</div>
-            <div class="onboarding-desc">有料プランにすると担当者への直接問い合わせが表示されるようになることを説明。ケアマネ・MSWからの直接問い合わせ獲得につながることを伝える。</div>
-          </div>
-        </div>
-      </div>
-      <div class="manual-point">ポイント：「Meets Medical 側で入力するので施設の負担はゼロ」が最大の訴求ポイント。法人アカウント発行まで完結することで空室更新の習慣化を促す。</div>
-    </div>
-  </div>
-
-  <!-- ⑦ 病院への訪問マニュアル -->
-  <div class="sec">
-    <div class="sec-hd">
-      <div class="sec-num">7</div>
       <div class="sec-title">病院への訪問マニュアル（「使ってみてください」と渡すまで）</div>
     </div>
 
@@ -1521,166 +890,74 @@
     </div>
   </div>
 
-  <!-- ⑧ 操作マニュアル -->
-  <div class="sec">
+  <!-- ⑥ 営業・オンボーディング -->
+  <div class="sec" id="sec7">
     <div class="sec-hd">
-      <div class="sec-num">8</div>
-      <div class="sec-title">操作マニュアル</div>
+      <div class="sec-num">7</div>
+      <div class="sec-title">施設への営業・オンボーディング手順</div>
     </div>
 
     <div class="manual-block">
-      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 担当者</div>
-      <h3>アカウント申請を承認する</h3>
-      <ol class="manual-steps">
-        <li><div class="step-num">1</div><div class="step-txt"><strong>管理者ダッシュボードを開く</strong><br><code>kaigo-master.html</code> → ユーザー管理タブをクリック</div></li>
-        <li><div class="step-num">2</div><div class="step-txt"><strong>「申請一覧」で未処理の申請を確認</strong><br>黄色の「未処理」バッジがついた申請が表示される</div></li>
-        <li><div class="step-num">3</div><div class="step-txt"><strong>「✅ 承認・アカウント発行へ」をクリック</strong><br>上の「新規アカウントを発行」フォームに申請者の名前・メールが自動入力される</div></li>
-        <li><div class="step-num">4</div><div class="step-txt"><strong>パスワードを入力して「アカウントを発行する」</strong><br>仮パスワードを設定（申請者が後で変更するため何でもOK。8文字以上）</div></li>
-        <li><div class="step-num">5</div><div class="step-txt"><strong>「📧 招待メールを送る」をクリック</strong><br>Firebaseからパスワード設定リンクがメール送信される。申請者がリンクをクリックして自分のパスワードを設定する。</div></li>
-      </ol>
-      <div class="manual-note">申請は自動的に「承認済み」に更新されます。招待メールの件名は Firebase からの自動送信になります（「パスワードのリセット」という件名）。</div>
-    </div>
-
-    <div class="manual-block">
-      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 担当者</div>
-      <h3>施設情報を更新・修正する</h3>
-      <ol class="manual-steps">
-        <li><div class="step-num">1</div><div class="step-txt"><strong>マスター管理ページを開く</strong><br><code>kaigo-master.html</code> → 施設管理タブ</div></li>
-        <li><div class="step-num">2</div><div class="step-txt"><strong>対象施設の「📝 編集」ボタンをクリック</strong><br>施設名で絞り込んで対象を探す</div></li>
-        <li><div class="step-num">3</div><div class="step-txt"><strong>修正したい項目を変更する</strong><br>タグ・入居条件・住所・電話番号・費用などを修正</div></li>
-        <li><div class="step-num">4</div><div class="step-txt"><strong>「✅ この内容で更新する」をクリック</strong><br>保存後、検索ページに即時反映</div></li>
-      </ol>
-    </div>
-
-    <div class="manual-block">
-      <div class="manual-role badge-facility" style="background:var(--ok-bg);color:var(--ok)">施設担当者（法人アカウント）</div>
-      <h3>空室情報を更新する</h3>
-      <ol class="manual-steps">
-        <li><div class="step-num">1</div><div class="step-txt"><strong>施設専用ログイン画面を開く</strong><br><code>kaigo-facility-login.html</code> にアクセスしてログイン</div></li>
-        <li><div class="step-num">2</div><div class="step-txt"><strong>法人ダッシュボードで更新したい施設を選ぶ</strong><br>管理している施設の一覧が表示される。対象施設の「更新」ボタンをクリック</div></li>
-        <li><div class="step-num">3</div><div class="step-txt"><strong>「空室数」を現在の数に変更</strong><br>満室の場合は「0」を入力</div></li>
-        <li><div class="step-num">4</div><div class="step-txt"><strong>備考があれば記入（任意）</strong><br>「来月2名入居予定」「見学受付中」など自由に入力</div></li>
-        <li><div class="step-num">5</div><div class="step-txt"><strong>「更新する」をクリック</strong><br>即座に検索ページに反映されます</div></li>
-      </ol>
-      <div class="manual-note">ダッシュボードには「14日以上未更新」の施設が赤字で警告表示されます。定期的にログインして更新をお願いします。</div>
-    </div>
-
-    <div class="manual-block">
-      <div class="manual-role badge-public" style="background:var(--blue-bg);color:var(--blue)">ケアマネ・MSW・病院担当者</div>
-      <h3>施設を検索する</h3>
-      <ol class="manual-steps">
-        <li><div class="step-num">1</div><div class="step-txt"><strong>ログイン画面を開く</strong><br><code>kaigo-login.html</code> にアクセスしてメール・パスワードでログイン</div></li>
-        <li><div class="step-num">2</div><div class="step-txt"><strong>エリア・費用・施設種別でフィルタリング</strong><br>左サイドバーで条件を設定して「この条件で検索」をクリック</div></li>
-        <li><div class="step-num">3</div><div class="step-txt"><strong>こだわり条件・医療体制タグで絞り込み</strong><br>中央列で複数タグを選択（AND検索）</div></li>
-        <li><div class="step-num">4</div><div class="step-txt"><strong>「💾 この条件を保存」をクリック</strong><br>次回ログイン時に同じ条件が自動で復元されます</div></li>
-      </ol>
-    </div>
-  </div>
-
-  <!-- ⑧ 運用・注意事項 -->
-  <div class="sec">
-    <div class="sec-hd">
-      <div class="sec-num">9</div>
-      <div class="sec-title">運用上の注意事項</div>
-    </div>
-    <table class="spec-table">
-      <tr><th>項目</th><th>内容</th></tr>
-      <tr>
-        <td>アカウント管理<span class="diff-badge">v2.1</span></td>
-        <td>管理者ダッシュボードのユーザー管理タブから全操作可能。Firebase コンソールを操作する必要はありません。</td>
-      </tr>
-      <tr>
-        <td>招待メールの件名</td>
-        <td>Firebase が自動送信するため件名は「パスワードのリセット」になります。申請者に事前に「このメールが届きます」と伝えておくとスムーズです。</td>
-      </tr>
-      <tr>
-        <td>法人アカウント</td>
-        <td>1法人で複数施設を管理する場合は法人を先に登録し、そのcorporationIdに紐づけた施設を登録してください。法人アカウントには自動的に紐づいた施設のみが表示されます。</td>
-      </tr>
-      <tr>
-        <td>タグ・入居条件の正確性</td>
-        <td>現在のタグは施設タイプに基づくデフォルト設定。施設への訪問時に正確な情報に更新してください。</td>
-      </tr>
-      <tr>
-        <td>有料プランバッジ</td>
-        <td>有料プランの施設には緑の丸チェック（✓）が表示されます。マスター管理のプランボタンでワンクリック切り替え。</td>
-      </tr>
-      <tr>
-        <td>更新の督促</td>
-        <td>マスター管理・法人ダッシュボード双方で「14日以上未更新」施設が赤字警告表示されます。定期的にLINEで更新を促してください。</td>
-      </tr>
-      <tr>
-        <td>Firebase費用目安</td>
-        <td>1日300アクセス程度まで無料枠で運用可能。ケアマネ・MSWが日常的に使い始め1日100〜200人規模になったら有料プラン（Blaze：従量課金、月$25〜）への移行を検討。</td>
-      </tr>
-      <tr>
-        <td>今後の予定</td>
-        <td>空室情報の収集・施設アカウントの発行（空室が入れば「要問い合わせ」表示を解除） / 他市への展開 / 検索履歴のFirestore保存 / 地図表示（Google Maps連携） / GitHub Actions 自動デプロイ</td>
-      </tr>
-    </table>
-  </div>
-
-  <!-- ⑨ 施設データ収集・入力フロー（兵頭さん向け） -->
-  <div class="sec">
-    <div class="sec-hd">
-      <div class="sec-num">10</div>
-      <div class="sec-title">施設データの収集・入力フロー（兵頭さん向け）</div>
-    </div>
-
-    <div class="arch-box" style="margin-bottom:16px">
-      <p style="font-size:14px;font-weight:800;color:var(--g800);margin-bottom:12px">📋 兵頭さんが集めてきたデータの流れ</p>
-      <div class="arch-flow">
-        <div class="arch-node">兵頭さんが<br>ヒアリング・収集</div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-node hl">kaigo-register.html<br><span style="font-size:10px">施設登録・編集画面</span></div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-node hl">Firebase Firestore<br><span style="font-size:10px">自動保存</span></div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-node">kaigo-search.html<br><span style="font-size:10px">即時反映</span></div>
-      </div>
-      <div class="arch-list" style="margin-top:16px">
-        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>入力先は1か所：</strong>管理者用の施設登録画面（<code>kaigo-register.html</code>）に入力すればFirestoreに保存され、検索画面に即時反映。スプレッドシートへの転記は不要。</div></div>
-        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>既存施設の編集：</strong>管理者ダッシュボードの「📝 編集」ボタンから直接編集できる。URLに施設IDが入る（例：<code>kaigo-register.html?id=abc1234</code>）。</div></div>
-        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>大量データの一括登録：</strong>ExcelやスプレッドシートにまとめたデータをCSVに変換してインポートスクリプトで一括登録可能（必要時に随時対応）。</div></div>
-      </div>
-    </div>
-
-    <div style="margin-bottom:16px">
-      <div class="field-group">
-        <div class="field-group-hd green">施設登録画面（kaigo-register.html）で入力できる項目</div>
-        <div class="field-list">
-          <div class="field-item"><div class="field-name">基本情報</div><div class="field-desc">施設名・施設種別（特養/老健/GH/サ高住/介護付有料/住宅型有料）・都道府県・市区町村・エリア・住所・最寄り駅・距離</div><div class="field-type">─</div></div>
-          <div class="field-item"><div class="field-name">費用情報</div><div class="field-desc">入居一時金（あり/なし・金額）・家賃・管理費・食費・その他・月額合計（自動計算）</div><div class="field-type">─</div></div>
-          <div class="field-item"><div class="field-name">入居条件</div><div class="field-desc">生活保護可否・身元保証なし可否・介護認定なし受入（各：可/相談可/不可）</div><div class="field-type">─</div></div>
-          <div class="field-item"><div class="field-name">連絡先</div><div class="field-desc">担当者名・電話番号・施設HP（有料プランで公開）</div><div class="field-type">─</div></div>
-          <div class="field-item"><div class="field-name">特徴タグ</div><div class="field-desc">こだわり・特徴44種 ＋ 看護・医療体制31種 から複数選択（チェックボックス）</div><div class="field-type">─</div></div>
-          <div class="field-item"><div class="field-name">空室情報</div><div class="field-desc">空室数（0=満室）・備考・写真（施設側が更新する部分。登録時に初期値として設定可）</div><div class="field-type">─</div></div>
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">Meets Medical 営業担当</div>
+      <h3>施設を開拓して空室更新を依頼するまでの流れ</h3>
+      <div class="onboarding-flow" style="margin-top:16px">
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">1</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">管理者ダッシュボードで対象施設を確認</div>
+            <div class="onboarding-desc"><code>kaigo-master.html</code> の施設管理タブで施設名を検索。共有ページURLをコピー・QRコードを確認しておく。</div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">2</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">施設に訪問 → 検索ページを見せる</div>
+            <div class="onboarding-desc"><code>kaigo-search.html</code> でその施設の表示を見せる。「すでに基本情報を入れてあります。一緒に確認させてください」とヒアリングのきっかけにする。</div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">3</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">ヒアリングして情報を正確に埋める</div>
+            <div class="onboarding-desc">
+              ① タグ（こだわり・医療体制）が実態と合っているか<br>
+              ② 入居条件（生活保護・身元保証・介護認定）の正確な可否<br>
+              ③ 施設HP・公式サイトのURL<br>
+              ④ 担当者名・直通電話番号（有料プラン用）<br>
+              ⑤ 施設写真（あれば提供してもらうか後日送付）
+            </div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">4</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">掲載許可取得 → 「掲載承認」をオンにする</div>
+            <div class="onboarding-desc">了承を得たら <code>kaigo-master.html</code> の「掲載承認」列を✅済にする。</div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">5</div><div class="onboarding-line"></div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">管理者で法人登録 → 施設担当者アカウントを発行</div>
+            <div class="onboarding-desc">ユーザー管理タブで法人を登録 → 法人アカウント（facilityロール）を発行 → 招待メールを送信。担当者がパスワードを設定してログイン完了。</div>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-left"><div class="onboarding-circle">6</div></div>
+          <div class="onboarding-content">
+            <div class="onboarding-title">有料プランの案内</div>
+            <div class="onboarding-desc">有料プランにすると担当者への直接問い合わせが表示されるようになることを説明。ケアマネ・MSWからの直接問い合わせ獲得につながることを伝える。</div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="manual-block">
-      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">兵頭さん / Meets Medical 担当者</div>
-      <h3>施設情報を収集→入力する手順</h3>
-      <ol class="manual-steps">
-        <li><div class="step-num">1</div><div class="step-txt"><strong>ヒアリングシートを印刷して施設訪問</strong><br>マスター管理の「📋 ヒアリング」ボタンでA4印刷用シートを開いて印刷。口頭・手書きでその場に入力してもらう（施設の手間ゼロ）。</div></li>
-        <li><div class="step-num">2</div><div class="step-txt"><strong>管理者ダッシュボードで「📝 編集」をクリック</strong><br>該当施設を検索して編集ボタンをクリック。施設登録画面が開く。</div></li>
-        <li><div class="step-num">3</div><div class="step-txt"><strong>費用・入居条件・タグを正確に入力</strong><br>ヒアリングシートの内容をそのまま入力。タグはチェックボックスで選ぶだけ。</div></li>
-        <li><div class="step-num">4</div><div class="step-txt"><strong>「✅ この内容で更新する」をクリック</strong><br>保存と同時に検索画面へ即時反映される。追加入力はいつでも可能。</div></li>
-      </ol>
-      <div class="manual-note-amber">
-        <strong>費用情報の優先度について：</strong><br>
-        最優先で入力：月額費用合計（家賃＋管理費＋食費）・入居一時金の有無<br>
-        次に入力：内訳（家賃/管理費/食費の明細）・連絡先・施設写真<br>
-        ※費用情報は検索条件の「月額フィルター」に直結するため、最初に埋めると検索の有用性が大きく上がります。
-      </div>
+      <div class="manual-point">ポイント：「Meets Medical 側で入力するので施設の負担はゼロ」が最大の訴求ポイント。法人アカウント発行まで完結することで空室更新の習慣化を促す。</div>
     </div>
   </div>
 
   <!-- ⑩ 3者のユーザーエクスペリエンス -->
-  <div class="sec">
+  <div class="sec" id="sec8">
     <div class="sec-hd">
-      <div class="sec-num">11</div>
+      <div class="sec-num">8</div>
       <div class="sec-title">3者のユーザーエクスペリエンス（登録〜日常利用）</div>
     </div>
 
@@ -1860,8 +1137,187 @@
     </div>
   </div>
 
+  <!-- ③ システム構成 -->
+  <div class="sec" id="sec9">
+    <div class="sec-hd">
+      <div class="sec-num">9</div>
+      <div class="sec-title">システム構成・仕様</div>
+    </div>
+
+    <div class="arch-box">
+      <p style="font-size:13px;font-weight:700;color:var(--g700);margin-bottom:8px">全体のデータフロー</p>
+      <div class="arch-flow">
+        <div class="arch-node hl2">Firebase Auth<br><span style="font-size:10px">ロール認証（3種）</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node hl">Firebase Firestore<br><span style="font-size:10px">施設・法人・ユーザー・申請</span></div>
+        <div class="arch-arrow">↔</div>
+        <div class="arch-node">各HTMLページ<br><span style="font-size:10px">Firebase Hosting</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">閲覧者<br><span style="font-size:10px">ケアマネ・施設担当・管理者</span></div>
+      </div>
+      <div class="arch-list">
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>認証レイヤー（NEW）：</strong>Firebase Auth でログイン必須。role（admin / hospital / facility）に応じてリダイレクト先が変わる。未認証ユーザーはログイン画面へ自動遷移。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>リアルタイム同期：</strong>施設が空室を更新すると、検索画面に即座に反映（約1〜3秒）。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>法人グルーピング（NEW）：</strong>corporationId で施設と法人アカウントを紐づけ。法人ダッシュボードには自分の法人の施設だけが表示される。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>サーバー不要：</strong>Firebase Hosting（静的HTML）＋ Firestore のみ。サーバー管理・メンテナンス費用なし。</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <table class="spec-table">
+        <tr><th>項目</th><th>内容</th></tr>
+        <tr><td>ホスティング</td><td>Firebase Hosting — <code>kaigo-link-dev-59bc5.web.app</code>（自動デプロイ設定：GitHub Actions 連携済み）</td></tr>
+        <tr><td>認証</td><td>Firebase Authentication — メール/パスワード認証。3ロール（admin / hospital / facility）。病院はID＋パスワードでログイン（内部でID→ダミーメール <code>{loginId}@meets-medical.jp</code> に自動変換）<span class="diff-badge">v2.6</span></td></tr>
+        <tr><td>データベース</td><td>Firebase Firestore — コレクション: <code>facilities</code> / <code>corporations</code> / <code>users</code> / <code>applications</code></td></tr>
+        <tr><td>写真保存</td><td>Firebase Storage — パス: <code>facilities/【施設ID】/photo.jpg</code></td></tr>
+        <tr><td>フロントエンド</td><td>HTML + CSS + Vanilla JavaScript。新規ページは Tailwind CSS（CDN）+ Noto Sans JP フォント<span class="diff-badge">v2.1 NEW</span></td></tr>
+        <tr><td>外部ライブラリ</td><td>Firebase SDK v10.7.1、QRCode.js v1.0.0、Tailwind CSS（CDN）</td></tr>
+        <tr><td>対応ブラウザ</td><td>Chrome・Safari・Edge 最新版、iOS Safari、Android Chrome</td></tr>
+        <tr><td>プロジェクトID</td><td><code>kaigo-link-dev-59bc5</code></td></tr>
+        <tr><td>GitHubリポジトリ</td><td><code>newgo-koike/kaigo-vacancy-demo</code></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ④ データ構造 -->
+  <div class="sec" id="sec10">
+    <div class="sec-hd">
+      <div class="sec-num">10</div>
+      <div class="sec-title">データ構造（Firestoreコレクション）</div>
+    </div>
+
+    <!-- corporations -->
+    <div class="field-group">
+      <div class="field-group-hd purple">corporations（法人・運営母体）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
+      <div class="field-list">
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">法人名・運営母体名（例：社会福祉法人○○会）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">contactEmail</div><div class="field-desc">担当者メールアドレス（任意）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">createdAt</div><div class="field-desc">登録日時</div><div class="field-type">timestamp</div></div>
+      </div>
+    </div>
+
+    <!-- users -->
+    <div class="field-group">
+      <div class="field-group-hd purple">users（ユーザーアカウント）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
+      <div class="field-list">
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者名（病院の初期アカウントは病院名）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス（病院は <code>{loginId}@meets-medical.jp</code> のダミー）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">role</div><div class="field-desc">権限（admin / hospital / facility）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">loginId</div><div class="field-desc">ログインID（例 <code>1001-01</code>＝病院コード-番号）<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">hospitalId</div><div class="field-desc">hospitalロールのみ。所属病院コード（例 <code>1001</code>）。病院ごとの区別・集計に使用<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">hospitalName</div><div class="field-desc">hospitalロールのみ。所属病院名<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.6 NEW</span></div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">facilityロールのみ。どの法人に属するかを示す</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">createdAt</div><div class="field-desc">アカウント作成日時</div><div class="field-type">timestamp</div></div>
+      </div>
+    </div>
+
+    <!-- applications -->
+    <div class="field-group">
+      <div class="field-group-hd purple">applications（アカウント申請）<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:.8">v2.1 NEW</span></div>
+      <div class="field-list">
+        <div class="field-item"><div class="field-name">organizationName</div><div class="field-desc">病院名・施設名・法人名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">担当者氏名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">email</div><div class="field-desc">メールアドレス</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">tel</div><div class="field-desc">電話番号（任意）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">message</div><div class="field-desc">ご要望・メッセージ（任意）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">status</div><div class="field-desc">申請ステータス（pending / approved）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">appliedAt</div><div class="field-desc">申請日時</div><div class="field-type">timestamp</div></div>
+        <div class="field-item"><div class="field-name">approvedAt</div><div class="field-desc">承認日時（承認後に追加）</div><div class="field-type">timestamp</div></div>
+      </div>
+    </div>
+
+    <!-- facilities -->
+    <div class="field-group">
+      <div class="field-group-hd">facilities（施設情報）</div>
+      <div class="field-list">
+        <div class="field-item"><div class="field-name">corporationId</div><div class="field-desc">法人ID（どの法人が管理するかの紐づけ）<span style="font-size:10px;color:var(--purple);font-weight:700;margin-left:4px">v2.1 NEW</span></div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">name</div><div class="field-desc">施設名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">type</div><div class="field-desc">施設種別（特養 / 老健 / グループホーム / サ高住 / 介護付有料 / 住宅型有料）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">prefecture</div><div class="field-desc">都道府県（大阪府 など）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">city</div><div class="field-desc">市区町村（豊中市 / 吹田市 / 茨木市 / 池田市 / 箕面市）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">area</div><div class="field-desc">エリア名（庄内 / 岡町 / 曽根 など）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">address</div><div class="field-desc">住所</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">station</div><div class="field-desc">最寄り駅名</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">stationDistance</div><div class="field-desc">駅からの距離（例: 徒歩5分）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">vacancy</div><div class="field-desc">空室数（0=満室）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">vacancyNotes</div><div class="field-desc">空室に関する補足（待機リスト状況など）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">rent</div><div class="field-desc">家賃（万円）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">managementFee</div><div class="field-desc">管理費（万円）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">mealFee</div><div class="field-desc">食費（万円）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">monthlyTotal</div><div class="field-desc">月額合計（万円・自動計算）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">initialFee</div><div class="field-desc">入居一時金あり/なし</div><div class="field-type">boolean</div></div>
+        <div class="field-item"><div class="field-name">initialFeeAmount</div><div class="field-desc">入居一時金額（万円）</div><div class="field-type">number</div></div>
+        <div class="field-item"><div class="field-name">seikatsuHogo</div><div class="field-desc">生活保護 可否（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">mimonHosho</div><div class="field-desc">身元保証なし可否（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">kaigoNintei</div><div class="field-desc">介護認定なし受入（可 / 相談可 / 不可）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">features</div><div class="field-desc">こだわり・特徴（44種）・看護医療体制（31種）タグ</div><div class="field-type">string[]</div></div>
+        <div class="field-item"><div class="field-name">photoUrl</div><div class="field-desc">施設写真のダウンロードURL（Firebase Storage）</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">plan</div><div class="field-desc">プラン（free / paid）。有料のみ連絡先表示</div><div class="field-type">string</div></div>
+        <div class="field-item"><div class="field-name">approved</div><div class="field-desc">掲載承認済みフラグ</div><div class="field-type">boolean</div></div>
+        <div class="field-item"><div class="field-name">updatedAt</div><div class="field-desc">最終更新日時</div><div class="field-type">timestamp</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑨ 施設データ収集・入力フロー（兵頭さん向け） -->
+  <div class="sec" id="sec11">
+    <div class="sec-hd">
+      <div class="sec-num">11</div>
+      <div class="sec-title">施設データの収集・入力フロー（兵頭さん向け）</div>
+    </div>
+
+    <div class="arch-box" style="margin-bottom:16px">
+      <p style="font-size:14px;font-weight:800;color:var(--g800);margin-bottom:12px">📋 兵頭さんが集めてきたデータの流れ</p>
+      <div class="arch-flow">
+        <div class="arch-node">兵頭さんが<br>ヒアリング・収集</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node hl">kaigo-register.html<br><span style="font-size:10px">施設登録・編集画面</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node hl">Firebase Firestore<br><span style="font-size:10px">自動保存</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">kaigo-search.html<br><span style="font-size:10px">即時反映</span></div>
+      </div>
+      <div class="arch-list" style="margin-top:16px">
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>入力先は1か所：</strong>管理者用の施設登録画面（<code>kaigo-register.html</code>）に入力すればFirestoreに保存され、検索画面に即時反映。スプレッドシートへの転記は不要。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>既存施設の編集：</strong>管理者ダッシュボードの「📝 編集」ボタンから直接編集できる。URLに施設IDが入る（例：<code>kaigo-register.html?id=abc1234</code>）。</div></div>
+        <div class="arch-item"><div class="arch-dot"></div><div class="arch-txt"><strong>大量データの一括登録：</strong>ExcelやスプレッドシートにまとめたデータをCSVに変換してインポートスクリプトで一括登録可能（必要時に随時対応）。</div></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="field-group">
+        <div class="field-group-hd green">施設登録画面（kaigo-register.html）で入力できる項目</div>
+        <div class="field-list">
+          <div class="field-item"><div class="field-name">基本情報</div><div class="field-desc">施設名・施設種別（特養/老健/GH/サ高住/介護付有料/住宅型有料）・都道府県・市区町村・エリア・住所・最寄り駅・距離</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">費用情報</div><div class="field-desc">入居一時金（あり/なし・金額）・家賃・管理費・食費・その他・月額合計（自動計算）</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">入居条件</div><div class="field-desc">生活保護可否・身元保証なし可否・介護認定なし受入（各：可/相談可/不可）</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">連絡先</div><div class="field-desc">担当者名・電話番号・施設HP（有料プランで公開）</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">特徴タグ</div><div class="field-desc">こだわり・特徴44種 ＋ 看護・医療体制31種 から複数選択（チェックボックス）</div><div class="field-type">─</div></div>
+          <div class="field-item"><div class="field-name">空室情報</div><div class="field-desc">空室数（0=満室）・備考・写真（施設側が更新する部分。登録時に初期値として設定可）</div><div class="field-type">─</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="manual-block">
+      <div class="manual-role badge-admin" style="background:var(--amber-bg);color:var(--amber)">兵頭さん / Meets Medical 担当者</div>
+      <h3>施設情報を収集→入力する手順</h3>
+      <ol class="manual-steps">
+        <li><div class="step-num">1</div><div class="step-txt"><strong>ヒアリングシートを印刷して施設訪問</strong><br>マスター管理の「📋 ヒアリング」ボタンでA4印刷用シートを開いて印刷。口頭・手書きでその場に入力してもらう（施設の手間ゼロ）。</div></li>
+        <li><div class="step-num">2</div><div class="step-txt"><strong>管理者ダッシュボードで「📝 編集」をクリック</strong><br>該当施設を検索して編集ボタンをクリック。施設登録画面が開く。</div></li>
+        <li><div class="step-num">3</div><div class="step-txt"><strong>費用・入居条件・タグを正確に入力</strong><br>ヒアリングシートの内容をそのまま入力。タグはチェックボックスで選ぶだけ。</div></li>
+        <li><div class="step-num">4</div><div class="step-txt"><strong>「✅ この内容で更新する」をクリック</strong><br>保存と同時に検索画面へ即時反映される。追加入力はいつでも可能。</div></li>
+      </ol>
+      <div class="manual-note-amber">
+        <strong>費用情報の優先度について：</strong><br>
+        最優先で入力：月額費用合計（家賃＋管理費＋食費）・入居一時金の有無<br>
+        次に入力：内訳（家賃/管理費/食費の明細）・連絡先・施設写真<br>
+        ※費用情報は検索条件の「月額フィルター」に直結するため、最初に埋めると検索の有用性が大きく上がります。
+      </div>
+    </div>
+  </div>
+
   <!-- ⑪ 検索データの蓄積と活用 -->
-  <div class="sec">
+  <div class="sec" id="sec12">
     <div class="sec-hd">
       <div class="sec-num">12</div>
       <div class="sec-title">検索データの蓄積と活用</div>
@@ -1907,15 +1363,729 @@
     </div>
   </div>
 
+  <!-- ⑬ 更新履歴（統合） -->
+  <div class="sec" id="sec13">
+    <div class="sec-hd">
+      <div class="sec-num" style="background:var(--purple)">13</div>
+      <div class="sec-title">更新履歴</div>
+    </div>
+    <div class="whats-new">
+      <h3>🆕 v2.9 → v2.9.1 の主な変更点（2026/7/27）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">📋 特養・老健の費用注意書きを改訂（5市・97件）</div>
+          <div class="new-item-desc">特養68件・老健29件の注意書きを新しい文面に差し替え。食費の日額×30日換算・水道光熱費は居住費に含まれること・負担限度額認定の段階（第1〜第3段階）・介護報酬改定による変更の但し書きを明記しました。民間施設の注意書きと金額データに変更はありません。</div>
+        </div>
+      </div>
+      <details class="fold">
+        <summary>過去バージョンの変更点をすべて見る（v2.9 → v2.5）</summary>
+        <div class="fold-body">
+      <h3>🆕 v2.8 → v2.9 の主な変更点（2026/7/23）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">💴 施設データを260723版に更新（全476件）</div>
+          <div class="new-item-desc">5市すべての最新データで全476件をマージ更新（新規0・削除0・エラー0）。施設IDは維持したまま更新しているため、ログイン・QR・URL・写真への影響はありません。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">📦 入居時費用を「初期費用合計」1本に統一</div>
+          <div class="new-item-desc">「入居一時金＋敷金」の内訳管理を廃止し、合計額のみを保持する方式に変更。合計額自体は変わりません。元データの仕様変更に合わせた対応です。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">📋 費用の注意書きを民間・公共の2パターンに統一</div>
+          <div class="new-item-desc">施設ごとにばらばらだった注意書きを、初期費用の有無に応じた定型文2パターンに統一しました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏠 「その他かかる費用の目安」を施設種別ごとに表示</div>
+          <div class="new-item-desc">住宅型有料・サ高住／介護付有料／グループホーム／特養／老健の5区分ごとに、公式の介護報酬に基づく金額・説明・要介護度別テーブルを出し分け。月々の費用目安バナーもこの数値から自動計算されます。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔤 施設名の文字化けを補正して取り込み</div>
+          <div class="new-item-desc">吹田市の1件、Excel上で施設名が「ｆ」に化けていたのを、住所・種別・賃料から特定して「メルヴェイユ吹田」として取り込み、既存IDを維持しました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">⚠ 要確認データの誤検知を修正（99件→2件）</div>
+          <div class="new-item-desc">敷金内訳廃止に伴い、「敷金は不要です」という注意書きまで誤って要確認扱いにしていたのを修正しました。</div>
+        </div>
+      </div>
+      <h3>🆕 v2.7 → v2.8 の主な変更点（2026/7/14）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">🏙 池田市・箕面市を新規追加（5市・計476施設）</div>
+          <div class="new-item-desc">池田市52件・箕面市50件を新たに登録。豊中市154件・吹田市116件・茨木市104件と合わせ、北摂5市で計476施設になりました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">💴 全施設の費用を最新リストに刷新</div>
+          <div class="new-item-desc">既存374施設の入居一時金・敷金・家賃・食費・管理費・注意書きを260712リストの内容に更新。リストから外れた12施設は削除しました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔍 検索カードの費用欄を見やすく</div>
+          <div class="new-item-desc">施設名と費用の間の余白を詰め、費用欄を約1.8倍に拡張。潰れていた賃料・管理費・食費の内訳が判読できるサイズになりました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🛡 取り込みツールを安全化（4段階方式）</div>
+          <div class="new-item-desc">バックアップ →（書き込まずに）差分確認 → 適用 → 検証の順に進む方式に。施設IDを維持したまま更新するので、ログイン・QR・URL・写真が切れません。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">💰 入居時費用を「一時金＋敷金」に統一</div>
+          <div class="new-item-desc">絞り込みが敷金を無視していたため「入居一時金あり」で26件しか出ませんでした（実際は234件）。検索・詳細・資料出力の3画面すべてを合算表示に揃えました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏥 病院IDをランダム4桁に・担当者名を整備</div>
+          <div class="new-item-desc">連番だったコードを重複しないランダム4桁に一括変更。担当者名と病院名を分離し、管理画面の ✏️ から担当者名を入力できるようにしました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">⚠ 要確認データの自動アラート</div>
+          <div class="new-item-desc">食費が1食あたり極端に安い／高い、月額が全項目0円、注意書きに敷金の記載があるのに0円 など、入力ミスと判断できるものを管理画面に一覧表示します。</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">
+        <strong>⚠ 元データについて確認をお願いしたい点</strong>：全476件を1件ずつ照合したところ、<strong>食費が1食あたり133円になっている2施設</strong>と、<strong>注意書きに「敷金が必要」とあるのに敷金欄が0円の5施設</strong>が見つかりました。正しい金額をご教示ください。また<strong>前回リストにあった12施設が今回のリストから外れて</strong>いたため削除しています。<br>
+        なお「月額合計」欄と内訳が一致しない6件は、<strong>内訳の合計が正しい旨をご確認いただき解決済み</strong>です（システムは内訳から再計算しているため、表示は正しい金額になっています）。<br>
+        <a href="kaigo-data-check-260714.html" style="display:inline-block;margin-top:6px;color:var(--blue);font-weight:800;text-decoration:underline">▶ 詳細はこちら（該当施設の一覧・確認事項）</a>
+      </div>
+      <h3>🆕 v2.6 → v2.7 の主な変更点（2026/7/9）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">📄 表示件数の切替（25/50/100件）＋もっと見る</div>
+          <div class="new-item-desc">初期表示を25件に絞って検索後の表示を高速化。件数バーから切り替えでき、続きは「もっと見る」で追加表示。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">↩ 「検索に戻る」で結果を復元</div>
+          <div class="new-item-desc">施設を見てから検索に戻ると、絞り込み条件・並び順・スクロール位置まで元の検索結果に戻る（毎回トップに戻らない）。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🖨 施設詳細の「印刷」を資料出力と統一</div>
+          <div class="new-item-desc">施設詳細の「印刷」と、検索結果から1件選んで出す資料が、同じA4縦の見やすいレイアウトになるよう共通化。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔑 病院ユーザーのパスワード変更</div>
+          <div class="new-item-desc">担当者管理画面に「自分のパスワードを変更」を新設。現在のパスワード確認のうえ変更可能（ログインIDは不変）。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏥 管理画面に「病院一覧」ビュー</div>
+          <div class="new-item-desc">病院ごとにまとめた一覧（病院コード・病院名・担当者数、絞り込み検索）を管理画面のユーザー管理タブに追加。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">📌 空室は全て「要問い合わせ」／大阪府のみ（暫定）</div>
+          <div class="new-item-desc">空室データ整備中のため空室状況は全施設「要問い合わせ」表示、検索対象は当面大阪府のみ。どちらも設定1つで通常表示に戻せる。</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:12px 16px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#78350f;line-height:1.7">
+        <strong>✅ 実装済み</strong>：担当者は「<code>病院コード-01</code>」形式の個人IDでログイン（<strong>初期パスワードはログインIDと同じ文字列</strong>）。担当者追加時は <code>-02</code>, <code>-03</code>… と自動採番されます。一度ログインすればセッションは維持され、毎回のログインは不要です。病院コードは<strong>重複しないランダム4桁</strong>（v2.8で連番から移行済み）。
+      </div>
+      <h3>🆕 v2.5 → v2.6 の主な変更点（2026/7/8）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">🔑 病院ログインをID＋パスワード方式に</div>
+          <div class="new-item-desc">メールアドレス不要。IDとパスワードだけでログイン（ID＝パスワード）。内部でIDをダミーメールに自動変換し、既存の認証基盤を活用。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">👥 個人単位のID体系＋病院ごとの区別</div>
+          <div class="new-item-desc">「病院コード-番号」形式（例：あおい病院＝1001-01）に整備。各アカウントに所属病院（hospitalId・病院名）を紐付け、病院ごとに区別・集計可能に。北摂136病院を発行済み。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">➕ 病院による担当者セルフ追加</div>
+          <div class="new-item-desc">病院がログイン後、自分で担当者を追加できる画面（kaigo-hospital-members.html）を新設。名前を入れると次の空き番号で自動発行。同じ病院なら誰でも追加可能。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔒 セキュリティルールの整備</div>
+          <div class="new-item-desc">Firestoreが「誰でも全データ読み書き可能」だった状態を是正。ロールベースのアクセス制御を適用し、未認証アクセス遮断・病院は自病院の担当者のみ追加可・管理者権限は作成不可に。</div>
+        </div>
+      </div>
+      <h3>🆕 v2.4 → v2.5 の主な変更点（2026/6/23）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">📋 介護費用の負担割合テーブル</div>
+          <div class="new-item-desc">介護費用行にトグルボタンを追加。クリックで要介護1〜5 × 1割・2割・3割の公式支給限度額テーブルを展開表示。印刷時は自動展開されて出力される。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🗂 費用セクション構成の見直し</div>
+          <div class="new-item-desc">「月々にかかる費用の内訳目安」→「その他かかる費用の目安」に改名。施設費用・合計行を削除し介護費用・医療費・その他生活費の3項目に絞る。順序：基本料金→費用詳細→その他費用。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔢 介護費用の数値を公式データに修正</div>
+          <div class="new-item-desc">1割負担の月額目安を 1.6〜2.8万円（誤）→ 1.7〜3.6万円（要介護1〜5の正確な支給限度額）に修正。「※要介護1の場合」の補足注記も追加。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">📝 備考を箇条書き表示に変更</div>
+          <div class="new-item-desc">施設詳細ページ下部の備考欄を改行テキストから &lt;ul&gt;&lt;li&gt; の箇条書きリストに変更。複数項目が整理されて読みやすくなった。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🖨 印刷A4縦1枚に再最適化</div>
+          <div class="new-item-desc">全セクションのフォント・パディングを圧縮し、負担割合テーブルを含む全情報がA4縦1枚に収まるよう @media print を全面調整。印刷プレビューで確認済み。</div>
+        </div>
+      </div>
+        </div>
+      </details>
+      <h3 style="margin-top:26px">📜 これまでのアップデート履歴</h3>
+      <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-top:8px">
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.9.1</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/27</span>
+          <span>特養・老健97件（5市）の「費用に関する注意書き」を改訂／食費の日額×30日換算・水道光熱費の扱い・負担限度額認定の段階・介護報酬改定の但し書きを明記</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.9</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/23</span>
+          <span>施設データを260723版に更新（全476件マージ更新）／入居時費用を「初期費用合計」1本に統一／費用注意書きを民間・公共の2パターンに統一／施設種別ごとの「その他かかる費用の目安」を実装／施設名の文字化けを補正／要確認データの誤検知を修正</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.8</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/14</span>
+          <span>施設データを5市・計476施設に刷新（池田市・箕面市を新規追加／更新374・新規102・削除12）／取り込みツールを4段階の安全方式で新設（施設IDを維持）／検索カードの費用欄を可読化／施設種別の表記ゆれを吸収</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.7</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/9</span>
+          <span>表示件数切替（25/50/100件）＋もっと見る／「検索に戻る」で結果復元／施設詳細の印刷を資料出力と統一／病院ユーザーのパスワード変更／管理画面に病院一覧／空室は全て要問い合わせ・大阪府のみ（暫定）／ログイン保持の明示化</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.6</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/8</span>
+          <span>病院ログインをID＋パスワード方式に／個人単位ID体系（病院コード-番号）＋病院ごとの区別／病院による担当者セルフ追加／セキュリティルール整備（全開放→ロールベース）</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.5</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/6/23</span>
+          <span>介護費用の負担割合テーブル追加／費用セクション構成の見直し／介護費用の数値を公式データに修正／印刷A4縦1枚に再最適化</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.1〜2.4</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">〜2026/6</span>
+          <span>アカウント登録フロー・3ロール認証（admin / hospital / facility）・法人／ユーザー／申請コレクション・Tailwind導入など基盤機能を整備</span>
+        </div>
+      </div>
+    </div>
+    <style>
+      .cl-day { background:white; border-radius:18px; border:1px solid var(--g200); overflow:hidden; margin-bottom:20px; box-shadow:0 2px 12px rgba(0,0,0,.05); }
+      .cl-day-hd { display:flex; align-items:center; gap:14px; padding:18px 24px; background:var(--g900); }
+      .cl-date { font-size:18px; font-weight:800; color:white; letter-spacing:-.3px; }
+      .cl-subtitle { font-size:12px; color:var(--g400); margin-top:2px; }
+      .cl-items { padding:16px 24px; display:flex; flex-direction:column; gap:10px; }
+      .cl-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:10px; border:1px solid var(--g100); background:var(--g50); }
+      .cl-item.added   { border-color:#d3ebf7; background:#eef7fc; }
+      .cl-item.fixed   { border-color:#bfdbfe; background:#eff6ff; }
+      .cl-item.changed { border-color:#e9d5ff; background:#f5f3ff; }
+      .cl-tag { font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+      .cl-tag.added   { background:#e4f2fa; color:var(--ok); }
+      .cl-tag.fixed   { background:#dbeafe; color:var(--blue); }
+      .cl-tag.changed { background:#ede9fe; color:var(--purple); }
+      .cl-txt { font-size:13px; color:var(--g700); line-height:1.6; }
+      .cl-txt strong { color:var(--g900); }
+    </style>
+    <h3 class="hist-h">📅 日付ごとの詳細ログ</h3>
+    <!-- 2026/7/27 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月27日</div>
+          <div class="cl-subtitle">特養・老健97件の「費用に関する注意書き」を改訂（食費の換算方法・水道光熱費の扱い・負担限度額認定の段階・介護報酬改定の但し書きを追記）</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>特養・老健の「費用に関する注意書き」を改訂／5市・計97件</strong><br>
+          特養68件・老健29件（豊中24・吹田32・茨木22・池田9・箕面10）の注意書きを、下記の新しい文面に差し替えました。
+          <strong>食費の日額×30日換算・水道光熱費の扱い・負担限度額認定の段階（第1〜第3段階）・介護報酬改定による変更の但し書き</strong>を新たに明記しています。
+          元Excel（5市）・取り込みデータ・本番データベースの3つすべてを更新し、全97件が新文面と一致することを確認済みです。
+          <div style="margin-top:10px;padding:12px 14px;background:white;border:1px solid var(--g200);border-radius:8px;font-size:12px;line-height:1.85;color:var(--g700)">
+            ※居住費は室タイプ(多床室/個室等)により異なり、最安値の室タイプで記載しています。<br>
+            ※食費は日額×30日換算で記載しています。水道光熱費は居住費に含まれます。<br>
+            ※負担限度額認定(第1〜第3段階)を受けられる場合、居住費・食費は記載額より減額されます。<br>
+            ※月途中の入居・退去の場合は日割り計算となります。<br>
+            ※料金は介護報酬改定等により変更される場合があります。最新の金額は各施設にご確認ください。
+          </div>
+          <span style="display:block;margin-top:8px;font-size:12px;color:var(--g500)">※ 民間施設（介護付有料・住宅型有料・サ高住・グループホーム）の注意書きは変更していません。金額データにも変更はありません。</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/7/23 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月23日</div>
+          <div class="cl-subtitle">施設データを260723版に更新（476件マージ更新）／入居時費用を「初期費用合計」1本に統一／施設種別ごとの費用目安を実装／管理画面アラートの誤検知を修正</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設データを最新版（260723リスト）に更新／全476件</strong><br>豊中市154件・吹田市116件・茨木市104件・池田市52件・箕面市50件、5市すべての最新データで<strong>全476件をマージ更新</strong>しました（新規0・削除0・エラー0）。取り込みツール（バックアップ→差分確認→適用→検証の4段階）を今回のデータ形式に合わせて用意し、更新前のバックアップJSONも取得済みです。施設ドキュメントIDは維持しているため、施設ログイン・配布済みQR・施設詳細URL・写真は影響を受けていません。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>入居時費用を「入居一時金＋敷金」の内訳から「初期費用合計」1本に統一</strong><br>元データの仕様変更に合わせ、内訳（一時金／敷金）の管理を廃止し、合計額のみを保持する方式にしました。<strong>合計額（入居時にかかる費用の総額）自体は変わりません。</strong>施設詳細の内訳表示は「敷金」欄が一律0円になりますが、これはデータ側の仕様変更によるもので、表示の不具合ではありません。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>「費用に関する注意書き」を民間・公共の2パターンに統一</strong><br>施設ごとにばらばらだった注意書きを、初期費用の有無に応じた定型文（民間施設向け／公共施設向け）の2パターンに統一。今回のデータ更新に合わせた仕様変更です。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>「その他かかる費用の目安」を施設種別ごとに表示するよう実装</strong><br>これまで全施設共通で表示していた介護費用・医療費・その他生活費の目安を、<strong>住宅型有料・サ高住／介護付有料／グループホーム／特養／老健</strong>の5区分ごとに、令和6年度介護報酬改定の基本報酬に基づく金額・説明・要介護度別の展開テーブルに出し分けるようにしました（例：特養・老健はおむつ代が施設負担のため生活費目安が低め、老健は医療費が原則0円 など）。ページ上部の「月々の費用目安」バナーも、この施設種別ごとの数値から自動計算されます。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>元データの文字化けを1件補正して取り込み（吹田市）</strong><br>新しいExcelで施設名が「ｆ」という1文字に化けている行がありました。住所・種別・賃料が一致することから既存施設「メルヴェイユ吹田」（特養）と特定し、正しい施設名で取り込むことで既存のドキュメントID・URLを維持しました。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>管理画面「⚠ 要確認データ」アラートの誤検知を修正（99件→2件）</strong><br>今回の内訳廃止に伴い敷金欄が一律0円になったことで、「敷金は不要です」という注意書きの施設まで<strong>「敷金の記載があるのに0円」と誤って検知</strong>していました（97件）。注意書きに「不要」等の否定表現がある場合は対象外にするよう判定を修正しました。</div>
+        </div>
+      </div>
+    </div>
+    <details class="fold">
+      <summary>2026/7/14 以前の詳細ログをすべて見る（10日分）</summary>
+      <div class="fold-body">
+    <!-- 2026/7/14 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月14日</div>
+          <div class="cl-subtitle">施設データを5市・計476施設に刷新（池田市・箕面市を新規追加）／入居時費用まわりの表示・絞り込みを「一時金＋敷金」に統一／病院アカウントの担当者名を整備</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設データを最新版（260712リスト）に全面更新／計476施設</strong><br>豊中市154件・吹田市116件・茨木市104件・<strong>池田市52件・箕面市50件</strong>の5市を最新の介護情報リストで刷新。池田市・箕面市は新規追加です。既存374施設は最新の費用（入居一時金・敷金・家賃・食費・管理費）と注意書きに更新し、新規102施設を追加、今回のリストから外れた12施設（豊中4・吹田8）を削除しました。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>取り込み専用ツールを新設（バックアップ→差分確認→適用→検証の4段階）</strong><br>書き込み前に必ず全データをJSONでバックアップし、「何件が更新・追加・削除されるか」を1件も書き込まずに確認してから実行する方式に。<strong>施設ドキュメントIDを維持したまま更新</strong>するため、施設ログイン・配布済みQR・施設詳細URL・写真の保存先が切れません。取り込み後は全476件×全項目を照合し、取りこぼし・入力誤りがないことを検証済みです。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索結果カードの費用欄を見やすく改善</strong><br>施設名と費用欄の間が空きすぎて費用の内訳（賃料・管理費・食費）が小さく潰れていた問題を解消。結果リストに最大幅を設定して余白を詰め、費用欄を約1.8倍に拡張。内訳の数字が判読できるサイズになりました。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>施設種別の表記ゆれを吸収</strong><br>元Excelの略記（介護付／住宅型／GH）を、検索画面の絞り込みが使う正式名称（介護付有料／住宅型有料／グループホーム）に変換して登録。そのまま入れると種別で絞り込んだ際に該当施設が表示されない状態になるため。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>病院コードを連番からランダム4桁に変更（136病院）</strong><br>これまでの病院コードはエリア順の連番で、4桁と5桁が混在していました（コードから病院数やエリアが推測できてしまう状態）。<strong>重複しないランダム4桁</strong>に一括で付け替え、全病院のログインIDを <code>####-01</code> の形式に統一。<strong>今後、病院を追加する際も未使用のランダム4桁が自動採番</strong>されます。<br><span style="color:var(--ok);font-weight:700">※ IDはまだ配布前のため、影響はありません。</span></div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>管理者ダッシュボードに「病院一覧（ログインID配布用）」</strong><br>病院名・エリア・ログインID・パスワード・担当者を一覧表示。絞り込み、<strong>配布用CSV出力</strong>、印刷に対応しました。<strong>「＋病院を追加」</strong>から病院名を入れるだけで、未使用のランダム4桁を採番してアカウントを即発行できます。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>「入居一時金あり」で絞り込むと大半の施設が出てこなかった問題を修正（26件→234件）</strong><br>絞り込みが<strong>Excelの「入居一時金」列だけを見ていて、敷金・保証金を無視していた</strong>ことが原因です。入居時費用がかかる234施設のうち<strong>208施設が検索から漏れて</strong>いました（池田市は52件中2件しかヒットしない状態）。<br>表示側と揃えて<strong>「入居一時金＋敷金のいずれかがかかる施設＝あり」</strong>に統一し、項目名も<strong>「入居時費用（一時金＋敷金）」</strong>に変更しました。<br><span style="color:var(--g500)">修正後：豊中13→70件・吹田6→58件・茨木2→45件・池田2→31件・箕面3→30件。「なし」側に費用のある施設が混ざっていないことも全476件で検証済みです（特養68件・老健29件は制度上0円のため正しく「なし」になります）。</span></div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>施設詳細ページの入居時費用が0円と表示されていた問題を修正（211施設）</strong><br>検索結果には入居時費用が出ているのに、施設をクリックした詳細ページでは0円と表示される施設がありました。詳細ページが<strong>敷金を合算していなかった</strong>ことが原因です。検索・詳細・資料出力の3画面すべてで<strong>「入居一時金＋敷金」</strong>の合算に統一しました。データ自体は正しく入っており、表示だけの問題でした。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>敷金の表示を統一（「0円」と空欄が混在していた問題）</strong><br>施設詳細の費用欄で、敷金が「0円」と出る施設と何も表示されない施設が混在していました。<strong>常に「一時金」「敷金」の内訳を並べて表示</strong>するよう統一し、「一時金は返還なし／敷金は退去時に返還されます」の注記も追加しました。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>管理者ダッシュボードに「⚠ 要確認データ」アラート</strong><br>明らかにおかしい数値を自動で検出して一覧表示します（食費が1食あたり極端に安い／高い、月額が全項目0円、注意書きに敷金の記載があるのに敷金欄が0円、住所や最寄り駅の未入力 など）。<br><span style="color:var(--g500)">※「相場より高い／安い」ではなく<strong>入力ミスと判断できるもの</strong>だけを出します。入居一時金1,800万円のような高額施設は正常なため、アラートにはなりません。</span></div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>病院アカウントの「担当者名」と「病院名」を分離（136病院）</strong><br>一括発行した各病院の <code>-01</code> アカウントは、担当者名の欄にも病院名が入っていました。あとから追加した担当者は個人名なので、同じ欄に病院名と個人名が混ざっていた状態です。<strong>担当者名＝個人名、病院名＝病院名</strong>と役割を分け、担当者名がわからないうちは<strong>「担当者名 未設定」</strong>と表示するようにしました。検索画面のヘッダーも「〇〇病院 さん」ではなく病院名を表示します。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>担当者名を管理画面から入力できるように</strong><br>病院一覧で担当者ごとに <strong>✏️</strong> を押すと、その場で担当者名を入力・変更できます。上部に「担当者名 未設定 ○名」と残数が出るので、訪問して聞けた病院から順に埋めていけます。病院を追加するフォームにも<strong>担当者名（任意）</strong>欄を追加しました。病院側の担当者管理画面からも入力できます（安全のため、病院が変更できるのは自病院の担当者の<strong>名前だけ</strong>です）。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>病院への訪問マニュアルを追加</strong><br>「使ってみてください」と渡すまでの7ステップと想定問答をセクション6（病院への訪問マニュアル）にまとめました。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>元データの確認事項をまとめた別紙を作成</strong><br>全476件を照合して見つかった「元データ側で確認が必要な点」を <a href="kaigo-data-check-260714.html" style="color:var(--blue);font-weight:700">別紙ページ</a> にまとめました（印刷・PDF保存に対応）。</div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/7/9 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月9日</div>
+          <div class="cl-subtitle">検索体験の改善・資料出力の統一・病院アカウント運用の強化</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>検索結果の表示件数切替（25/50/100件）＋「もっと見る」</strong><br>初期表示を25件に絞ることで検索後の表示を高速化。件数バーから25/50/100件に切り替えられ、続きは「もっと見る」で追加表示。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>「検索に戻る」で検索結果を復元</strong><br>施設詳細を見てから検索に戻ったとき、絞り込み条件・並び順・スクロール位置まで元の検索結果に戻るように（毎回トップに戻らない）。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細の「印刷」を資料出力と同じ体裁に統一</strong><br>施設詳細ページの「印刷」ボタンと、検索結果で1件選んで出す資料が、同じA4縦の見やすいレイアウトになるよう共通化（<code>kaigo-print.js</code>）。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>病院ユーザーが自分でパスワードを変更可能に</strong><br>担当者管理画面に「自分のパスワードを変更」を新設。現在のパスワード確認のうえ、新しいパスワード（6文字以上）に変更できる。ログインIDは不変。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>管理画面に「病院一覧」ビュー</strong><br>ユーザー管理タブに、病院ごとにまとめた一覧（病院コード・病院名・担当者数、絞り込み検索）を追加。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>空室状況を全て「要問い合わせ」表示に（暫定）</strong><br>空室データ整備中のため、当面は全施設を「要問い合わせ」に統一表示。空室での絞り込みも一時的に非表示。データ整備後は通常の空き表示に戻せる設定。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索対象を大阪府のみに限定（暫定）</strong><br>当面は大阪府の施設のみ表示（他府県は非表示）。1つの設定で元に戻せる。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>ログイン保持の明示化＋検索条件の解除ボタン</strong><br>一度ログインすればログアウトするまで維持されるよう明示化。検索条件を保存した場合に「保存を解除」できるボタンも追加。</div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/7/8 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月8日</div>
+          <div class="cl-subtitle">病院アカウントの個人ID体系化・担当者セルフ追加・セキュリティ整備</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>病院ログインをID＋パスワード方式に</strong><br>メールアドレス不要。IDとパスワードだけでログインできるように（ID＝パスワード）。内部でIDをダミーメール <code>{loginId}@meets-medical.jp</code> に自動変換し、既存の認証基盤を活用。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>北摂136病院のアカウント発行＋個人単位ID体系</strong><br>北摂14エリア136病院にログインアカウントを発行。「病院コード-番号」形式（例：あおい病院＝1001-01）に整備し、各アカウントに所属病院（hospitalId・病院名）を紐付けて病院ごとに区別・集計できるように。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>病院による担当者セルフ追加機能</strong><br>病院がログイン後、<code>kaigo-hospital-members.html</code> から自分で担当者を追加できる画面を新設。名前を入れると次の空き番号（1001-02…）で自動発行。同じ病院なら誰でも追加可能。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>セキュリティルールを整備（重要）</strong><br>Firestoreが「誰でも全データを読み書き・削除できる」開発初期の設定のままだった問題を是正。ロールベースのアクセス制御を適用し、未認証アクセスを遮断。病院は自病院の担当者のみ追加可・管理者権限は作成不可に。</div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/7/4 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月4日</div>
+          <div class="cl-subtitle">施設データ拡充（吹田市・茨木市を追加／計386施設）・UIデザイン案の提示</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設データを大幅拡充（計386施設）</strong><br>吹田市124件・茨木市104件を新たに投入し、豊中市158件と合わせて計386施設に拡大。豊中市の全施設に管理IDを付与し、データ投入タブの件数ラベルも 158 → 386 に更新。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>UIデザインのリニューアル案を提示（6案・比較用）</strong><br>「AI感を抑えたい」というご要望を踏まえ、参考サイトのトーンを落とし込んだデザイン案を6種類作成。中身のデータ・項目は同じまま、見た目のトーンだけを比較できます。<br><a href="https://kaigo-ui-mockups.surge.sh" target="_blank" style="color:var(--blue);font-weight:700;text-decoration:underline">https://kaigo-ui-mockups.surge.sh</a></div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/6/23 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月23日</div>
+          <div class="cl-subtitle">施設詳細ページ構成改善・負担割合テーブル追加・印刷A4縦対応</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>介護費用の負担割合テーブル（クリックで展開）</strong><br>「その他かかる費用の目安」内の介護費用行に「▼ 負担割合・要介護度別の目安を見る」ボタンを追加。クリックすると要介護1〜5 × 自己負担1割・2割・3割の公式支給限度額を一覧表示。印刷・PDF時は自動展開して出力。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>費用セクション構成の見直し</strong><br>「月々にかかる費用の内訳目安」→「その他かかる費用の目安」に改名。施設費用行・合計行を削除し、介護費用・医療費・その他生活費の3項目のみ表示。セクション順序を「基本料金 → 費用に関する詳細 → その他かかる費用の目安」に変更。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>介護費用の月額目安を公式データに修正</strong><br>1.6〜2.8万円（誤推計）→ 1.7〜3.6万円（要介護1〜5・1割負担の正確な支給限度額）に修正。「※要介護1の場合」の注記も追加。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>備考・お知らせを箇条書きに変更</strong><br>施設詳細ページ下部の備考欄を、改行区切りのテキストから &lt;ul&gt;&lt;li&gt; の箇条書きリストに変更。複数項目がある場合に視認性が向上。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>印刷・PDF：A4縦1枚レイアウトを再最適化</strong><br>全セクションのフォントサイズ・パディングを圧縮し、負担割合テーブルも含めた全情報がA4縦1枚に収まるよう @media print を全面調整。印刷時は負担割合テーブルを自動展開、ボタンは非表示。</div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/6/21-22 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月21日〜22日</div>
+          <div class="cl-subtitle">検索バグ修正・印刷A4最適化・ヘッダー統一・インポート強化</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>月額費用の範囲検索が機能しない問題を修正</strong><br>Firestoreに円単位（例：169,304円）で保存されているデータをフィルターが万円単位（例：15）と直接比較していたため、すべての施設が除外されていた。mapDoc() で全費用を万円に変換し、元の円値は *Yen フィールドとして別途保持するよう修正。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>入居一時金が0円と表示される問題を修正（敷金のみ施設）</strong><br>ボナール豊中など「入居一時金なし・敷金あり」の施設で initialFee フラグのみを参照していたため、敷金（depositAmount）が表示されなかった。initialFeeAmount + depositAmount を合算して表示するよう修正。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>管理画面のデータ投入ボタンが動作しない問題を修正</strong><br>「▶ インポート開始」「⚠ 全施設削除」ボタンのクリックイベントに割り当てられた runImport()・clearAllFacilities() 関数が未定義だった。両関数を新規実装し、進捗をリアルタイムで表示するログ出力機能も追加。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>インポート時の重複チェック（同名施設は自動更新）</strong><br>「▶ インポート開始」実行時に Firestore の同名施設を検索し、存在すれば update・なければ add を自動判別。2回目以降もボタン1つで最新データへ上書き更新できる。削除→再投入の手順が不要に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>印刷・PDF：月々の合計費用を中央に大きくヒーロー表示</strong><br>施設詳細ページ（kaigo-facility-view.html）の印刷レイアウトを改修。「月々の費用（目安・すべて含む）」の金額を緑バナー内に中央揃えで大きく配置。@media print 内の .est-big を 36pt に設定し、ページ全体を A4 一枚に収まるようパディングを最適化。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細ページのヘッダーを検索画面と統一</strong><br>ダークネイビー背景＋絵文字だったヘッダーを、白背景・logo.png・ダークティール文字「介護施設検索」に変更。検索画面と施設詳細画面で統一した見た目を実現。</div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/6/19 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月19日</div>
+          <div class="cl-subtitle">一括インポートツール・施設詳細整備・納品書v2・UI改善</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設データ一括インポートツール（158施設対応）</strong><br>豊中市の実施設データ158件（介護付17・住宅型46・サ高住38・GH29・特養14・老健10・高齢者住宅4）をFirestoreに一括投入するツールを追加。管理者がボタン1つで全施設を登録可能。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>納品書 v2 デザイン全面刷新（本ページ）</strong><br>Inter + Noto Sans JP フォント採用、グラデーションヘッダー（ダークネイビー→ダークグリーン）、赤バッジ・ステータスインジケーターなど全体デザインをリニューアル。アップデート履歴を日付別に見やすく整理。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細ページ（kaigo-facility-view.html）整備完了</strong><br>Noto Sans JP フォント導入・CSS変数整理・タイトル統一。費用内訳・介護費用目安・月々合計表示などの情報を整備し、病院・ケアマネが施設を検討する際に必要な情報がすべて揃う状態に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索画面カラースキームリニューアル（エメラルド緑）</strong><br>ブランドカラーをエメラルドグリーン（#2c7ba6）に統一し、シャドウ変数（--sh1/2/3/sh-brand）を体系化。ピンクアクセントも整理し、全体の視覚的一貫性を向上。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>空室更新ページ（kaigo-manage.html）に Firebase Auth 認証ガード追加</strong><br>未ログイン状態でURLを直接開いた場合、自動的にログイン画面へリダイレクト。認証前のコンテンツ表示を防ぐ visibility:hidden 対応も追加。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">改善</span>
+          <div class="cl-txt"><strong>検索ボタン押下後の画面切替をスムーズ化</strong><br>全画面検索フォームから左サイドバー＋結果表示へ切り替わる際のカクつきを解消。フェードアウト→レイアウト切替→フェードイン の3ステップで視覚的に滑らかな遷移を実現。</div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/6/18 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月18日</div>
+          <div class="cl-subtitle">費用内訳表・PDF印刷・登録フォーム・ロックカード削除ほか</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細：費用内訳を収支表スタイルに刷新</strong><br>「施設費用・介護費用・医療費・その他生活費」を項目／内容／月額目安の3列テーブルで表示。合計行をグリーングラデーションで強調し、費用の全体像が一目でわかるデザインに変更。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>PDF出力をA4大文字レイアウトに最適化</strong><br>印刷用ページをA4縦・余白ゼロ・大きなフォントサイズに再設計。高齢の家族が紙で確認する場面を想定し、1施設1枚に収まる視認性の高いレイアウトに。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設登録フォームに路線名入力欄を追加</strong><br>最寄駅情報に「路線名」テキスト欄（stationLine）を追加。「阪急宝塚線」「JR東海道線」など複数路線を「、」区切りで入力でき、検索時に路線名でのフリーワード検索が可能に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細ページのロックカード（🔒）を削除</strong><br>有料プラン誘導のロックブロックを完全削除。ページをシンプルに整理し、費用情報に集中できるレイアウトに。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索画面：白背景＋やわらかい配色に刷新</strong><br>ダークグラデーション＋ノイズテクスチャだった検索画面を、白背景＋エメラルドグリーン＆ピンクのやわらかい色調に変更。ソーシャルワーカー・ケアマネが使いやすい明るい印象に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>検索ボタンをフォーム下部に固定</strong><br>「検索」「保存した条件」ボタンをサイドバー最下部にスティッキー表示。フォームが長くてもスクロール不要でいつでも押せる配置に。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>初期検索画面で「空室状況・入居条件」を非表示に</strong><br>検索前の全画面表示時は「施設種別」のみ表示。検索後に空室・入居条件フィルターが展開する設計に変更し、最初の一歩のハードルを下げた。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：基本料金セクション強化</strong><br>「基本料金（施設への直接支払い）」として入居一時金・月額利用料・食費・管理費を整理。施設側が入力したデータを見やすいカード形式で表示。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：介護費用の目安（介護度別）を追加</strong><br>要介護1〜5それぞれの月額介護費用目安（1.6〜2.8万円）を表で表示。「これは施設に払うお金ではなく介護保険で支払う費用です」という説明付きで、家族が混乱しないよう配慮。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：その他費用リストを追加</strong><br>おむつ代・洗濯代・散髪代・医療費・日用品・被服費など、月額料金に含まれない追加費用の目安を一覧表示。入居検討時の総コスト計算に役立てられる。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：月々の合計目安を大きく表示</strong><br>基本料金＋介護費用＋その他の合計から算出した「月々の目安：〇〇〜〇〇万円」を大きなカードで表示。家族が一番気にする数字を一目でわかるように。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細：最寄駅を沿線別に複数表示・路線名を全表示</strong><br>複数路線・駅名を「🚉 阪急宝塚線　服部天神駅　徒歩5分」形式で1行ずつ表示。すべての駅エントリーに路線名が含まれるよう統一。Firestoreの stations[] 配列と旧形式（station / stationLine / stationDistance）の両方に対応。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>施設詳細「検索に戻る」ボタンが初期画面に戻る問題を修正</strong><br>施設詳細ページから「← 検索に戻る」を押すと検索結果一覧に戻るよう修正（従来は検索条件がリセットされた初期画面に遷移していた）。ブラウザの history.back() を利用し、検索結果・スクロール位置を保持して戻れるように。</div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/6/17 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月17日</div>
+          <div class="cl-subtitle">検索UX大幅改善・デザイン全面刷新・ロゴ・スケルトンローディング・フィルターチップ</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>検索画面：フルページ検索UI</strong><br>初期表示は画面いっぱいに検索フォームを表示。検索後は左サイドバーに収まり、右に結果がスライドイン表示されます。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設カードへのチェックボックス＋資料出力ボタン</strong><br>気になる施設にチェックを入れて「📄 資料出力」を押すと、複数施設をまとめた印刷用ページが開きます（PDF保存も可）。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>CSVインポート機能（管理画面）</strong><br>スプレッドシートからエクスポートしたCSVをドラッグ＆ドロップするだけで施設データを一括登録・更新。列のマッピングは自動判定＋手動調整可能。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>都道府県フィルターが効かない不具合を修正</strong><br>大阪府で検索しても施設が表示されなかった問題を修正。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>施設詳細ページの「有料/無料プラン」表記を削除</strong><br>「空室状況・連絡先は有料プランで掲載」→「Meets Medicalまでお問い合わせください」に変更。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>文字サイズ・ボタンを全体的に拡大</strong><br>ソーシャルワーカー・ケアマネが使いやすいよう、フォントサイズとタップ領域を大きめに調整。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>CSS全面刷新・スタイリッシュデザインへ</strong><br>カスタムプロパティ（CSS変数）によるカラー・シャドウシステムを導入。施設カードにホバーリフトアニメーション・グラデーション背景・Noto Sans JP フォントを適用し、モダンSaaS UIに刷新。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>アニメーションノイズグラデーション背景</strong><br>フルページ検索モード時の背景に、12秒周期で動く暗いグラデーション＋SVGノイズテクスチャオーバーレイを実装。検索画面に高級感のある雰囲気を演出。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>スケルトンローディングアニメーション</strong><br>検索ボタンを押した直後、Firestoreからデータが返ってくる前に5枚のシマーアニメーション付きスケルトンカードを表示。「読み込み中」感を排除し、レスポンスの良いUIを実現。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>アクティブフィルターチップ</strong><br>検索結果の上部に、現在有効な絞り込み条件（都道府県・市区町村・駅名・月額・空室・入居条件・施設種別など）をタグとして表示。各チップの × ボタンで個別クリア、「すべてクリア」で一括リセット可能。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>ロゴ画像の差し替えと背景透明化処理</strong><br>ヘッダー・ヒーローに専用ロゴPNG（建物＋木＋人のアイコン）を採用。Pythonで白背景をフラッドフィル除去し、透過PNG化。ヘッダーの暗いバーとヒーローのグラデーション背景にそのまま溶け込む表示に。</div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026/6/16 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年6月16日</div>
+          <div class="cl-subtitle">MTG後の対応・施設詳細ページ刷新</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>施設詳細ページを全面リニューアル</strong><br>施設ページをクリックすると、入居時費用・月額費用・空室状況・アクセス・入居条件・連絡先・タグ・備考が一覧表示。印刷・PDFボタン付き。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>アカウント申請ページ（公開）</strong><br>病院・ケアマネ向けのアカウント申請フォームを新設。承認は管理者が行い、招待メールを送信する流れ。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>検索ログの蓄積・管理画面での確認</strong><br>誰がいつどのような条件で検索したかを自動記録。管理画面「📋 検索履歴」タブで確認可能。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>こだわり・タグのパネルを非表示に</strong><br>検索データが整うまで、タグ絞り込みパネルを非表示に変更（将来的に復活予定）。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>初期検索の表示ロジック変更</strong><br>以前は画面を開くと全件表示されていた動作を廃止。「検索ボタンを押してから結果が表示される」設計に変更。</div>
+        </div>
+      </div>
+    </div>
+      </div>
+    </details>
+  </div>
+
 </div><!-- /pane-right -->
 </div><!-- /two-pane -->
 </div><!-- /container -->
 
 <div class="footer">
-  介護施設検索システム v2.9<br>
+  介護施設検索システム v2.9.1<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>
 
+
+<script>
+  (function () {
+    var toggle = document.getElementById('tocToggle');
+    var panel = document.getElementById('tocPanel');
+    toggle.addEventListener('click', function () {
+      var open = panel.hasAttribute('hidden');
+      if (open) { panel.removeAttribute('hidden'); } else { panel.setAttribute('hidden', ''); }
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    panel.addEventListener('click', function (e) {
+      if (e.target.closest('a')) { panel.setAttribute('hidden', ''); toggle.setAttribute('aria-expanded', 'false'); }
+    });
+
+    // 表示中のセクションを左ペインの目次でハイライトする
+    var links = {};
+    document.querySelectorAll('.toc-link').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+    var visible = new Set();
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { visible.add(en.target.id); } else { visible.delete(en.target.id); }
+      });
+      var ids = Object.keys(links).filter(function (id) { return visible.has(id); });
+      Object.keys(links).forEach(function (id) { links[id].classList.toggle('active', id === ids[0]); });
+    }, { rootMargin: '-80px 0px -60% 0px' });
+    document.querySelectorAll('.sec[id]').forEach(function (s) { io.observe(s); });
+  })();
+</script>
 </body>
 </html>
