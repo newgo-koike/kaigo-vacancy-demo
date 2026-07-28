@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.9.2 | 介護施設検索システム</title>
+  <title>納品書 v2.9.3 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -252,7 +252,7 @@
 <a id="top"></a>
 <div class="topbar" id="topbar">
   <div class="topbar-inner">
-    <a class="topbar-brand" href="#top">🏥 介護施設検索システム <span class="topbar-ver">v2.9.2</span></a>
+    <a class="topbar-brand" href="#top">🏥 介護施設検索システム <span class="topbar-ver">v2.9.3</span></a>
     <div class="topbar-links">
       <a class="tb-btn tb-primary" href="kaigo-search.html" target="_blank">🔍 施設検索</a>
       <a class="tb-btn" href="kaigo-login.html" target="_blank">🔑 医療機関ログイン</a>
@@ -291,9 +291,9 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.9.2</div>
+  <div class="v2-badge">✨ v2.9.3</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.9.2</p>
+  <p>納品書・仕様書・操作マニュアル　v2.9.3</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
     <div class="delivery-meta-item"><strong>最終更新</strong>2026年7月29日</div>
@@ -1370,6 +1370,21 @@
       <div class="sec-title">更新履歴</div>
     </div>
     <div class="whats-new">
+      <h3>🆕 v2.9.2 → v2.9.3 の主な変更点（2026/7/29）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">☑️ 都道府県・市区町村を複数選択できるように</div>
+          <div class="new-item-desc">これまで1つしか選べなかった都道府県・市区町村を、施設種別と同じチェックボックス方式に変更。「豊中市と吹田市だけ」のような複数エリアの同時検索ができます。既定はすべてチェック＝全エリア表示で、外したものだけが絞り込みに反映されます。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏙 市区町村の候補を実データから自動生成</div>
+          <div class="new-item-desc">選んだ都道府県に属する市区町村のうち、実際に施設が登録されている市だけを候補に表示します。今後データを追加した市も自動で候補に並びます。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🏷 絞り込み表示を0件のときも更新</div>
+          <div class="new-item-desc">検索結果が0件になったとき、上部の絞り込みチップが古い条件のまま残っていた表示上の不具合を修正しました。</div>
+        </div>
+      </div>
       <h3>🆕 v2.9.1 → v2.9.2 の主な変更点（2026/7/29）</h3>
       <div class="new-grid">
         <div class="new-item">
@@ -1393,7 +1408,7 @@
         </div>
       </div>
       <details class="fold">
-        <summary>過去バージョンの変更点をすべて見る（v2.9.1 → v2.5）</summary>
+        <summary>過去バージョンの変更点をすべて見る（v2.9.2 → v2.5）</summary>
         <div class="fold-body">
       <h3>🆕 v2.8 → v2.9 の主な変更点（2026/7/23）</h3>
       <div class="new-grid">
@@ -1535,6 +1550,11 @@
       <h3 style="margin-top:26px">📜 これまでのアップデート履歴</h3>
       <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-top:8px">
         <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.9.3</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/29</span>
+          <span>都道府県・市区町村を複数選択（チェックボックス）に変更／市区町村の候補を実データから自動生成／0件時の絞り込み表示を修正</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
           <span style="font-weight:800;color:var(--purple);min-width:66px">v2.9.2</span>
           <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/29</span>
           <span>老健の医療費表記を「日常的な診察・薬代は介護費用に含まれるため原則不要」に修正／資料出力の費用表を施設詳細ページと同一内容・同一金額に統一／費用目安データを共通ファイルに集約</span>
@@ -1599,7 +1619,7 @@
       <div class="cl-day-hd">
         <div>
           <div class="cl-date">2026年7月29日</div>
-          <div class="cl-subtitle">老健の医療費表記を修正／資料出力（印刷・PDF）の費用表を施設詳細ページと同一内容に統一</div>
+          <div class="cl-subtitle">老健の医療費表記を修正／資料出力の費用表を施設詳細ページと同一内容に統一／都道府県・市区町村を複数選択（チェックボックス）に変更</div>
         </div>
       </div>
       <div class="cl-items">
@@ -1615,6 +1635,19 @@
           施設詳細ページの「その他かかる費用の目安」は7/23から施設種別ごとの金額を表示していましたが、
           <strong>印刷・PDFの費用表だけが全施設共通の旧数値のまま</strong>でした（例：特養の資料に「介護費用 1.6〜2.8万円」「その他生活費におむつ代を含む 1.0〜3.0万円」と出力され、画面の「2.2〜2.9万円」「おむつ代は施設負担のため不要 0.5〜1.5万円」と食い違う状態）。
           印刷側を画面と同じ内容・同じ金額に統一し、表の構成も画面と同じ<strong>介護費用／医療費／その他生活費の3項目</strong>に揃えました（施設費用は目安表の外に独立表示）。ページ上部の「月々の合計費用」と検索結果の比較シートの目安金額も、同じ施設種別ごとの数値で計算されます。</div>
+        </div>
+        <div class="cl-item added">
+          <span class="cl-tag added">追加</span>
+          <div class="cl-txt"><strong>都道府県・市区町村を複数選択（チェックボックス）に変更</strong><br>
+          これまでプルダウンで1つしか選べなかった場所の条件を、施設種別と同じチェックボックス方式にしました。
+          <strong>「豊中市と吹田市だけ」といった複数エリアの同時検索</strong>ができます。既定は全チェック（＝全エリア表示）で、チェックを外したエリアだけが絞り込みに反映されます。
+          市区町村の候補は<strong>実際に施設が登録されている市だけ</strong>を都道府県の選択に応じて自動生成するため、選んでも0件になる選択肢は並びません。
+          「この条件を保存」「検索に戻る」での条件の復元、絞り込みチップ、管理画面の検索履歴（エリア集計）も複数選択に対応しています。
+          <span style="display:block;margin-top:6px;font-size:12px;color:var(--g500)">※ 以前に保存した検索条件（単一選択）もそのまま復元できます。</span></div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>検索結果が0件のとき、絞り込み表示が更新されない不具合を修正</strong><br>0件になった時点で上部の絞り込みチップが直前の条件のまま残っていたため、いま何で絞り込んでいるのかが分からなくなっていました。</div>
         </div>
         <div class="cl-item changed">
           <span class="cl-tag changed">変更</span>
@@ -2104,7 +2137,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  介護施設検索システム v2.9.2<br>
+  介護施設検索システム v2.9.3<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>

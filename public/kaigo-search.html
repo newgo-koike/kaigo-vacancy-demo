@@ -141,6 +141,9 @@
     .f-grp { margin-bottom:13px; }
     .f-grp:last-child { margin-bottom:0; }
     .f-lbl { display:block; font-size:12px; color:var(--ink); font-weight:700; margin-bottom:6px; letter-spacing:.02em; }
+    .f-lbl-row { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:4px; }
+    .f-lbl-row .f-lbl { margin-bottom:0; }
+    .cb-scroll { max-height:190px; overflow-y:auto; padding-right:4px; }
     .f-sel {
       width:100%; height:42px; padding:0 14px; border:2px solid var(--hair); border-radius:100px;
       font-size:14px; outline:none; font-family:inherit; color:var(--ink); background:#fff;
@@ -411,27 +414,18 @@
     <div class="sb-sec">
       <div class="sb-sec-hd"><span class="sb-sec-title">場所</span></div>
       <div class="f-grp">
-        <label class="f-lbl">都道府県</label>
-        <select class="f-sel" id="q-pref" onchange="updateCityOptions()">
-          <option value="">すべて</option>
-          <option value="大阪府">大阪府</option>
-          <!-- ※暫定: 大阪府のみ運用中。他府県は OSAKA_ONLY を false にして復活させる
-          <option value="兵庫県">兵庫県</option>
-          <option value="京都府">京都府</option>
-          <option value="奈良県">奈良県</option>
-          -->
-        </select>
+        <div class="f-lbl-row">
+          <label class="f-lbl">都道府県</label>
+          <button class="sb-clear" onclick="toggleAllLoc('pref')">全選択</button>
+        </div>
+        <div id="pref-list"></div>
       </div>
       <div class="f-grp">
-        <label class="f-lbl">市区町村</label>
-        <select class="f-sel" id="q-city" onchange="liveFilter()">
-          <option value="">すべて</option>
-          <option value="豊中市">豊中市</option>
-          <option value="吹田市">吹田市</option>
-          <option value="茨木市">茨木市</option>
-          <option value="池田市">池田市</option>
-          <option value="箕面市">箕面市</option>
-        </select>
+        <div class="f-lbl-row">
+          <label class="f-lbl">市区町村</label>
+          <button class="sb-clear" onclick="toggleAllLoc('city')">全選択</button>
+        </div>
+        <div id="city-list" class="cb-scroll"></div>
       </div>
       <div class="f-grp">
         <label class="f-lbl">フリー検索（施設名・駅名・住所など）</label>
@@ -634,6 +628,9 @@ function isOsaka(f) {
   return f.prefecture === '大阪府' || CITY_MAP['大阪府'].includes(f.city);
 }
 
+// 都道府県の選択肢（大阪府のみ運用中。OSAKA_ONLY を false にすると兵庫・京都・奈良も選べる）
+const PREF_LIST = OSAKA_ONLY ? ['大阪府'] : Object.keys(CITY_MAP);
+
 // ※暫定運用: 空室データが未整備のため、空室状況はすべて「要問い合わせ」で表示する。
 // データが揃ったら VACANCY_INQUIRY を false に戻すと通常の満室/空き表示に戻る。
 const VACANCY_INQUIRY = true;
@@ -649,6 +646,8 @@ const selectedFacilities = new Set();
 function initSidebar() {
   // 空室データ未整備の間は空室絞り込み（すべて/空きあり）を隠す
   if (VACANCY_INQUIRY) { const vs = document.querySelector('.sb-sec-vac'); if (vs) vs.style.display = 'none'; }
+  renderPrefList();
+  renderCityList(false);
   document.getElementById('type-list').innerHTML = TYPES.map(t =>
     `<label class="cb-item">
       <input type="checkbox" name="type" value="${t.key}" checked onchange="liveFilter()">
@@ -657,15 +656,69 @@ function initSidebar() {
   ).join('');
 }
 
-// ── 都道府県→市区町村 連動 ────────────────────────────────
-function updateCityOptions() {
-  const pref = document.getElementById('q-pref').value;
-  const cities = CITY_MAP[pref] || [];
-  const sel = document.getElementById('q-city');
-  sel.innerHTML = '<option value="">すべて</option>' +
-    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+// ── 場所（都道府県・市区町村）の複数選択 ────────────────────────
+// 施設種別と同じチェックボックス方式。既定は全チェック＝絞り込みなし。
+function renderPrefList() {
+  document.getElementById('pref-list').innerHTML = PREF_LIST.map(p =>
+    `<label class="cb-item">
+      <input type="checkbox" name="pref" value="${p}" checked onchange="onPrefChange()">
+      <span class="cb-label">${p}</span>
+    </label>`
+  ).join('');
+}
+
+// 選択中の都道府県に属する市区町村の候補。
+// データ取得後は「実際に施設がある市」だけに絞り、既定リストに無い市もデータにあれば候補に加える
+// （候補から漏れた市の施設が絞り込みで消えてしまわないようにするため）。
+function cityCandidates() {
+  const prefs  = getChecked('pref');
+  const target = prefs.length ? prefs : PREF_LIST;
+  const inData = new Set(DATA.map(f => f.city).filter(Boolean));
+  const out = [];
+  target.forEach(p => (CITY_MAP[p] || []).forEach(c => {
+    if ((!DATA.length || inData.has(c)) && !out.includes(c)) out.push(c);
+  }));
+  DATA.forEach(f => {
+    if (f.city && !out.includes(f.city) && (!prefs.length || prefs.includes(f.prefecture))) out.push(f.city);
+  });
+  return out;
+}
+
+// 市区町村チェックボックスを描画する。preserve=true なら既存のチェック状態を引き継ぐ
+function renderCityList(preserve = true) {
+  const el = document.getElementById('city-list');
+  const had = document.querySelectorAll('input[name="city"]').length > 0;
+  const prev = new Set(preserve && had ? getChecked('city') : []);
+  const cities = cityCandidates();
+  el.innerHTML = cities.length
+    ? cities.map(c =>
+        `<label class="cb-item">
+          <input type="checkbox" name="city" value="${c}" ${(!preserve || !had || prev.has(c)) ? 'checked' : ''} onchange="liveFilter()">
+          <span class="cb-label">${c}</span>
+        </label>`
+      ).join('')
+    : '<div class="f-hint">都道府県を選ぶと候補が表示されます</div>';
+}
+
+function onPrefChange() { renderCityList(); liveFilter(); }
+
+// 「全選択」ボタン
+function toggleAllLoc(name) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(cb => cb.checked = true);
+  if (name === 'pref') renderCityList();
   liveFilter();
 }
+
+// 検索結果を読み込んだあと、実データに合わせて市区町村の候補を作り直す
+function refreshCityCandidates() {
+  const checked = new Set(getChecked('city'));
+  const wasAll  = checked.size === document.querySelectorAll('input[name="city"]').length;
+  renderCityList(false);
+  if (!wasAll) document.querySelectorAll('input[name="city"]').forEach(cb => { cb.checked = checked.has(cb.value); });
+}
+
+// 旧コード（select時代）からの呼び出し名を維持
+function updateCityOptions() { renderCityList(); }
 
 // ── ラジオチップ同期 ───────────────────────────────────────
 function syncRadioChip(input) {
@@ -749,6 +802,7 @@ async function doSearch() {
   try {
     const snap = await db.collection('facilities').get();
     DATA = snap.docs.map(mapDoc).filter(isOsaka);   // ※暫定: 大阪府のみ表示
+    refreshCityCandidates();
     selectedFacilities.clear();
     updateFloatBtn();
     applySort();
@@ -765,9 +819,11 @@ async function doSearch() {
 
 async function saveSearchLog() {
   if (!currentUser) return;
-  const city    = document.getElementById('q-city').value;
+  const prefs   = getChecked('pref');
+  const cities  = getChecked('city');
+  const prefSel = prefs.length  < document.querySelectorAll('input[name="pref"]').length  ? prefs  : [];
+  const citySel = cities.length < document.querySelectorAll('input[name="city"]').length ? cities : [];
   const station = document.getElementById('q-station').value.trim();
-  const pref    = document.getElementById('q-pref').value;
   const initFee = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
   const priceMin = document.getElementById('q-price-min').value || '';
   const priceMax = document.getElementById('q-price-max').value || '';
@@ -786,7 +842,7 @@ async function saveSearchLog() {
     userEmail: currentUser.email,
     searchedAt: firebase.firestore.FieldValue.serverTimestamp(),
     conditions: {
-      prefecture: pref, city, station, types,
+      prefectures: prefSel, cities: citySel, station, types,
       initialFee: initFee,
       priceMin: priceMin ? parseFloat(priceMin) : null,
       priceMax: priceMax ? parseFloat(priceMax) : null,
@@ -812,8 +868,11 @@ function applySort() {
 // ── クライアント絞り込み ─────────────────────────────────────
 function liveFilter() {
   if (!DATA.length) return;
-  const pref     = document.getElementById('q-pref').value;
-  const city     = document.getElementById('q-city').value;
+  const prefs    = getChecked('pref');
+  const cities   = getChecked('city');
+  // 全部チェック＝絞り込みなし（候補に無い市の施設まで消えるのを防ぐ）
+  const prefAll  = prefs.length  === document.querySelectorAll('input[name="pref"]').length;
+  const cityAll  = cities.length === document.querySelectorAll('input[name="city"]').length;
   const station  = document.getElementById('q-station').value.trim();
   const initFee  = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
   const priceMin = parseFloat(document.getElementById('q-price-min').value || '0');
@@ -828,8 +887,8 @@ function liveFilter() {
   const base = SORTED.length ? SORTED : DATA;
 
   const list = base.filter(f => {
-    if (pref    && f.prefecture !== pref) return false;
-    if (city    && f.city !== city) return false;
+    if (!prefAll && !prefs.includes(f.prefecture)) return false;
+    if (!cityAll && !cities.includes(f.city)) return false;
     if (station && !f.searchText.includes(station)) return false;
     // 入居時費用は「一時金＋敷金」。敷金だけかかる施設（211件）を取りこぼさない。
     if (initFee === 'yes' && !f.hasInitialCost) return false;
@@ -960,6 +1019,7 @@ function renderCards(list) {
 
   if (!list.length) {
     area.innerHTML = '<div class="state-box"><div class="state-ico">🔍</div><div class="state-ttl">条件に合う施設が見つかりません</div><div class="state-sub">条件を変えて再検索してください</div></div>';
+    renderFilterChips();   // 0件のときも絞り込み表示を更新する（外した条件が残って見えないように）
     return;
   }
   const shown = list.slice(0, shownCount);
@@ -1226,8 +1286,8 @@ const COND_KEY = 'kaigo_search_conditions';
 
 function saveConditions() {
   const conds = {
-    pref      : document.getElementById('q-pref').value,
-    city      : document.getElementById('q-city').value,
+    prefs     : getChecked('pref'),
+    cities    : getChecked('city'),
     station   : document.getElementById('q-station').value,
     initFee   : document.querySelector('input[name="init-fee"]:checked')?.value || 'all',
     priceMin  : document.getElementById('q-price-min').value,
@@ -1262,8 +1322,7 @@ function loadSavedConditions() {
   if (!raw) return;
   try {
     const c = JSON.parse(raw);
-    if (c.pref)    { document.getElementById('q-pref').value = c.pref; updateCityOptions(); }
-    if (c.city)      document.getElementById('q-city').value = c.city;
+    applySavedLocation(c);
     if (c.station)   document.getElementById('q-station').value = c.station;
     if (c.priceMin)  document.getElementById('q-price-min').value = c.priceMin;
     if (c.priceMax)  document.getElementById('q-price-max').value = c.priceMax;
@@ -1284,6 +1343,15 @@ function loadSavedConditions() {
   } catch(e) { /* 無視 */ }
 }
 
+// 保存・一時保存した場所条件をチェックボックスに反映する（旧 select 形式の文字列にも対応）
+function applySavedLocation(c) {
+  const prefs  = c.prefs  || (c.pref ? [c.pref] : null);
+  const cities = c.cities || (c.city ? [c.city] : null);
+  if (prefs) document.querySelectorAll('input[name="pref"]').forEach(cb => { cb.checked = prefs.includes(cb.value); });
+  renderCityList(false);
+  if (cities) document.querySelectorAll('input[name="city"]').forEach(cb => { cb.checked = cities.includes(cb.value); });
+}
+
 // ── 施設詳細から「検索に戻る」で結果を復元する ────────────────────
 // 施設カードを開くとき、いまの絞り込み・並び順・スクロール位置を一時保存し、
 // 戻ってきたときに同じ検索結果を再表示する（初期画面に戻さない）
@@ -1292,8 +1360,8 @@ const RESULT_KEY = 'kaigo_result_state';
 function goToFacility(id) {
   try {
     sessionStorage.setItem(RESULT_KEY, JSON.stringify({
-      pref     : document.getElementById('q-pref').value,
-      city     : document.getElementById('q-city').value,
+      prefs    : getChecked('pref'),
+      cities   : getChecked('city'),
       station  : document.getElementById('q-station').value,
       initFee  : document.querySelector('input[name="init-fee"]:checked')?.value || 'all',
       priceMin : document.getElementById('q-price-min').value,
@@ -1320,8 +1388,7 @@ function restoreResultsIfReturning() {
   let c; try { c = JSON.parse(raw); } catch(e) { return false; }
 
   // 絞り込みフォームを復元（この時点では DATA が空なので liveFilter は空振り＝安全）
-  if (c.pref) { document.getElementById('q-pref').value = c.pref; updateCityOptions(); }
-  if (c.city)     document.getElementById('q-city').value = c.city;
+  applySavedLocation(c);
   if (c.station)  document.getElementById('q-station').value = c.station;
   if (c.priceMin) document.getElementById('q-price-min').value = c.priceMin;
   if (c.priceMax) document.getElementById('q-price-max').value = c.priceMax;
@@ -1351,16 +1418,19 @@ function renderFilterChips() {
   _chipClears = [];
   const chips = [];
 
-  const pref = document.getElementById('q-pref').value;
-  if (pref) chips.push({ label: pref, clear: () => {
-    document.getElementById('q-pref').value='';
-    updateCityOptions();
-    document.getElementById('q-city').value='';
-    liveFilter();
-  }});
+  const prefs = getChecked('pref');
+  const prefTotal = document.querySelectorAll('input[name="pref"]').length;
+  if (prefTotal && prefs.length < prefTotal) chips.push({
+    label: prefs.length ? `都道府県: ${prefs.join('・')}` : '都道府県: 未選択',
+    clear: () => toggleAllLoc('pref'),
+  });
 
-  const city = document.getElementById('q-city').value;
-  if (city) chips.push({ label: city, clear: () => { document.getElementById('q-city').value=''; liveFilter(); }});
+  const cities = getChecked('city');
+  const cityTotal = document.querySelectorAll('input[name="city"]').length;
+  if (cityTotal && cities.length < cityTotal) chips.push({
+    label: cities.length ? `市区町村: ${cities.join('・')}` : '市区町村: 未選択',
+    clear: () => toggleAllLoc('city'),
+  });
 
   const station = document.getElementById('q-station').value.trim();
   if (station) chips.push({ label: `検索: ${station}`, clear: () => { document.getElementById('q-station').value=''; liveFilter(); }});
@@ -1410,8 +1480,8 @@ function renderFilterChips() {
 }
 
 function clearAllFilters() {
-  document.getElementById('q-pref').value=''; updateCityOptions();
-  document.getElementById('q-city').value='';
+  document.querySelectorAll('input[name="pref"]').forEach(cb => cb.checked = true);
+  renderCityList(false);
   document.getElementById('q-station').value='';
   document.getElementById('q-price-min').value='';
   document.getElementById('q-price-max').value='';

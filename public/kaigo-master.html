@@ -831,9 +831,12 @@ async function loadSearchLogs() {
     const tagCount = {};
     const cityCount = {};
     const typeCount = {};
+    // 市区町村は複数選択（配列）で記録される。旧ログは文字列なので両方に対応する
+    const citiesOf = c => Array.isArray(c.cities) ? c.cities : (c.city ? [c.city] : []);
+    const prefsOf  = c => Array.isArray(c.prefectures) ? c.prefectures : (c.prefecture ? [c.prefecture] : []);
     logs.forEach(l => {
       const c = l.conditions || {};
-      if (c.city) cityCount[c.city] = (cityCount[c.city] || 0) + 1;
+      citiesOf(c).forEach(x => { cityCount[x] = (cityCount[x] || 0) + 1; });
       (c.types || []).forEach(t => { typeCount[t] = (typeCount[t] || 0) + 1; });
       (c.tags  || []).forEach(t => { tagCount[t]  = (tagCount[t]  || 0) + 1; });
     });
@@ -873,8 +876,8 @@ async function loadSearchLogs() {
       const c = l.conditions || {};
       const dateStr = l.searchedAt ? l.searchedAt.toDate().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '─';
       const condParts = [
-        c.prefecture && c.prefecture,
-        c.city && c.city,
+        prefsOf(c).join('・'),
+        citiesOf(c).join('・'),
         c.station && `駅:${c.station}`,
         c.vacancyFilter === 'ok' && '空室のみ',
         c.seikatsuHogo && `生活保護:${c.seikatsuHogo}`,
