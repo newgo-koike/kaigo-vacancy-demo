@@ -67,9 +67,11 @@
     const init = totalInitYen > 0 ? fmtYen(totalInitYen) + '円' : '0円';
     const vac = vacInquiry ? '要問い合わせ' : f.vacancy === 0 ? '満室' : f.vacancy + '室空き';
     const stStr = (f.stationSearch || '').split(' ').slice(0, 5).filter(Boolean).join('  ') || '—';
+    // 施設種別ごとの目安は画面の「その他かかる費用の目安」と同じ共通データを使う（kaigo-cost-data.js）
+    const cat = global.KaigoCost.get(f.type);
     const _mn = f.monthlyTotal;
-    const estMin = _mn ? Math.round((_mn + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
-    const estMax = _mn ? Math.round((_mn + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
+    const estMin = _mn ? Math.round((_mn + cat.careMin + cat.medMin + cat.lifeMin) * 10) / 10 : null;
+    const estMax = _mn ? Math.round((_mn + cat.careMax + cat.medMax + cat.lifeMax) * 10) / 10 : null;
 
     const detailRows = [
       ['特徴・タグ', (f.features && f.features.length) ? f.features.join('・') : ''],
@@ -124,38 +126,47 @@
       `}
     </div>
 
-    <!-- 費用内訳テーブル -->
-    <table style="width:100%;border-collapse:collapse;font-size:10.5pt;margin-bottom:14px;">
+    <!-- 施設費用（施設への直接支払い分） -->
+    ${f.monthlyTotalYen != null ? `
+    <table style="width:100%;border-collapse:collapse;font-size:10.5pt;margin-bottom:12px;">
+      <tbody>
+        <tr>
+          <td style="padding:7px 10px;font-weight:700;border:1px solid #ccc;background:#f5f5f5;width:22%;white-space:nowrap;">施設費用</td>
+          <td style="padding:7px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">家賃・食費・管理費など（施設への直接支払い）</td>
+          <td style="padding:7px 10px;text-align:right;font-weight:800;font-size:12pt;border:1px solid #ccc;white-space:nowrap;width:22%;">${fmtYen(f.monthlyTotalYen)} 円</td>
+        </tr>
+      </tbody>
+    </table>` : ''}
+
+    <!-- その他かかる費用の目安（施設詳細ページと同一の内容・施設種別ごと） -->
+    <div style="font-size:10pt;font-weight:700;margin-bottom:5px;">その他かかる費用の目安</div>
+    <table style="width:100%;border-collapse:collapse;font-size:10.5pt;margin-bottom:6px;">
       <thead>
         <tr style="background:#e8e8e8;">
-          <th style="padding:5px 10px;text-align:left;border:1px solid #999;width:22%;font-size:9pt;">費用の種類</th>
+          <th style="padding:5px 10px;text-align:left;border:1px solid #999;width:22%;font-size:9pt;">項目</th>
           <th style="padding:5px 10px;text-align:left;border:1px solid #999;font-size:9pt;">内容</th>
           <th style="padding:5px 10px;text-align:right;border:1px solid #999;white-space:nowrap;font-size:9pt;width:22%;">月額目安</th>
         </tr>
       </thead>
       <tbody>
-        ${f.monthlyTotalYen != null ? `<tr>
-          <td style="padding:7px 10px;font-weight:700;border:1px solid #ccc;">施設費用</td>
-          <td style="padding:7px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">家賃・食費・管理費など（施設への直接支払い）</td>
-          <td style="padding:7px 10px;text-align:right;font-weight:800;font-size:12pt;border:1px solid #ccc;white-space:nowrap;">${fmtYen(f.monthlyTotalYen)} 円</td>
-        </tr>` : ''}
         <tr style="background:#f5f5f5;">
           <td style="padding:6px 10px;font-weight:700;border:1px solid #ccc;">介護費用</td>
-          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">介護保険の自己負担分（1割負担の場合）<br><span style="font-size:8pt;color:#666;">要介護1〜5・負担割合により変動</span></td>
-          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">1.6〜2.8 万円</td>
+          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">${cat.careDesc}<br><span style="font-size:8pt;color:#666;">${cat.careSub}</span></td>
+          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">${cat.careDisplay}<br><span style="font-size:7.5pt;font-weight:400;color:#666;">${cat.careNote}</span></td>
         </tr>
         <tr>
           <td style="padding:6px 10px;font-weight:700;border:1px solid #ccc;">医療費</td>
-          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">薬代などの医薬品費（1割負担の場合）<br><span style="font-size:8pt;color:#666;">負担割合（1〜3割）により変動</span></td>
-          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">0.3〜1.0 万円</td>
+          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">${cat.medDesc}<br><span style="font-size:8pt;color:#666;">${cat.medSub}</span></td>
+          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">${cat.medDisplay}</td>
         </tr>
         <tr style="background:#f5f5f5;">
           <td style="padding:6px 10px;font-weight:700;border:1px solid #ccc;">その他生活費</td>
-          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">おむつ代・日用品・散髪代・洗濯代など<br><span style="font-size:8pt;color:#666;">生活スタイルにより変動</span></td>
-          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">1.0〜3.0 万円</td>
+          <td style="padding:6px 10px;border:1px solid #ccc;font-size:9.5pt;color:#333;">${cat.lifeDesc}<br><span style="font-size:8pt;color:#666;">${cat.lifeSub}</span></td>
+          <td style="padding:6px 10px;text-align:right;font-weight:700;border:1px solid #ccc;white-space:nowrap;">${cat.lifeDisplay}</td>
         </tr>
       </tbody>
     </table>
+    <div style="font-size:8pt;color:#666;margin-bottom:12px;">※ 介護度・負担割合・生活スタイルにより変動します</div>
 
     ${detailTable}
     <div style="font-size:8pt;color:#666;padding-top:6px;border-top:1px solid #ccc;">※ 月々の目安は介護度・負担割合・生活スタイルにより変動します。空室状況は Meets Medical へお問い合わせください。</div>`;

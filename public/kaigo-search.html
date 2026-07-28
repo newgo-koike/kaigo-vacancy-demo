@@ -571,6 +571,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="kaigo-cost-data.js"></script>
 <script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
@@ -1121,8 +1122,9 @@ function printSelected() {
     ['　└ その他', f => yen(f.otherYen)],
     ['月々合計目安（介護等込）', f => {
       const mn = f.monthlyTotal;
-      const eMin = mn ? Math.round((mn + 1.6 + 0.3 + 1.0) * 10) / 10 : null;
-      const eMax = mn ? Math.round((mn + 2.8 + 1.0 + 3.0) * 10) / 10 : null;
+      const c  = KaigoCost.get(f.type);  // 施設種別ごとの目安（施設詳細・資料出力と同一）
+      const eMin = mn ? Math.round((mn + c.careMin + c.medMin + c.lifeMin) * 10) / 10 : null;
+      const eMax = mn ? Math.round((mn + c.careMax + c.medMax + c.lifeMax) * 10) / 10 : null;
       return eMin ? `<strong style="font-size:12px;">${eMin}〜${eMax} 万円</strong>` : '—';
     }, true],
     ['入居時費用（合計）', f => feeStr(f).init, true],

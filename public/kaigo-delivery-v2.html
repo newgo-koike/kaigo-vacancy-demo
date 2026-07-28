@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>納品書 v2.9.1 | 介護施設検索システム</title>
+  <title>納品書 v2.9.2 | 介護施設検索システム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -252,7 +252,7 @@
 <a id="top"></a>
 <div class="topbar" id="topbar">
   <div class="topbar-inner">
-    <a class="topbar-brand" href="#top">🏥 介護施設検索システム <span class="topbar-ver">v2.9.1</span></a>
+    <a class="topbar-brand" href="#top">🏥 介護施設検索システム <span class="topbar-ver">v2.9.2</span></a>
     <div class="topbar-links">
       <a class="tb-btn tb-primary" href="kaigo-search.html" target="_blank">🔍 施設検索</a>
       <a class="tb-btn" href="kaigo-login.html" target="_blank">🔑 医療機関ログイン</a>
@@ -291,12 +291,12 @@
   <div class="page-hdr-logo">
     <div class="logo-box">🏥</div>
   </div>
-  <div class="v2-badge">✨ v2.9.1</div>
+  <div class="v2-badge">✨ v2.9.2</div>
   <h1>介護施設検索システム</h1>
-  <p>納品書・仕様書・操作マニュアル　v2.9.1</p>
+  <p>納品書・仕様書・操作マニュアル　v2.9.2</p>
   <div class="delivery-meta">
     <div class="delivery-meta-item"><strong>宛先</strong>Meets Medical 御中</div>
-    <div class="delivery-meta-item"><strong>最終更新</strong>2026年7月27日</div>
+    <div class="delivery-meta-item"><strong>最終更新</strong>2026年7月29日</div>
     <div class="delivery-meta-item"><strong>制作</strong>YUMEMATCH</div>
     <div class="delivery-meta-item"><strong>システム名</strong>介護施設検索システム</div>
     <div class="delivery-meta-item"><strong>公開URL</strong>kaigo-link-dev-59bc5.web.app</div>
@@ -1370,6 +1370,21 @@
       <div class="sec-title">更新履歴</div>
     </div>
     <div class="whats-new">
+      <h3>🆕 v2.9.1 → v2.9.2 の主な変更点（2026/7/29）</h3>
+      <div class="new-grid">
+        <div class="new-item">
+          <div class="new-item-title">💊 老健の医療費表記を実態に合わせて修正</div>
+          <div class="new-item-desc">老健は日常的な診察・薬代が介護費用に包括されるため、医療費欄を「日常的な診察・薬代は介護費用に含まれるため原則不要（歯科・緊急時・専門的な治療等は別途医療保険1〜3割負担）」に変更しました。老健のみの変更です。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🖨 資料出力の費用表を画面と完全に一致させた</div>
+          <div class="new-item-desc">印刷・PDFの費用表が施設種別を見ずに旧共通値（介護費用1.6〜2.8万円・おむつ代を含む生活費など）を出していたのを、施設詳細ページの「その他かかる費用の目安」と同じ内容・同じ金額に統一。表の構成も画面と同じ3項目に揃え、施設費用は別枠に分けました。</div>
+        </div>
+        <div class="new-item">
+          <div class="new-item-title">🔗 費用の目安データを1か所に集約</div>
+          <div class="new-item-desc">画面用と印刷用で別々に持っていた費用目安を共通ファイル（kaigo-cost-data.js）に統合。今後どちらか片方だけ古くなることがなくなります。月々の合計目安・比較シートの数値もこのデータから計算されます。</div>
+        </div>
+      </div>
       <h3>🆕 v2.9 → v2.9.1 の主な変更点（2026/7/27）</h3>
       <div class="new-grid">
         <div class="new-item">
@@ -1378,7 +1393,7 @@
         </div>
       </div>
       <details class="fold">
-        <summary>過去バージョンの変更点をすべて見る（v2.9 → v2.5）</summary>
+        <summary>過去バージョンの変更点をすべて見る（v2.9.1 → v2.5）</summary>
         <div class="fold-body">
       <h3>🆕 v2.8 → v2.9 の主な変更点（2026/7/23）</h3>
       <div class="new-grid">
@@ -1520,6 +1535,11 @@
       <h3 style="margin-top:26px">📜 これまでのアップデート履歴</h3>
       <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-top:8px">
         <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
+          <span style="font-weight:800;color:var(--purple);min-width:66px">v2.9.2</span>
+          <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/29</span>
+          <span>老健の医療費表記を「日常的な診察・薬代は介護費用に含まれるため原則不要」に修正／資料出力の費用表を施設詳細ページと同一内容・同一金額に統一／費用目安データを共通ファイルに集約</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #eef2f7;font-size:12.5px;align-items:baseline">
           <span style="font-weight:800;color:var(--purple);min-width:66px">v2.9.1</span>
           <span style="color:#94a3b8;min-width:74px;font-size:11px">2026/7/27</span>
           <span>特養・老健97件（5市）の「費用に関する注意書き」を改訂／食費の日額×30日換算・水道光熱費の扱い・負担限度額認定の段階・介護報酬改定の但し書きを明記</span>
@@ -1574,6 +1594,36 @@
       .cl-txt strong { color:var(--g900); }
     </style>
     <h3 class="hist-h">📅 日付ごとの詳細ログ</h3>
+    <!-- 2026/7/29 -->
+    <div class="cl-day">
+      <div class="cl-day-hd">
+        <div>
+          <div class="cl-date">2026年7月29日</div>
+          <div class="cl-subtitle">老健の医療費表記を修正／資料出力（印刷・PDF）の費用表を施設詳細ページと同一内容に統一</div>
+        </div>
+      </div>
+      <div class="cl-items">
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>老健の「医療費」欄を実態に合わせて修正</strong><br>老健は日常的な診察・薬代が施設サービス費に包括されるため、医療費の説明を
+          <strong>「日常的な診察・薬代は介護費用に含まれるため原則不要（歯科・緊急時・専門的な治療等は別途医療保険1〜3割負担）」</strong>
+          に変更しました。金額欄の「原則 0円」は変更なし。特養・介護付有料・住宅型有料・サ高住・グループホームの表記は従来どおりです。</div>
+        </div>
+        <div class="cl-item fixed">
+          <span class="cl-tag fixed">修正</span>
+          <div class="cl-txt"><strong>資料出力（印刷・PDF）の費用表が施設種別を反映していなかった問題を修正</strong><br>
+          施設詳細ページの「その他かかる費用の目安」は7/23から施設種別ごとの金額を表示していましたが、
+          <strong>印刷・PDFの費用表だけが全施設共通の旧数値のまま</strong>でした（例：特養の資料に「介護費用 1.6〜2.8万円」「その他生活費におむつ代を含む 1.0〜3.0万円」と出力され、画面の「2.2〜2.9万円」「おむつ代は施設負担のため不要 0.5〜1.5万円」と食い違う状態）。
+          印刷側を画面と同じ内容・同じ金額に統一し、表の構成も画面と同じ<strong>介護費用／医療費／その他生活費の3項目</strong>に揃えました（施設費用は目安表の外に独立表示）。ページ上部の「月々の合計費用」と検索結果の比較シートの目安金額も、同じ施設種別ごとの数値で計算されます。</div>
+        </div>
+        <div class="cl-item changed">
+          <span class="cl-tag changed">変更</span>
+          <div class="cl-txt"><strong>費用目安データを共通ファイルに集約（再発防止）</strong><br>画面用と印刷用で同じ内容を別々に持っていたことが食い違いの原因だったため、
+          <code>kaigo-cost-data.js</code> の1か所に統合しました。以後は施設種別ごとの金額・文言をここだけ直せば、施設詳細・資料出力・比較シートのすべてに反映されます。</div>
+        </div>
+      </div>
+    </div>
+
     <!-- 2026/7/27 -->
     <div class="cl-day">
       <div class="cl-day-hd">
@@ -2054,7 +2104,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  介護施設検索システム v2.9.1<br>
+  介護施設検索システム v2.9.2<br>
   制作: YUMEMATCH &nbsp;|&nbsp; Firebase Project: kaigo-link-dev-59bc5<br>
   <span style="margin-top:4px;display:block">本ドキュメントに関するお問い合わせは担当者までご連絡ください</span>
 </div>
