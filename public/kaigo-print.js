@@ -72,6 +72,13 @@
     const _mn = f.monthlyTotal;
     const estMin = _mn ? Math.round((_mn + cat.careMin + cat.medMin + cat.lifeMin) * 10) / 10 : null;
     const estMax = _mn ? Math.round((_mn + cat.careMax + cat.medMax + cat.lifeMax) * 10) / 10 : null;
+    // 小数第1位まで出す（9.9を10に繰り上げると施設詳細・比較表と食い違うため）。
+    // 桁が増えるぶんA4幅を超えないよう、文字数に応じてヒーロー数字を縮める。
+    const heroMin  = estMin != null ? String(estMin) : '';
+    const heroMax  = estMax != null ? String(estMax) : '';
+    const heroLen  = (heroMin + heroMax).length;
+    const heroBig  = heroLen <= 5 ? 82 : heroLen <= 7 ? 68 : 58;
+    const heroSml  = Math.round(heroBig * 0.47);
 
     const detailRows = [
       ['特徴・タグ', (f.features && f.features.length) ? f.features.join('・') : ''],
@@ -113,7 +120,7 @@
     <div style="border:4px solid #000;border-radius:6px;padding:30px 20px 26px;margin-bottom:14px;text-align:center;">
       <div style="font-size:10pt;font-weight:700;letter-spacing:.1em;margin-bottom:18px;">月々の合計費用（目安・すべて含む）</div>
       ${estMin ? `
-        <div style="font-size:86pt;font-weight:900;line-height:1;letter-spacing:-4px;text-align:center;">${Math.round(estMin)}<span style="font-size:40pt;letter-spacing:-1px;">〜${Math.round(estMax)}</span></div>
+        <div style="font-size:${heroBig}pt;font-weight:900;line-height:1;letter-spacing:-3px;text-align:center;white-space:nowrap;">${heroMin}<span style="font-size:${heroSml}pt;letter-spacing:-1px;">〜${heroMax}</span></div>
         <div style="font-size:30pt;font-weight:900;margin-top:4px;text-align:center;">万円</div>
         <div style="font-size:8pt;color:#555;margin-top:14px;">施設費用 ＋ 介護費用 ＋ 医療費 ＋ その他生活費</div>
       ` : f.monthlyTotalYen != null ? `
@@ -186,7 +193,9 @@
     .hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:6mm; border-bottom:1px solid #ccc; padding-bottom:4mm; }
     .hdr h1 { font-size:10pt; font-weight:700; color:#000; }
     .hdr .meta { font-size:8pt; color:#555; text-align:right; }
-    .print-btn { background:#000; color:#fff; border:none; padding:5px 14px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; }
+    /* スクロールしても押せるよう画面右上に固定。印刷時は非表示 */
+    .print-btn { position:fixed; top:14px; right:18px; z-index:99; background:#000; color:#fff; border:none; padding:14px 32px; border-radius:100px; font-size:17px; font-weight:900; cursor:pointer; font-family:inherit; box-shadow:0 4px 14px rgba(0,0,0,.3); }
+    .print-btn:hover { background:#333; }
     @media print { .print-btn { display:none !important; } }
   </style>
 </head>
@@ -197,7 +206,7 @@
         <h1>介護施設 資料 — 1件</h1>
       </div>
       <div class="meta">出力日：${today}<br>Meets Medical 介護施設検索システム</div>
-      <button class="print-btn" onclick="window.print()">印刷・PDF</button>
+      <button class="print-btn" onclick="window.print()">🖨 印刷・PDF</button>
     </div>
     ${body}
   </div>
