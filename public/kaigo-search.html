@@ -435,13 +435,8 @@
       </div>
       <div class="f-grp">
         <label class="f-lbl">フリー検索（施設名・駅名・住所など）</label>
-        <input class="f-inp" id="q-station" type="text" placeholder="例：さくらヴィラ、服部天神、豊中市" oninput="liveFilter()">
-        <div class="f-hint">路線名・駅名どちらでも検索できます</div>
-      </div>
-      <div class="f-grp">
-        <label class="f-lbl">最寄駅から検索</label>
-        <input class="f-inp" id="q-eki" type="text" placeholder="例：豊中駅、服部天神" oninput="liveFilter()">
-        <div class="f-hint">駅から車で約15分圏内の施設を近い順に表示します（「駅」は省略可）</div>
+        <input class="f-inp" id="q-station" type="text" placeholder="例：さくらヴィラ、豊中駅、豊中市" oninput="liveFilter()">
+        <div class="f-hint">駅名を入れると、その駅から車で約15分圏内の施設を近い順に表示します（「駅」は省略可）</div>
       </div>
     </div>
 
@@ -836,7 +831,7 @@ async function saveSearchLog() {
   const prefSel = prefs.length  < document.querySelectorAll('input[name="pref"]').length  ? prefs  : [];
   const citySel = cities.length < document.querySelectorAll('input[name="city"]').length ? cities : [];
   const station = document.getElementById('q-station').value.trim();
-  const eki     = document.getElementById('q-eki').value.trim();
+  const eki     = EKI_Q;   // 駅名モードで動いたときだけ入る（正規化済み駅名）
   const initFee = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
   const priceMin = document.getElementById('q-price-min').value || '';
   const priceMax = document.getElementById('q-price-max').value || '';
@@ -894,6 +889,16 @@ function matchEki(f, q) {
   return withWalk.reduce((a, b) => (a.walk <= b.walk ? a : b));
 }
 let EKI_Q = '';   // 適用中の最寄駅検索（カードの最寄駅表示を検索した駅に切り替えるため）
+
+// 施設データに登録されている駅名の集合。検索窓の入力が駅名かどうかを即時判定する
+// （駅APIの応答を待たずに登録駅なら駅モードに入れる）
+let STATION_SET = new Set();
+function stationSet() {
+  if (!STATION_SET.size && DATA.length) {
+    DATA.forEach(f => f.stationList.forEach(s => STATION_SET.add(s.name)));
+  }
+  return STATION_SET;
+}
 
 // ── 最寄駅検索: 「車で約15分圏」判定 ─────────────────────────
 // 実走行ルートAPI（有料）は使わず、直線距離から道のり・所要分を推定する。
@@ -955,9 +960,14 @@ function liveFilter() {
   const prefAll  = prefs.length  === document.querySelectorAll('input[name="pref"]').length;
   const cityAll  = cities.length === document.querySelectorAll('input[name="city"]').length;
   const station  = document.getElementById('q-station').value.trim();
-  const eki      = normEki(document.getElementById('q-eki').value);
-  if (eki) requestEkiCoords(eki);
-  const ekiPts   = eki ? (EKI_COORD_CACHE[eki]?.pts || []) : [];
+  // 検索窓は1つ。入力が駅名なら「車で約15分圏」検索、駅名でなければフリー検索として扱う。
+  // 駅名判定＝登録駅名との完全一致、または駅API（HeartRails）で該当あり。
+  const ekiCand  = normEki(station);
+  if (ekiCand && ekiCand.length <= 8) requestEkiCoords(ekiCand);   // 駅名は長くても数文字
+  const _cached  = ekiCand ? EKI_COORD_CACHE[ekiCand] : null;
+  const isEki    = !!ekiCand && ((_cached?.pts?.length > 0) || stationSet().has(ekiCand));
+  const eki      = isEki ? ekiCand : '';
+  const ekiPts   = isEki ? (_cached?.pts || []) : [];
   const initFee  = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
   const priceMin = parseFloat(document.getElementById('q-price-min').value || '0');
   const priceMax = parseFloat(document.getElementById('q-price-max').value || '0');
@@ -973,7 +983,7 @@ function liveFilter() {
   const list = base.filter(f => {
     if (!prefAll && !prefs.includes(f.prefecture)) return false;
     if (!cityAll && !cities.includes(f.city)) return false;
-    if (station && !f.searchText.includes(station)) return false;
+    if (!eki && station && !f.searchText.includes(station)) return false;
     if (eki) { const m = matchEkiEx(f, eki, ekiPts); if (!m) return false; f._eki = m; }
     // 入居時費用は「一時金＋敷金」。敷金だけかかる施設（211件）を取りこぼさない。
     if (initFee === 'yes' && !f.hasInitialCost) return false;
@@ -1391,7 +1401,6 @@ function saveConditions() {
     prefs     : getChecked('pref'),
     cities    : getChecked('city'),
     station   : document.getElementById('q-station').value,
-    eki       : document.getElementById('q-eki').value,
     initFee   : document.querySelector('input[name="init-fee"]:checked')?.value || 'all',
     priceMin  : document.getElementById('q-price-min').value,
     priceMax  : document.getElementById('q-price-max').value,
@@ -1427,7 +1436,8 @@ function loadSavedConditions() {
     const c = JSON.parse(raw);
     applySavedLocation(c);
     if (c.station)   document.getElementById('q-station').value = c.station;
-    if (c.eki)       document.getElementById('q-eki').value = c.eki;
+    // 検索窓が2つだった頃（v2.5〜2.6）の保存条件との互換
+    if (c.eki && !c.station) document.getElementById('q-station').value = c.eki;
     if (c.priceMin)  document.getElementById('q-price-min').value = c.priceMin;
     if (c.priceMax)  document.getElementById('q-price-max').value = c.priceMax;
     if (c.seikatsu)  document.getElementById('cond-seikatsu').value = c.seikatsu;
@@ -1467,7 +1477,6 @@ function goToFacility(id) {
       prefs    : getChecked('pref'),
       cities   : getChecked('city'),
       station  : document.getElementById('q-station').value,
-      eki      : document.getElementById('q-eki').value,
       initFee  : document.querySelector('input[name="init-fee"]:checked')?.value || 'all',
       priceMin : document.getElementById('q-price-min').value,
       priceMax : document.getElementById('q-price-max').value,
@@ -1495,7 +1504,7 @@ function restoreResultsIfReturning() {
   // 絞り込みフォームを復元（この時点では DATA が空なので liveFilter は空振り＝安全）
   applySavedLocation(c);
   if (c.station)  document.getElementById('q-station').value = c.station;
-  if (c.eki)      document.getElementById('q-eki').value = c.eki;
+  if (c.eki && !c.station) document.getElementById('q-station').value = c.eki;
   if (c.priceMin) document.getElementById('q-price-min').value = c.priceMin;
   if (c.priceMax) document.getElementById('q-price-max').value = c.priceMax;
   if (c.seikatsu) document.getElementById('cond-seikatsu').value = c.seikatsu;
@@ -1539,10 +1548,8 @@ function renderFilterChips() {
   });
 
   const station = document.getElementById('q-station').value.trim();
-  if (station) chips.push({ label: `検索: ${station}`, clear: () => { document.getElementById('q-station').value=''; liveFilter(); }});
-
-  const ekiChip = document.getElementById('q-eki').value.trim();
-  if (ekiChip) chips.push({ label: `最寄駅: ${ekiChip}`, clear: () => { document.getElementById('q-eki').value=''; liveFilter(); }});
+  if (station) chips.push({ label: EKI_Q ? `最寄駅: ${EKI_Q}駅（車15分圏）` : `検索: ${station}`,
+    clear: () => { document.getElementById('q-station').value=''; liveFilter(); }});
 
   const initFee = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
   if (initFee !== 'all') chips.push({ label: initFee === 'yes' ? '入居時費用あり' : '入居時費用なし', clear: () => {
@@ -1592,7 +1599,6 @@ function clearAllFilters() {
   document.querySelectorAll('input[name="pref"]').forEach(cb => cb.checked = true);
   renderCityList(false);
   document.getElementById('q-station').value='';
-  document.getElementById('q-eki').value='';
   document.getElementById('q-price-min').value='';
   document.getElementById('q-price-max').value='';
   document.getElementById('cond-seikatsu').value='';
