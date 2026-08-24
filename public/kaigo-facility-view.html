@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>施設情報 | 介護施設検索システム</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     /* ══════════════════════════════════════════════════════════
        大分ドクター 風（線画×パステル医療風）── 見た目のみ
@@ -241,6 +242,8 @@
     .foot-note { text-align:center; font-size:12px; color:var(--g400); margin-top:28px; line-height:1.8; }
 
     .state-msg { text-align:center; padding:80px 20px; color:var(--g400); font-size:16px; }
+  .fac-map{height:260px;border-radius:12px;margin-top:12px;border:1.5px solid var(--g200,#ddd);z-index:0;}
+  @media print{.fac-map{display:none}}
   </style>
 </head>
 <body>
@@ -262,6 +265,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="kaigo-cost-data.js"></script>
+<script src="kaigo-geo-data.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
@@ -549,6 +554,8 @@ function render(doc) {
           ${stationHtml}
           ${d.city    ? `<div class="info-row"><span class="info-lbl">エリア</span><span class="info-val">${d.prefecture||''} ${d.city||''}</span></div>` : ''}
         </div>
+        <div id="fac-map" class="fac-map"></div>
+        ${d.address ? `<div style="text-align:right;margin-top:6px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--g500);text-decoration:underline">Google マップで開く（経路検索）</a></div>` : ''}
       </div>
 
       ${estMin ? `
@@ -620,6 +627,8 @@ function render(doc) {
           ${stationHtml}
           ${d.city    ? `<div class="info-row"><span class="info-lbl">エリア</span><span class="info-val">${d.prefecture||''} ${d.city||''}</span></div>` : ''}
         </div>
+        <div id="fac-map" class="fac-map"></div>
+        ${d.address ? `<div style="text-align:right;margin-top:6px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--g500);text-decoration:underline">Google マップで開く（経路検索）</a></div>` : ''}
       </div>
 
       ${estMin ? `
@@ -649,6 +658,23 @@ function render(doc) {
         Powered by Meets Medical
       </div>`;
   }
+  initFacilityMap(d);
+}
+
+// 施設の所在地地図。Leaflet + 国土地理院タイル（無料・APIキー不要・従量課金なし）。
+// 座標は kaigo-geo-data.js（住所→座標）から引く。無ければ地図ごと非表示にする。
+function initFacilityMap(d) {
+  const el = document.getElementById('fac-map');
+  if (!el || typeof L === 'undefined') return;
+  const key = (d.address || '').replace(/[\s　]/g, '');
+  const pt = (window.KAIGO_GEO || {})[key];
+  if (!pt) { el.style.display = 'none'; return; }
+  const map = L.map(el, { scrollWheelZoom: false }).setView(pt, 16);
+  L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+    attribution: '地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
+    maxZoom: 18,
+  }).addTo(map);
+  L.marker(pt).addTo(map).bindPopup(d.name || '');
 }
 </script>
 </body>

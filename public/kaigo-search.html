@@ -441,7 +441,7 @@
       <div class="f-grp">
         <label class="f-lbl">最寄駅から検索</label>
         <input class="f-inp" id="q-eki" type="text" placeholder="例：豊中駅、服部天神" oninput="liveFilter()">
-        <div class="f-hint">「駅」は付けなくても検索できます。徒歩分数が近い順に表示します</div>
+        <div class="f-hint">駅から車で約15分圏内の施設を近い順に表示します（「駅」は省略可）</div>
       </div>
     </div>
 
@@ -577,6 +577,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="kaigo-cost-data.js"></script>
+<script src="kaigo-geo-data.js"></script>
 <script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
@@ -894,6 +895,57 @@ function matchEki(f, q) {
 }
 let EKI_Q = '';   // 適用中の最寄駅検索（カードの最寄駅表示を検索した駅に切り替えるため）
 
+// ── 最寄駅検索: 「車で約15分圏」判定 ─────────────────────────
+// 実走行ルートAPI（有料）は使わず、直線距離から道のり・所要分を推定する。
+const EKI_DRIVE_LIMIT_MIN = 15;   // この分数以内を「駅から近い」とみなす
+const EKI_SPEED_KMH       = 25;   // 市街地の平均車速
+const EKI_ROAD_FACTOR     = 1.3;  // 直線距離→道のり距離の換算係数
+const EKI_LIMIT_KM = EKI_SPEED_KMH * (EKI_DRIVE_LIMIT_MIN / 60) / EKI_ROAD_FACTOR; // 直線約4.8km
+
+function haversineKm(a, b) {
+  const R = 6371, rad = x => x * Math.PI / 180;
+  const dLat = rad(b[0] - a[0]), dLng = rad(b[1] - a[1]);
+  const s = Math.sin(dLat/2)**2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
+// 駅名→座標は HeartRails Express API（無料・キー不要）から取得してキャッシュする。
+// 取得失敗・該当なしのときは従来どおり施設の登録駅との一致だけで絞り込む。
+const EKI_COORD_CACHE = {};   // 正規化駅名 → { pts: [[lat,lng],...] }
+let _ekiFetchTimer = null;
+function requestEkiCoords(name) {
+  if (EKI_COORD_CACHE[name]) return;
+  clearTimeout(_ekiFetchTimer);
+  _ekiFetchTimer = setTimeout(async () => {
+    let pts = [];
+    try {
+      const r = await fetch('https://express.heartrails.com/api/json?method=getStations&name=' + encodeURIComponent(name));
+      const sts = (await r.json()).response?.station || [];
+      // 同名駅が遠方にもあるため対象4府県に限定（例: 山田駅は全国に複数ある）
+      const kinki = ['大阪府', '兵庫県', '京都府', '奈良県'];
+      pts = sts.filter(s => kinki.includes(s.prefecture)).map(s => [s.y, s.x]);
+    } catch (e) { /* オフライン等。登録駅一致のみで動作継続 */ }
+    EKI_COORD_CACHE[name] = { pts };
+    liveFilter();
+  }, 350);
+}
+
+// 施設 f が「駅 q の車15分圏」または「登録駅の一致」に該当するか。
+// km は駅からの直線距離（座標が揃うときのみ）、driveMin は推定所要分。
+function matchEkiEx(f, q, pts) {
+  const reg = matchEki(f, q);
+  let km = null;
+  if (pts.length && f.geo) {
+    km = Math.min(...pts.map(p => haversineKm(p, f.geo)));
+  }
+  if (km != null && km <= EKI_LIMIT_KM) {
+    return { name: (reg && reg.name) || q, walk: reg ? reg.walk : null,
+             km, driveMin: Math.max(1, Math.round(km * EKI_ROAD_FACTOR / EKI_SPEED_KMH * 60)) };
+  }
+  if (reg) return { name: reg.name, walk: reg.walk, km, driveMin: null };
+  return null;
+}
+
 // ── クライアント絞り込み ─────────────────────────────────────
 function liveFilter() {
   if (!DATA.length) return;
@@ -904,6 +956,8 @@ function liveFilter() {
   const cityAll  = cities.length === document.querySelectorAll('input[name="city"]').length;
   const station  = document.getElementById('q-station').value.trim();
   const eki      = normEki(document.getElementById('q-eki').value);
+  if (eki) requestEkiCoords(eki);
+  const ekiPts   = eki ? (EKI_COORD_CACHE[eki]?.pts || []) : [];
   const initFee  = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
   const priceMin = parseFloat(document.getElementById('q-price-min').value || '0');
   const priceMax = parseFloat(document.getElementById('q-price-max').value || '0');
@@ -920,7 +974,7 @@ function liveFilter() {
     if (!prefAll && !prefs.includes(f.prefecture)) return false;
     if (!cityAll && !cities.includes(f.city)) return false;
     if (station && !f.searchText.includes(station)) return false;
-    if (eki) { const m = matchEki(f, eki); if (!m) return false; f._eki = m; }
+    if (eki) { const m = matchEkiEx(f, eki, ekiPts); if (!m) return false; f._eki = m; }
     // 入居時費用は「一時金＋敷金」。敷金だけかかる施設（211件）を取りこぼさない。
     if (initFee === 'yes' && !f.hasInitialCost) return false;
     if (initFee === 'no'  &&  f.hasInitialCost) return false;
@@ -938,9 +992,10 @@ function liveFilter() {
   });
 
   EKI_Q = eki;
-  // 最寄駅検索中は徒歩分数の近い順に並べる。安定ソートなので同分数内は
-  // 並び替えセレクトの順序（費用順など）がそのまま残る。分数未登録は後ろ。
-  if (eki) list.sort((a, b) => ((a._eki?.walk ?? 9999) - (b._eki?.walk ?? 9999)));
+  // 最寄駅検索中は駅からの距離の近い順。座標が無い施設は登録駅の徒歩分数を
+  // 80m/分で距離に換算して混ぜる。安定ソートなので同距離内は既存の並び順を保つ。
+  const ekiKey = f => f._eki?.km ?? (f._eki?.walk != null ? f._eki.walk * 0.08 : 9999);
+  if (eki) list.sort((a, b) => ekiKey(a) - ekiKey(b));
 
   shownCount = PAGE_SIZE;   // 新しい絞り込みは先頭ページから
   renderCards(list);
@@ -990,6 +1045,8 @@ function mapDoc(doc) {
       ...(d.stations||[]).flatMap(s=>[s.line,s.name,s.walk?`徒歩${s.walk}分`:'']),
       ...(d.buses||[]).flatMap(b=>[b.route,b.stop,b.walk?`徒歩${b.walk}分`:'']),
     ].filter(Boolean).join(' '),
+    // 最寄駅検索の距離判定用。kaigo-geo-data.js（住所→座標）から引く。無ければ null
+    geo: (window.KAIGO_GEO || {})[(d.address || '').replace(/[\s　]/g, '')] || null,
     // 最寄駅検索用。駅名は「駅」なし表記で登録されている（例: 豊中・服部天神）
     stationList: (d.stations || [])
       .map(s => ({ name: (s.name || '').trim(), walk: (s.walk === 0 || s.walk) ? Number(s.walk) : null }))
@@ -1100,7 +1157,8 @@ function cardHTML(f) {
   const locationTags = [
     f.city ? `🏙 ${f.city}` : (f.area ? `📍 ${f.area}エリア` : ''),
     (EKI_Q && f._eki)
-      ? `🚉 ${f._eki.name}駅${f._eki.walk != null ? ` 徒歩${f._eki.walk}分` : ''}`
+      ? `🚉 ${f._eki.name}駅${f._eki.walk != null ? ` 徒歩${f._eki.walk}分`
+          : f._eki.driveMin != null ? ` 車で約${f._eki.driveMin}分` : ''}`
       : (f.station ? `🚉 ${f.station}` : ''),
   ].filter(Boolean);
 
