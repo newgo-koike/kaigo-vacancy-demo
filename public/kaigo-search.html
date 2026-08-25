@@ -600,7 +600,8 @@ auth.onAuthStateChanged(async user => {
   const hospName = uData?.hospitalName || '';
   const person   = (uData?.name && uData.name !== hospName) ? uData.name : '';
   currentUser = { uid: user.uid, email: user.email, name: person, hospitalName: hospName, role };
-  const label = person ? person + ' さん' : hospName;
+  // 名前に敬称（様・さん・先生）が既に付いていれば「さん」を重ねない（例:「渕上様 さん」防止）
+  const label = person ? (/(様|さま|さん|先生)$/.test(person) ? person : person + ' さん') : hospName;
   if (label) document.getElementById('hdr-user').textContent = label;
   document.body.style.visibility = 'visible';
   initSidebar();
