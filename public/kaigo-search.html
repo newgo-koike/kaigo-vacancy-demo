@@ -214,6 +214,9 @@
     }
     .result-count { font-size:14px; color:#8c8c8c; font-weight:700; }
     .result-count strong { color:var(--ink); font-weight:900; font-size:22px; margin-right:1px; }
+    .clear-sel-btn { margin-left:12px; padding:5px 12px; border:1.5px solid var(--line,#e7e7e3); background:white;
+      border-radius:8px; font-family:inherit; font-size:12px; font-weight:600; color:var(--g500,#6b6b6b); cursor:pointer; }
+    .clear-sel-btn:hover { border-color:#c9302c; color:#c9302c; }
     .sort-label { font-size:12.5px; color:#a9a9a4; margin-left:auto; white-space:nowrap; font-weight:700; }
     .sort-sel {
       height:38px; padding:0 14px; border:2px solid var(--hair); border-radius:100px;
@@ -543,6 +546,7 @@
     <!-- ソートバー（検索後のみ表示） -->
     <div class="sort-bar" id="sort-bar" style="display:none">
       <span class="result-count" id="count-bar"></span>
+      <button id="clear-sel-btn" class="clear-sel-btn" style="display:none" onclick="clearSelected()">選択をすべて解除（<span id="clear-sel-cnt">0</span>件）</button>
       <span class="sort-label">並べ替え</span>
       <select class="sort-sel" id="sort-sel" onchange="applySort()">
         <option value="updated">更新が新しい順</option>
@@ -1250,6 +1254,27 @@ function updateFloatBtn() {
   } else {
     btn.style.display = 'none';
   }
+  // 結果一覧上部の「選択をすべて解除」ボタンも選択数に連動させる
+  const clr = document.getElementById('clear-sel-btn');
+  if (clr) {
+    clr.style.display = selectedFacilities.size > 0 ? 'inline-block' : 'none';
+    const c = document.getElementById('clear-sel-cnt');
+    if (c) c.textContent = selectedFacilities.size;
+  }
+}
+
+// チェックした施設をまとめて解除する（画面外のページに残った選択も含めて全部消す）
+function clearSelected() {
+  selectedFacilities.forEach(id => {
+    const card = document.getElementById('card-' + id);
+    if (card) {
+      card.classList.remove('selected');
+      const cb = card.querySelector('.fc-select-wrap input[type="checkbox"]');
+      if (cb) cb.checked = false;
+    }
+  });
+  selectedFacilities.clear();
+  updateFloatBtn();
 }
 
 function printSelected() {
