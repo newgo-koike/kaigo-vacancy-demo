@@ -26,11 +26,16 @@ def geocode(q):
     return [round(lat, 6), round(lng, 6)], hits[0]["properties"]["title"]
 
 def main():
-    src_file = sorted(glob.glob("tools/kaigo-import-data-*.js"))[-1]
-    raw = io.open(src_file, encoding="utf-8").read()
-    m = re.search(r"window\.\w+\s*=\s*(\[.*\])\s*;?\s*$", raw, re.S)
-    data = json.loads(m.group(1))
-    print(f"入力: {src_file} / {len(data)}件")
+    # すべての取り込みデータを統合する（260723=大阪5市、260909=兵庫3市…とエリアが分かれているため、
+    # 最新ファイルだけ読むと他エリアの座標が失われる）。同一住所は後のファイルが優先。
+    data, seen = [], set()
+    for src_file in sorted(glob.glob("tools/kaigo-import-data-*.js")):
+        raw = io.open(src_file, encoding="utf-8").read()
+        m = re.search(r"window\.\w+\s*=\s*(\[.*\])\s*;?\s*$", raw, re.S)
+        part = json.loads(m.group(1))
+        print(f"入力: {src_file} / {len(part)}件")
+        data.extend(part)
+    print(f"統合: {len(data)}件")
 
     geo, fails = {}, []
     for i, d in enumerate(data):

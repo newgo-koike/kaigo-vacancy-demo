@@ -603,6 +603,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="kaigo-cost-data.js"></script>
 <script src="kaigo-geo-data.js"></script>
+<script src="kaigo-eki-data.js"></script>
 <script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
@@ -654,20 +655,21 @@ const TYPES = [
 //    摂津市・高槻市・枚方市・大阪市などデータの無い市を含めると、選んでも0件になる選択肢が並んでしまうため除外）
 const CITY_MAP = {
   '大阪府': ['豊中市','吹田市','茨木市','池田市','箕面市'],
-  '兵庫県': ['尼崎市','西宮市','芦屋市','神戸市','宝塚市','川西市'],
+  '兵庫県': ['伊丹市','川西市','宝塚市'],
   '京都府': ['京都市','向日市','長岡京市'],
   '奈良県': ['奈良市','大和郡山市','天理市'],
 };
 
-// ※暫定運用: 検索結果を大阪府のみに限定する。他府県も出すときは OSAKA_ONLY を false にする
-const OSAKA_ONLY = true;
-function isOsaka(f) {
-  if (!OSAKA_ONLY) return true;
-  return f.prefecture === '大阪府' || CITY_MAP['大阪府'].includes(f.city);
+// ※暫定運用: データが整備できた府県だけを表示する（260909〜 大阪府＋兵庫県）。
+// 新しい府県のデータを取り込んだら SHOWN_PREFS に追加し、CITY_MAP にその府県の市を列挙する。
+const SHOWN_PREFS = ['大阪府', '兵庫県'];
+function isShownArea(f) {
+  return SHOWN_PREFS.includes(f.prefecture) ||
+         SHOWN_PREFS.some(p => (CITY_MAP[p] || []).includes(f.city));
 }
 
-// 都道府県の選択肢（大阪府のみ運用中。OSAKA_ONLY を false にすると兵庫・京都・奈良も選べる）
-const PREF_LIST = OSAKA_ONLY ? ['大阪府'] : Object.keys(CITY_MAP);
+// 都道府県の選択肢（SHOWN_PREFS と連動）
+const PREF_LIST = SHOWN_PREFS;
 
 // ※暫定運用: 空室データが未整備のため、空室状況はすべて「要問い合わせ」で表示する。
 // データが揃ったら VACANCY_INQUIRY を false に戻すと通常の満室/空き表示に戻る。
@@ -850,7 +852,7 @@ async function doSearch() {
 
   try {
     const snap = await db.collection('facilities').get();
-    DATA = snap.docs.map(mapDoc).filter(isOsaka);   // ※暫定: 大阪府のみ表示
+    DATA = snap.docs.map(mapDoc).filter(isShownArea);   // ※暫定: データ整備済み府県のみ表示
     refreshCityCandidates();
     selectedFacilities.clear();
     updateFloatBtn();
@@ -956,12 +958,16 @@ function haversineKm(a, b) {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-// 駅名→座標は HeartRails Express API（無料・キー不要）から取得してキャッシュする。
-// 取得失敗・該当なしのときは従来どおり施設の登録駅との一致だけで絞り込む。
+// 駅名→座標は同梱の駅マスター（kaigo-eki-data.js・OpenStreetMap由来・近畿4府県1,150駅）を
+// 最優先で引く。マスターに無い駅名のみ HeartRails API に問い合わせる保険つき
+// （2026-09-09 に HeartRails が502で全面停止し、外部API依存の危うさが出たため）。
+// どちらも該当なしのときは従来どおり施設の登録駅との一致だけで絞り込む。
 const EKI_COORD_CACHE = {};   // 正規化駅名 → { pts: [[lat,lng],...] }
 let _ekiFetchTimer = null;
 function requestEkiCoords(name) {
   if (EKI_COORD_CACHE[name]) return;
+  const local = (window.KAIGO_EKI || {})[name];
+  if (local) { EKI_COORD_CACHE[name] = { pts: local }; return; }   // 同期で即使える
   clearTimeout(_ekiFetchTimer);
   _ekiFetchTimer = setTimeout(async () => {
     let pts = [];
@@ -1079,7 +1085,7 @@ function mapDoc(doc) {
     PREFS.find(p => (d.address || '').startsWith(p)) || '';
   const city = d.city ||
     (['豊中市','吹田市','茨木市','池田市','箕面市','摂津市','高槻市','枚方市','大阪市',
-      '尼崎市','西宮市','芦屋市','神戸市','宝塚市','川西市',
+      '伊丹市','尼崎市','西宮市','芦屋市','神戸市','宝塚市','川西市',
       '京都市','向日市','長岡京市','奈良市','大和郡山市','天理市']
       .find(c => (d.address || '').includes(c)) || '');
 

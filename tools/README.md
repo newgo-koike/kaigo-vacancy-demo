@@ -93,3 +93,26 @@ python3 tools/build_geo_data.py
 - **施設データを再インポートしたら必ず再実行**すること。座標が無い施設は
   距離判定から漏れ（登録駅の一致では出る）、詳細ページの地図が非表示になる。
 - 番地で見つからない住所は丁目までに落として再試行する。実行末尾に失敗一覧が出る。
+
+## kaigo-xlsx-import-260909.html — 兵庫3市（伊丹・川西・宝塚）追加取り込み
+
+180件の**追加専用**ツール（2026-09-09）。完全同期は封印してあり安全マージのみ。
+照合は兵庫3市の既存ドキュメントに限定しているため、大阪5市の476件には触れない。
+データ生成は `python3 tools/build_import_data_260909.py`（入力: Desktopのxlsx 3ファイル）。
+使い方は260723版と同じ（リポジトリ直下で `python3 -m http.server 5055` → 管理者ログイン → ツールを開く）。
+
+## build_eki_data.py — 駅座標マスターの生成（最寄駅検索用）
+
+`public/kaigo-eki-data.js`（近畿4府県1,150駅・OpenStreetMap由来）を生成する。
+最寄駅検索の円域判定はこのマスターを最優先で引き、無い駅名だけHeartRails APIに落ちる。
+
+```bash
+python3 tools/build_eki_data.py            # Overpass APIから取得（連投すると504になるので注意）
+python3 tools/build_eki_data.py raw.json   # 取得済み生JSONから生成
+```
+
+エリアを近畿の外へ広げるときはスクリプト内の QUERY の県コードを増やして再生成する。
+表記ゆれは ALIASES（JR茨木・鶯の森など）で吸収する。
+
+※ `build_geo_data.py` は2026-09-09から**全 `kaigo-import-data-*.js` を統合**して座標化する
+（最新ファイルだけだと他エリアの座標が消えるため）。エリア追加後は必ず再実行すること。
