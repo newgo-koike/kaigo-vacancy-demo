@@ -116,3 +116,19 @@ python3 tools/build_eki_data.py raw.json   # 取得済み生JSONから生成
 
 ※ `build_geo_data.py` は2026-09-09から**全 `kaigo-import-data-*.js` を統合**して座標化する
 （最新ファイルだけだと他エリアの座標が消えるため）。エリア追加後は必ず再実行すること。
+
+## kaigo_add_area.py — エリア追加の汎用取り込み（2026-09-11〜、推奨）
+
+エリア追加はブラウザツールを複製せず、これ1本で行う。追加専用（更新・削除のコードパスなし）。
+
+```bash
+# リポジトリ直下で。事前に gcloud auth application-default login → set-quota-project kaigo-link-dev-59bc5
+venv/bin/python tools/kaigo_add_area.py backup tools/kaigo-import-data-XXXXXX.js
+venv/bin/python tools/kaigo_add_area.py dryrun tools/kaigo-import-data-XXXXXX.js
+venv/bin/python tools/kaigo_add_area.py apply  tools/kaigo-import-data-XXXXXX.js   # 本番書き込み（要・人の実行）
+venv/bin/python tools/kaigo_add_area.py verify tools/kaigo-import-data-XXXXXX.js
+```
+
+エリア追加の全手順: ①Excel→`build_import_data_XXXXXX.py`（既存版を複製して市とファイルパスを差し替え）
+②名前衝突チェック ③`kaigo-search.html` の SHOWN_PREFS / CITY_MAP ④`build_geo_data.py` 再実行
+⑤（近畿外なら）`build_eki_data.py` の QUERY 拡張 ⑥スタブ検証 ⑦kaigo_add_area.py の4段 ⑧デプロイ
