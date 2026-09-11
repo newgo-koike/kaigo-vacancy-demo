@@ -13,3 +13,4 @@ hospital-users-backup-*.json
 病院ログインID一覧-*.csv
 hospital-login-ids-*.csv
 facilities-backup-*.json
+tools/venv/

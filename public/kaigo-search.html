@@ -462,7 +462,7 @@
       <div class="f-grp">
         <label class="f-lbl">フリー検索（施設名・駅名・住所など）</label>
         <input class="f-inp" id="q-station" type="text" placeholder="例：さくらヴィラ、豊中駅、豊中市" oninput="liveFilter()">
-        <div class="f-hint">駅名を入れると、その駅から車で約15分圏内の施設を近い順に表示します（「駅」は省略可）</div>
+        <div class="f-hint">駅名を入れると、その駅の周辺（約15分圏）の施設を近い順に表示します（「駅」は省略可）</div>
       </div>
     </div>
 
@@ -654,8 +654,8 @@ const TYPES = [
 // ※ 大阪府は実際に施設データがある5市のみ（都道府県で「大阪府」を選ぶと市区町村の選択肢がここから再構築される。
 //    摂津市・高槻市・枚方市・大阪市などデータの無い市を含めると、選んでも0件になる選択肢が並んでしまうため除外）
 const CITY_MAP = {
-  '大阪府': ['豊中市','吹田市','茨木市','池田市','箕面市'],
-  '兵庫県': ['伊丹市','川西市','宝塚市'],
+  '大阪府': ['豊中市','吹田市','茨木市','池田市','箕面市','摂津市','高槻市','大阪市淀川区','大阪市東淀川区','大阪市西淀川区'],
+  '兵庫県': ['尼崎市','伊丹市','川西市','宝塚市'],
   '京都府': ['京都市','向日市','長岡京市'],
   '奈良県': ['奈良市','大和郡山市','天理市'],
 };
@@ -1084,7 +1084,8 @@ function mapDoc(doc) {
   const prefecture = d.prefecture ||
     PREFS.find(p => (d.address || '').startsWith(p)) || '';
   const city = d.city ||
-    (['豊中市','吹田市','茨木市','池田市','箕面市','摂津市','高槻市','枚方市','大阪市',
+    (['豊中市','吹田市','茨木市','池田市','箕面市','摂津市','高槻市','枚方市',
+      '大阪市淀川区','大阪市東淀川区','大阪市西淀川区','大阪市',
       '伊丹市','尼崎市','西宮市','芦屋市','神戸市','宝塚市','川西市',
       '京都市','向日市','長岡京市','奈良市','大和郡山市','天理市']
       .find(c => (d.address || '').includes(c)) || '');
@@ -1214,10 +1215,7 @@ function cardHTML(f) {
 
   const locationTags = [
     f.city ? `🏙 ${f.city}` : (f.area ? `📍 ${f.area}エリア` : ''),
-    (EKI_Q && f._eki)
-      ? `🚉 ${f._eki.name}駅${f._eki.walk != null ? ` 徒歩${f._eki.walk}分`
-          : f._eki.driveMin != null ? ` 車で約${f._eki.driveMin}分` : ''}`
-      : (f.station ? `🚉 ${f.station}` : ''),
+    f.station ? `🚉 ${f.station}` : '',
   ].filter(Boolean);
 
   const totalInitialWan = (f.initialFeeAmount || 0) + (f.depositAmount || 0);

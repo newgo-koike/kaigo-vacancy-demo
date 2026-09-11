@@ -1,7 +1,8 @@
 """施設住所を国土地理院APIでジオコーディングして public/kaigo-geo-data.js を生成する。
 
 使い方:
-  python3 tools/build_geo_data.py
+  python3 tools/build_geo_data.py            # 新規住所だけGSIに問い合わせ（既存座標は再利用）
+  python3 tools/build_geo_data.py --refresh  # 全住所を取り直す
 
 入力: tools/kaigo-import-data-*.js の最新ファイル（window.NEW_FACILITIES_*）
 出力: public/kaigo-geo-data.js — window.KAIGO_GEO = { "住所(空白除去)": [lat, lng], ... }
@@ -37,10 +38,25 @@ def main():
         data.extend(part)
     print(f"統合: {len(data)}件")
 
+    # 既に座標化済みの住所は前回の出力から再利用する（毎回全件をGSIに問い合わせると
+    # 1,000住所超で6分以上かかり、途中の一時障害で失敗しやすい）。--refresh で全件やり直し。
+    cache = {}
+    if "--refresh" not in sys.argv:
+        try:
+            prev = io.open("public/kaigo-geo-data.js", encoding="utf-8").read()
+            m = re.search(r"window\.KAIGO_GEO\s*=\s*(\{.*\})\s*;", prev, re.S)
+            cache = json.loads(m.group(1)) if m else {}
+        except Exception:
+            cache = {}
+    reused = 0
     geo, fails = {}, []
     for i, d in enumerate(data):
         addr = norm(d.get("address"))
         if not addr or addr in geo:
+            continue
+        if addr in cache:
+            geo[addr] = cache[addr]
+            reused += 1
             continue
         pref = d.get("prefecture") or ""
         q = addr if addr.startswith(pref) else pref + addr
@@ -67,7 +83,7 @@ def main():
     out += "// 施設住所（空白除去）→ [緯度, 経度]。再インポート後は必ず再生成すること。\n"
     out += "window.KAIGO_GEO = " + json.dumps(geo, ensure_ascii=False, separators=(",", ":")) + ";\n"
     io.open("public/kaigo-geo-data.js", "w", encoding="utf-8").write(out)
-    print(f"出力: public/kaigo-geo-data.js（{len(geo)}住所）")
+    print(f"出力: public/kaigo-geo-data.js（{len(geo)}住所 / 再利用 {reused} / 新規取得 {len(geo) - reused}）")
     if fails:
         print(f"ジオコーディング失敗 {len(fails)}件:")
         for f in fails:
