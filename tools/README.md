@@ -132,3 +132,24 @@ venv/bin/python tools/kaigo_add_area.py verify tools/kaigo-import-data-XXXXXX.js
 エリア追加の全手順: ①Excel→`build_import_data_XXXXXX.py`（既存版を複製して市とファイルパスを差し替え）
 ②名前衝突チェック ③`kaigo-search.html` の SHOWN_PREFS / CITY_MAP ④`build_geo_data.py` 再実行
 ⑤（近畿外なら）`build_eki_data.py` の QUERY 拡張 ⑥スタブ検証 ⑦kaigo_add_area.py の4段 ⑧デプロイ
+
+## 260911b — 大阪5エリア（西淀川区・摂津市・高槻市・東淀川区・淀川区）322件（2026-09-11）
+
+変換: `python3 tools/build_import_data_260911b.py` → `kaigo-import-data-260911b.js`（`window.NEW_FACILITIES_260911b`）。
+取り込み: `kaigo_add_area.py` の4段（backup→dryrun→apply→verify）。
+
+**大阪市の区の扱い**: `city` は「大阪市西淀川区」のように市＋区のフル表記で入れる（区ごとに絞り込めるようにするため）。
+`kaigo-search.html` の CITY_MAP と mapDoc の市判定リストにも同じ表記で列挙する。mapDoc の判定リストでは
+区名を「大阪市」より**前**に置くこと（先に「大阪市」が一致すると区が潰れる）。
+
+**同一施設の判定は「名前＋住所」**（2026-09-11 に kaigo_add_area.py を厳密化）。グループホーム等は同名の別施設が
+普通にある（例: グループホームひより＝豊中と高槻）。名前だけで止めると正当な追加を弾くため、
+名前＋住所が一致したときだけ二重取り込みとして中止し、同名別住所は INFO 表示のうえ追加する。
+
+**元Excelの整合警告**: 変換時に「月額合計 != 家賃+食費+管理費」が2件（グループホームみのり 350円差、
+大冠カームグループホーム 500円差）。システムは内訳を保存し合計は計算表示するので取り込みには影響しない。
+元データの修正は提供元（兵頭さん）に確認。
+
+**build_geo_data.py の再利用キャッシュ（2026-09-11）**: 既存の `kaigo-geo-data.js` にある住所は再利用し、
+新規住所だけGSIに問い合わせる（全件やり直しは `--refresh`）。1,000住所超で毎回6分以上かかり
+一時障害で失敗しやすかったため。

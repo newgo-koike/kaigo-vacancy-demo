@@ -59,10 +59,18 @@ def checks(src, cities, live):
         for k in ("name", "address", "type", "city", "prefecture", "rent", "mealFee", "managementFee", "feeNotes"):
             if k not in f:
                 errs.append(f"必須フィールド欠落 {k}: {f.get('name')}")
+    # 施設の同一性は「名前＋住所」で判定する。グループホーム等は同名の別施設が普通にある
+    # （例: グループホームひより＝豊中と高槻に別々に存在）ので、名前だけで止めると正当な追加を弾く
+    norm = lambda s: (s or "").replace(" ", "").replace("　", "")
+    live_keys = {(d["data"].get("name"), norm(d["data"].get("address"))) for d in live}
     live_names = {d["data"].get("name") for d in live}
-    hit = [f["name"] for f in src if f["name"] in live_names]
-    if hit:
-        errs.append(f"既存施設と同名（追加でなく重複になる）: {hit}")
+    dup = [f["name"] for f in src if (f["name"], norm(f.get("address"))) in live_keys]
+    if dup:
+        errs.append(f"既存施設と名前・住所が一致（二重取り込み）: {dup}")
+    homonym = [f"{f['name']}({f['city']})" for f in src
+               if f["name"] in live_names and (f["name"], norm(f.get("address"))) not in live_keys]
+    if homonym:
+        print(f"INFO: 同名だが住所が異なる施設（別施設として追加）: {homonym}")
     exists = [d for d in live if d["data"].get("city") in cities]
     if exists:
         errs.append(f"対象市のドキュメントが既に存在（二重取り込みの疑い）: {len(exists)}件")
