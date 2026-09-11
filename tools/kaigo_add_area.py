@@ -18,6 +18,10 @@ import os
 import re
 import sys
 
+# macOS で gRPC 標準の DNS 解決（c-ares）が Firestore への接続で無応答になることがある
+# （2026-09-11 に backup 段でハング）。native 解決にすると即応答する。grpc 読み込み前に設定が必要。
+os.environ.setdefault("GRPC_DNS_RESOLVER", "native")
+
 import firebase_admin
 from firebase_admin import firestore
 
