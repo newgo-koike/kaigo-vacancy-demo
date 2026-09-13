@@ -433,7 +433,8 @@ firebase.initializeApp(FIRE);
 const db = firebase.firestore();
 const auth = firebase.auth();
 const HOSP_DOMAIN = 'meets-medical.jp';
-const BASE = 'https://kaigo-meetsmedical.surge.sh';
+// 施設に配るQR・URLの基点。管理者がどのホストで開いていても正式ドメインで発行する
+const BASE = 'https://kaigo.meetsmedical.com';
 
 let DATA = [];
 

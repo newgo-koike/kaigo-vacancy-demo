@@ -17,4 +17,4 @@ firebase deploy --only hosting
 
 echo ""
 echo "✅ 完了！"
-echo "公開URL: https://kaigo-link-dev-59bc5.web.app"
+echo "公開URL: https://kaigo.meetsmedical.com（旧 https://kaigo-link-dev-59bc5.web.app も有効）"
