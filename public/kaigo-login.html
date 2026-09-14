@@ -66,6 +66,10 @@
       アカウントをお持ちでない方は<br>
       <a href="kaigo-apply.html" class="text-brand font-medium hover:underline">アカウントを申請する →</a>
     </p>
+    <p class="text-xs text-slate-400 text-center mt-3 leading-relaxed">
+      初期パスワードはログインIDと同じ文字列です。<br>
+      パスワードを忘れた場合は Meets Medical までご連絡ください（管理者が初期化します）。
+    </p>
   </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -138,7 +142,7 @@ function showErr(msg) {
 
 function loginErrMsg(code) {
   if (['auth/user-not-found','auth/wrong-password','auth/invalid-credential'].includes(code))
-    return 'IDまたはパスワードが正しくありません';
+    return 'IDまたはパスワードが正しくありません。初期パスワードはIDと同じ文字列です';
   if (code === 'auth/too-many-requests')
     return '試行回数が多すぎます。しばらく時間をおいてから再試行してください';
   return 'ログインに失敗しました。もう一度お試しください';

@@ -153,3 +153,17 @@ venv/bin/python tools/kaigo_add_area.py verify tools/kaigo-import-data-XXXXXX.js
 **build_geo_data.py の再利用キャッシュ（2026-09-11）**: 既存の `kaigo-geo-data.js` にある住所は再利用し、
 新規住所だけGSIに問い合わせる（全件やり直しは `--refresh`）。1,000住所超で毎回6分以上かかり
 一時障害で失敗しやすかったため。
+
+## kaigo_reset_password.py — 病院のパスワード初期化（忘れた時の対応）
+
+病院IDのメールはダミーなので再設定メールは使えない。管理者がこのスクリプトで上書きする。
+
+```bash
+# リポジトリ直下で。事前に gcloud auth application-default login → set-quota-project kaigo-link-dev-59bc5
+tools/venv/bin/python tools/kaigo_reset_password.py find こだま        # 病院名・担当者名・IDの一部で検索
+tools/venv/bin/python tools/kaigo_reset_password.py reset 6569-01       # 初期パスワード（=ID）に戻す
+tools/venv/bin/python tools/kaigo_reset_password.py reset 6569-01 新PW  # 任意のパスワードにする
+```
+
+運用: 病院→兵頭さん→小池さんの順で連絡が来たら reset を実行し、出力された案内文をそのまま返す。
+病院は再ログイン後「担当者管理」の「自分のパスワードを変更」で好きなものに変えられる。
