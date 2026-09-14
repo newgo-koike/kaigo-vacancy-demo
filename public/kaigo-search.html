@@ -614,6 +614,9 @@ firebase.initializeApp({
   appId:"1:646624290677:web:0cee80cbdd07dc8753553c"
 });
 const db = firebase.firestore();
+// A: 施設データを端末内（IndexedDB）に保存し、次回以降はキャッシュ即表示＋差分同期にする。
+// 非対応ブラウザや複数タブ競合で失敗しても従来どおり（毎回サーバー取得）で動く。
+db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 const auth = firebase.auth();
 let currentUser = null;
 
@@ -676,6 +679,8 @@ const VACANCY_INQUIRY = true;
 
 // ── 状態 ──────────────────────────────────────────────────
 let DATA = [];
+let DATA_AT = 0;                        // 最後にサーバーと同期した時刻
+const DATA_TTL_MS = 5 * 60 * 1000;      // B: この時間内の再検索は取り直さない（絞り込みは全て端末側）
 let SORTED = [];
 let activeVac = 'all';
 const selectedTags = new Set();
@@ -799,6 +804,23 @@ function toggleMobileFilters(forceClose) {
   if (t) t.textContent = on ? '検索条件を閉じる' : '検索条件を変更する';
 }
 
+// ── 施設データの取得（A: キャッシュ優先＋差分同期） ─────────────
+// onSnapshot はまず端末キャッシュ（fromCache=true）を返し、続いてサーバーと同期した確定結果を返す。
+// 差分同期なので、前回から変わった施設の分しか読み取りが発生しない（Firestore の仕様上、
+// 30分以上間が空くと全件分の読み取り扱いになる）。1回分の確定結果を受け取ったら購読を止める。
+function loadFacilities(onCached) {
+  return new Promise((resolve, reject) => {
+    let settled = false, unsub = null;
+    const finish = v => { if (settled) return; settled = true; if (unsub) { try { unsub(); } catch (_) {} } resolve(v); };
+    unsub = db.collection('facilities').onSnapshot({ includeMetadataChanges: true }, snap => {
+      if (snap.metadata.fromCache) { if (!snap.empty && onCached) onCached(snap); return; }
+      finish(snap);
+    }, err => { if (!settled) { settled = true; reject(err); } });
+    // サーバー応答が無い（オフライン等）場合はキャッシュ表示のまま確定させる
+    setTimeout(() => finish(null), 15000);
+  });
+}
+
 async function doSearch() {
   toggleMobileFilters(true);
   const btn = document.getElementById('search-btn');
@@ -850,12 +872,24 @@ async function doSearch() {
     `<div class="cards-grid">${Array(5).fill(skeletonCardHTML()).join('')}</div>`;
 
   try {
-    const snap = await db.collection('facilities').get();
-    DATA = snap.docs.map(mapDoc).filter(isShownArea);   // ※暫定: データ整備済み府県のみ表示
-    refreshCityCandidates();
-    selectedFacilities.clear();
-    updateFloatBtn();
-    applySort();
+    if (DATA.length && Date.now() - DATA_AT < DATA_TTL_MS) {
+      // B: 取得済みデータを再利用（サーバー読み取りなし）
+      applySort();
+    } else {
+      const applySnap = snap => {
+        DATA = snap.docs.map(mapDoc).filter(isShownArea);   // ※暫定: データ整備済み府県のみ表示
+        DATA_AT = Date.now();
+        STATION_SET.clear();                                // 登録駅の集合はデータ更新時に作り直す
+        refreshCityCandidates();
+        selectedFacilities.clear();
+        updateFloatBtn();
+        applySort();
+      };
+      // A: 端末キャッシュがあれば即表示 → サーバーとの差分同期後に確定表示
+      const serverSnap = await loadFacilities(applySnap);
+      if (serverSnap) applySnap(serverSnap);
+      else if (!DATA.length) throw new Error('サーバーに接続できませんでした。通信環境を確認して再度お試しください');
+    }
     saveSearchLog().catch(() => {});
   } catch(e) {
     document.getElementById('cards-area').innerHTML =
