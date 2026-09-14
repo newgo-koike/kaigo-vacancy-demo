@@ -1615,7 +1615,7 @@ function renderFilterChips() {
   });
 
   const station = document.getElementById('q-station').value.trim();
-  if (station) chips.push({ label: EKI_Q ? `最寄駅: ${EKI_Q}駅（車15分圏）` : `検索: ${station}`,
+  if (station) chips.push({ label: EKI_Q ? `最寄駅: ${EKI_Q}駅` : `検索: ${station}`,
     clear: () => { document.getElementById('q-station').value=''; liveFilter(); }});
 
   const initFee = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
