@@ -462,7 +462,7 @@
       <div class="f-grp">
         <label class="f-lbl">フリー検索（施設名・駅名・住所など）</label>
         <input class="f-inp" id="q-station" type="text" placeholder="例：さくらヴィラ、豊中駅、豊中市" oninput="liveFilter()">
-        <div class="f-hint">駅名を入れると、その駅の周辺（約15分圏）の施設を近い順に表示します（「駅」は省略可）</div>
+        <div class="f-hint">駅名を入れると、その駅を最寄駅として登録している施設を徒歩分数の近い順に表示します（「駅」は省略可）</div>
       </div>
     </div>
 
@@ -603,7 +603,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="kaigo-cost-data.js"></script>
 <script src="kaigo-geo-data.js"></script>
-<script src="kaigo-eki-data.js"></script>
 <script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
@@ -924,9 +923,11 @@ function normEki(s) {
 }
 // 施設 f が駅名 q に該当するか。完全一致する駅を優先し、無ければ部分一致
 // （例:「茨木」→ JR茨木・南茨木・茨木市）。該当駅のうち徒歩分数が最小のものを返す
-function matchEki(f, q) {
-  let hits = f.stationList.filter(s => s.name === q);
-  if (!hits.length) hits = f.stationList.filter(s => s.name.includes(q));
+function matchEki(f, q, partial) {
+  // partial=false: 登録駅名と完全一致した施設だけ（例:「伊丹」に「新伊丹」は含めない）
+  // partial=true : 完全一致が全体で0件のときだけ使う部分一致（例:「茨木」→ JR茨木・茨木市）
+  const hits = partial ? f.stationList.filter(s => s.name.includes(q))
+                       : f.stationList.filter(s => s.name === q);
   if (!hits.length) return null;
   const withWalk = hits.filter(s => s.walk != null);
   if (!withWalk.length) return { name: hits[0].name, walk: null };
@@ -985,17 +986,11 @@ function requestEkiCoords(name) {
 
 // 施設 f が「駅 q の車15分圏」または「登録駅の一致」に該当するか。
 // km は駅からの直線距離（座標が揃うときのみ）、driveMin は推定所要分。
-function matchEkiEx(f, q, pts) {
-  const reg = matchEki(f, q);
-  let km = null;
-  if (pts.length && f.geo) {
-    km = Math.min(...pts.map(p => haversineKm(p, f.geo)));
-  }
-  if (km != null && km <= EKI_LIMIT_KM) {
-    return { name: (reg && reg.name) || q, walk: reg ? reg.walk : null,
-             km, driveMin: Math.max(1, Math.round(km * EKI_ROAD_FACTOR / EKI_SPEED_KMH * 60)) };
-  }
-  if (reg) return { name: reg.name, walk: reg.walk, km, driveMin: null };
+// v2.12: 距離圏（車15分圏）判定は廃止。エクセルで最寄駅として登録された駅との一致だけで絞り込む
+// （兵頭さん要望「登録している駅のものだけ表示したい」）。座標・駅マスター関連の関数は未使用で残置。
+function matchEkiEx(f, q, partial) {
+  const reg = matchEki(f, q, partial);
+  if (reg) return { name: reg.name, walk: reg.walk, km: null, driveMin: null };
   return null;
 }
 
@@ -1011,11 +1006,11 @@ function liveFilter() {
   // 検索窓は1つ。入力が駅名なら「車で約15分圏」検索、駅名でなければフリー検索として扱う。
   // 駅名判定＝登録駅名との完全一致、または駅API（HeartRails）で該当あり。
   const ekiCand  = normEki(station);
-  if (ekiCand && ekiCand.length <= 8) requestEkiCoords(ekiCand);   // 駅名は長くても数文字
-  const _cached  = ekiCand ? EKI_COORD_CACHE[ekiCand] : null;
-  const isEki    = !!ekiCand && ((_cached?.pts?.length > 0) || stationSet().has(ekiCand));
+  // 駅モード＝入力が登録駅名と完全一致。完全一致が無い場合のみ部分一致（0件を避ける）。どちらも無ければフリー検索
+  const ekiExact   = !!ekiCand && stationSet().has(ekiCand);
+  const ekiPartial = !!ekiCand && !ekiExact && [...stationSet()].some(n => n.includes(ekiCand));
+  const isEki    = ekiExact || ekiPartial;
   const eki      = isEki ? ekiCand : '';
-  const ekiPts   = isEki ? (_cached?.pts || []) : [];
   const initFee  = document.querySelector('input[name="init-fee"]:checked')?.value || 'all';
   const priceMin = parseFloat(document.getElementById('q-price-min').value || '0');
   const priceMax = parseFloat(document.getElementById('q-price-max').value || '0');
@@ -1032,7 +1027,7 @@ function liveFilter() {
     if (!prefAll && !prefs.includes(f.prefecture)) return false;
     if (!cityAll && !cities.includes(f.city)) return false;
     if (!eki && station && !f.searchText.includes(station)) return false;
-    if (eki) { const m = matchEkiEx(f, eki, ekiPts); if (!m) return false; f._eki = m; }
+    if (eki) { const m = matchEkiEx(f, eki, ekiPartial); if (!m) return false; f._eki = m; }
     // 入居時費用は「一時金＋敷金」。敷金だけかかる施設（211件）を取りこぼさない。
     if (initFee === 'yes' && !f.hasInitialCost) return false;
     if (initFee === 'no'  &&  f.hasInitialCost) return false;
