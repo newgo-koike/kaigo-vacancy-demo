@@ -180,3 +180,11 @@ firebase deploy --only hosting                          # 配信
 ```
 
 ファイルが取れない環境では従来どおり Firestore から読む（自動フォールバック）。
+
+## run_refresh_list.sh — 一覧ファイルの再生成＋配信を1コマンドで
+
+```bash
+tools/run_refresh_list.sh     # 生成（要ADC）→ firebase deploy（要 firebase login）
+```
+管理画面で施設を直したあと・施設側が情報を更新したあとに実行する。認証が切れていれば
+`gcloud auth application-default login` → `set-quota-project kaigo-link-dev-59bc5`、`firebase login --reauth`。
