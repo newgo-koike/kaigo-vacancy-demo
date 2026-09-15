@@ -804,7 +804,24 @@ function toggleMobileFilters(forceClose) {
   if (t) t.textContent = on ? '検索条件を閉じる' : '検索条件を変更する';
 }
 
-// ── 施設データの取得（A: キャッシュ優先＋差分同期） ─────────────
+// ── 施設データの取得（静的ファイル優先） ─────────────────────
+// public/kaigo-facilities.json は tools/build_facilities_json.py が本番 Firestore から生成し、
+// デプロイで配信される。検索でのデータベース読み取りをゼロにするための仕組み（無料枠対策）。
+// 取得できない場合は null を返し、呼び出し側が Firestore（下の loadFacilities）に切り替える。
+const FACILITIES_JSON = 'kaigo-facilities.json';
+async function loadFacilitiesStatic() {
+  try {
+    const r = await fetch(FACILITIES_JSON, { cache: 'no-cache' });   // ETag で更新確認（未更新なら転送なし）
+    if (!r.ok) return null;
+    const j = await r.json();
+    if (!Array.isArray(j.facilities) || !j.facilities.length) return null;
+    return j.facilities.map(rec => ({ id: rec.id, data: () => rec }));
+  } catch (e) {
+    return null;
+  }
+}
+
+// ── 施設データの取得（A: キャッシュ優先＋差分同期。静的ファイルが取れない時の予備） ──
 // onSnapshot はまず端末キャッシュ（fromCache=true）を返し、続いてサーバーと同期した確定結果を返す。
 // 差分同期なので、前回から変わった施設の分しか読み取りが発生しない（Firestore の仕様上、
 // 30分以上間が空くと全件分の読み取り扱いになる）。1回分の確定結果を受け取ったら購読を止める。
@@ -885,10 +902,16 @@ async function doSearch() {
         updateFloatBtn();
         applySort();
       };
-      // A: 端末キャッシュがあれば即表示 → サーバーとの差分同期後に確定表示
-      const serverSnap = await loadFacilities(applySnap);
-      if (serverSnap) applySnap(serverSnap);
-      else if (!DATA.length) throw new Error('サーバーに接続できませんでした。通信環境を確認して再度お試しください');
+      // 静的ファイルを最優先（Firestore の読み取りが発生しない）
+      const staticDocs = await loadFacilitiesStatic();
+      if (staticDocs) {
+        applySnap({ docs: staticDocs });
+      } else {
+        // 予備: A（端末キャッシュ即表示 → サーバーとの差分同期後に確定表示）
+        const serverSnap = await loadFacilities(applySnap);
+        if (serverSnap) applySnap(serverSnap);
+        else if (!DATA.length) throw new Error('サーバーに接続できませんでした。通信環境を確認して再度お試しください');
+      }
     }
     saveSearchLog().catch(() => {});
   } catch(e) {
@@ -1091,7 +1114,7 @@ function liveFilter() {
 // ── データ変換 ────────────────────────────────────────────────
 function mapDoc(doc) {
   const d = doc.data();
-  const upd = d.updatedAt ? d.updatedAt.toDate() : new Date();
+  const upd = d.updatedAt ? (d.updatedAt.toDate ? d.updatedAt.toDate() : new Date(d.updatedAt)) : new Date();
   const daysAgo = Math.floor((new Date() - upd) / 86400000);
 
   const rentYen  = d.rent          ?? null;

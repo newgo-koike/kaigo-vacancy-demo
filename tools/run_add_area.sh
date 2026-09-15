@@ -21,4 +21,7 @@ for step in backup dryrun apply verify; do
   "$V" tools/kaigo_add_area.py "$step" "$1"
 done
 echo ""
-echo "=== 完了: $1 ==="
+echo "=== 検索用の一覧ファイルを再生成（静的配信用） ==="
+"$V" tools/build_facilities_json.py
+echo ""
+echo "=== 完了: $1 ===（このあと firebase deploy --only hosting で一覧ファイルを配信）"

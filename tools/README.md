@@ -167,3 +167,16 @@ tools/venv/bin/python tools/kaigo_reset_password.py reset 6569-01 新PW  # 任�
 
 運用: 病院→兵頭さん→小池さんの順で連絡が来たら reset を実行し、出力された案内文をそのまま返す。
 病院は再ログイン後「担当者管理」の「自分のパスワードを変更」で好きなものに変えられる。
+
+## build_facilities_json.py — 検索用の一覧ファイル生成（無料枠対策・2026-09-15〜）
+
+検索ページは `public/kaigo-facilities.json` を最優先で読み、Firestore の読み取りを発生させない。
+本番 Firestore から生成し、デプロイで配信する。**施設データを変えたら必ず再生成＋デプロイ**
+（run_add_area.sh は自動で再生成する。管理画面・施設側での個別変更後は手動で）。
+
+```bash
+tools/venv/bin/python tools/build_facilities_json.py   # 生成（要ADC）
+firebase deploy --only hosting                          # 配信
+```
+
+ファイルが取れない環境では従来どおり Firestore から読む（自動フォールバック）。
