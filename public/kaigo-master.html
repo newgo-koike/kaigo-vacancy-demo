@@ -382,9 +382,12 @@
 
     <!-- 直近の検索履歴 -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-      <h2 class="text-base font-bold text-slate-800 mb-4">直近の検索履歴（最新50件）</h2>
+      <h2 class="text-base font-bold text-slate-800 mb-4">直近の検索履歴 <span id="log-list-count" class="text-xs font-normal text-slate-400 ml-2"></span></h2>
       <div id="log-list" class="space-y-2">
         <p class="text-sm text-slate-400">読み込み中...</p>
+      </div>
+      <div id="log-more" class="mt-4 text-center" style="display:none">
+        <button onclick="showMoreLogs()" class="text-sm font-bold text-[#2c7ba6] border border-[#bfe0f2] bg-[#e4f2fa] hover:bg-[#d3ebf7] px-5 py-2 rounded-full">さらに50件を表示</button>
       </div>
     </div>
 
@@ -817,16 +820,21 @@ async function loadSearchLogs() {
   popularEl.innerHTML = '<p class="text-sm text-slate-400">集計中...</p>';
 
   try {
-    const snap = await db.collection('searchLogs').orderBy('searchedAt','desc').limit(50).get();
+    // 一覧と傾向集計は直近1,000件を使う（以前は50件だけ取っていて、総検索回数まで50で頭打ちになっていた）
+    const snap = await db.collection('searchLogs').orderBy('searchedAt','desc').limit(LOG_SAMPLE).get();
     const logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    LOGS = logs; LOG_SHOWN = LOG_PAGE;
 
-    // サマリー
-    document.getElementById('log-total').textContent = snap.size;
-    const uniqueUsers = new Set(logs.map(l => l.uid)).size;
-    document.getElementById('log-users').textContent = uniqueUsers;
+    // サマリー: 総数と本日は件数集計クエリで正確に数える（読み取りは1,000件あたり1回分）
     const today = new Date(); today.setHours(0,0,0,0);
-    const todayCount = logs.filter(l => l.searchedAt?.toDate() >= today).length;
-    document.getElementById('log-today').textContent = todayCount;
+    const [totalAgg, todayAgg] = await Promise.all([
+      db.collection('searchLogs').count().get(),
+      db.collection('searchLogs').where('searchedAt', '>=', today).count().get(),
+    ]);
+    document.getElementById('log-total').textContent = totalAgg.data().count;
+    document.getElementById('log-today').textContent = todayAgg.data().count;
+    const uniqueUsers = new Set(logs.map(l => l.uid)).size;
+    document.getElementById('log-users').textContent = uniqueUsers + (snap.size >= LOG_SAMPLE ? `（直近${LOG_SAMPLE}件中）` : '');
 
     // よく使われる条件の集計
     const tagCount = {};
@@ -868,11 +876,33 @@ async function loadSearchLogs() {
         </div>`;
     }
 
-    // 直近の一覧
-    if (!logs.length) {
-      listEl.innerHTML = '<p class="text-sm text-slate-400">検索履歴がありません</p>';
-      return;
-    }
+    // 直近の一覧（50件ずつ表示、「さらに表示」で遡る）
+    renderLogList();
+  } catch(e) {
+    listEl.innerHTML = `<p class="text-sm text-red-400">⚠️ ${e.message}</p>`;
+  }
+}
+
+const LOG_SAMPLE = 1000;   // 一覧・傾向集計に使う直近件数
+const LOG_PAGE   = 50;     // 一度に表示する件数
+let LOGS = [], LOG_SHOWN = LOG_PAGE;
+
+function showMoreLogs() { LOG_SHOWN += LOG_PAGE; renderLogList(); }
+
+function renderLogList() {
+  const listEl = document.getElementById('log-list');
+  const moreEl = document.getElementById('log-more');
+  const cntEl  = document.getElementById('log-list-count');
+  const citiesOf = c => Array.isArray(c.cities) ? c.cities : (c.city ? [c.city] : []);
+  const prefsOf  = c => Array.isArray(c.prefectures) ? c.prefectures : (c.prefecture ? [c.prefecture] : []);
+  const logs = LOGS.slice(0, LOG_SHOWN);
+  if (cntEl) cntEl.textContent = LOGS.length ? `${logs.length}件表示 / 直近${LOGS.length}件` : '';
+  if (moreEl) moreEl.style.display = LOGS.length > logs.length ? 'block' : 'none';
+  if (!LOGS.length) {
+    listEl.innerHTML = '<p class="text-sm text-slate-400">検索履歴がありません</p>';
+    return;
+  }
+  {
     listEl.innerHTML = logs.map(l => {
       const c = l.conditions || {};
       const dateStr = l.searchedAt ? l.searchedAt.toDate().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '─';
@@ -894,8 +924,6 @@ async function loadSearchLogs() {
         <span class="text-xs text-slate-400 flex-shrink-0">${l.resultCount ?? '─'}件</span>
       </div>`;
     }).join('');
-  } catch(e) {
-    listEl.innerHTML = `<p class="text-sm text-red-400">⚠️ ${e.message}</p>`;
   }
 }
 
