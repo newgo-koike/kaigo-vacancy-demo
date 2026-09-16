@@ -303,6 +303,7 @@
     .fc-fee-monthly-ttl { display:flex; align-items:baseline; gap:5px; margin-bottom:7px; }
     .fc-fee-monthly-lbl { font-size:10px; color:#a9a9a4; font-weight:700; letter-spacing:.02em; }
     .fc-fee-monthly-val { font-size:22px; font-weight:900; color:var(--ink); letter-spacing:-.3px; }
+    .fc-fee-monthly-val.range { font-size:18px; white-space:nowrap; }
     .fc-fee-items { display:flex; gap:5px; }
     .fc-fee-item { flex:1; min-width:0; background:var(--paper); border:1px solid var(--hair); border-radius:8px; padding:4px 3px; text-align:center; }
     .fc-fee-item-lbl { font-size:10px; color:#8c8c8c; line-height:1.3; }
@@ -967,8 +968,8 @@ function applySort() {
   if (!DATA.length) { renderCards([]); return; }
   const sort = document.getElementById('sort-sel').value;
   SORTED = [...DATA];
-  if (sort === 'fee_asc')  SORTED.sort((a, b) => (a.monthlyTotal ?? 999) - (b.monthlyTotal ?? 999));
-  if (sort === 'fee_desc') SORTED.sort((a, b) => (b.monthlyTotal ?? 0) - (a.monthlyTotal ?? 0));
+  if (sort === 'fee_asc')  SORTED.sort((a, b) => (a.feeKey ?? 999) - (b.feeKey ?? 999));
+  if (sort === 'fee_desc') SORTED.sort((a, b) => (b.feeKey ?? 0) - (a.feeKey ?? 0));
   if (sort === 'updated')  SORTED.sort((a, b) => a.daysAgo - b.daysAgo);
   liveFilter();
 }
@@ -1095,9 +1096,10 @@ function liveFilter() {
     if (mimon    && f.mimonHosho   !== mimon)    return false;
     if (kaigo    && f.kaigoNintei  !== kaigo)    return false;
     // 価格フィルター：月額データのない施設は価格指定時に除外
-    if (hasPriceFilter && f.monthlyTotal == null) return false;
-    if (priceMin && f.monthlyTotal < priceMin) return false;
-    if (priceMax && f.monthlyTotal > priceMax) return false;
+    // 価格フィルターは表示と同じ「すべて含む目安」の下限で判定する
+    if (hasPriceFilter && f.feeKey == null) return false;
+    if (priceMin && f.feeKey < priceMin) return false;
+    if (priceMax && f.feeKey > priceMax) return false;
     return true;
   });
 
@@ -1131,6 +1133,11 @@ function mapDoc(doc) {
     ? (rentYen||0) + (mgmtYen||0) + (mealYen||0) + (otherYen||0)
     : (d.monthlyFee ?? null);
   const monthlyTotal = monthlyTotalYen != null ? Math.round(monthlyTotalYen / 10000 * 10) / 10 : null;
+  // 月々の費用の目安＝施設費用＋介護保険自己負担・医療費・生活費（種別ごとのレンジ）。
+  // 施設詳細ページ・資料出力と同じ共通データ（kaigo-cost-data.js の KaigoCost）で計算する。
+  const costCat = (typeof KaigoCost !== 'undefined') ? KaigoCost.get(d.type || '') : null;
+  const estMin = (monthlyTotal && costCat) ? Math.round((monthlyTotal + costCat.careMin + costCat.medMin + costCat.lifeMin) * 10) / 10 : null;
+  const estMax = (monthlyTotal && costCat) ? Math.round((monthlyTotal + costCat.careMax + costCat.medMax + costCat.lifeMax) * 10) / 10 : null;
 
   const PREFS = ['大阪府','兵庫県','京都府','奈良県'];
   const prefecture = d.prefecture ||
@@ -1186,6 +1193,8 @@ function mapDoc(doc) {
     rentYen, mgmtYen, mealYen, otherYen,
     monthlyTotal,
     monthlyTotalYen,
+    estMin, estMax,                                   // 検索カード・並び替え・価格フィルタはこの目安で扱う
+    feeKey: estMin ?? monthlyTotal,                   // 並び替え・価格フィルタの基準値（目安の下限）
     updated: daysAgo === 0 ? '本日' : daysAgo + '日前',
     daysAgo,
     searchText: [
@@ -1289,14 +1298,14 @@ function cardHTML(f) {
       </div>
       <div class="fc-fee-monthly">
         <div class="fc-fee-monthly-ttl">
-          <span class="fc-fee-monthly-lbl">月額費用</span>
-          <span class="fc-fee-monthly-val">${f.monthlyTotal ?? '─'}</span>
+          <span class="fc-fee-monthly-lbl">月々の費用（目安・すべて含む）</span>
+          <span class="fc-fee-monthly-val${f.estMin != null ? ' range' : ''}">${f.estMin != null ? `${f.estMin}〜${f.estMax}` : (f.monthlyTotal ?? '─')}</span>
           <span class="fc-fee-amt-mn">万円</span>
         </div>
         ${feeItemsHTML ? `<div class="fc-fee-items">${feeItemsHTML}</div>` : ''}
       </div>
     </div>
-    <div class="fc-fee-extra">【別途】介護保険自己負担分・おむつ代など</div>
+    <div class="fc-fee-extra">${f.estMin != null ? `施設費用 ${f.monthlyTotal}万円 ＋ 介護保険自己負担・医療費・生活費の目安` : '【別途】介護保険自己負担分・おむつ代など'}</div>
   </div>`;
 
   const isChecked = selectedFacilities.has(f.id);
