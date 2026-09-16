@@ -825,14 +825,18 @@ async function loadSearchLogs() {
     const logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     LOGS = logs; LOG_SHOWN = LOG_PAGE;
 
-    // サマリー: 総数と本日は件数集計クエリで正確に数える（読み取りは1,000件あたり1回分）
+    // サマリー: 総数と本日は Firestore の件数集計（REST）で正確に数える（読み取りは1,000件あたり1回分）。
+    // このページの compat SDK 10.7.1 には count() が無いため REST を使う。失敗時は直近サンプルから数える。
     const today = new Date(); today.setHours(0,0,0,0);
-    const [totalAgg, todayAgg] = await Promise.all([
-      db.collection('searchLogs').count().get(),
-      db.collection('searchLogs').where('searchedAt', '>=', today).count().get(),
-    ]);
-    document.getElementById('log-total').textContent = totalAgg.data().count;
-    document.getElementById('log-today').textContent = todayAgg.data().count;
+    let totalCount, todayCount;
+    try {
+      [totalCount, todayCount] = await Promise.all([countSearchLogs(null), countSearchLogs(today)]);
+    } catch (e) {
+      totalCount = logs.length + (snap.size >= LOG_SAMPLE ? '+' : '');
+      todayCount = logs.filter(l => l.searchedAt?.toDate() >= today).length;
+    }
+    document.getElementById('log-total').textContent = totalCount;
+    document.getElementById('log-today').textContent = todayCount;
     const uniqueUsers = new Set(logs.map(l => l.uid)).size;
     document.getElementById('log-users').textContent = uniqueUsers + (snap.size >= LOG_SAMPLE ? `（直近${LOG_SAMPLE}件中）` : '');
 
@@ -881,6 +885,20 @@ async function loadSearchLogs() {
   } catch(e) {
     listEl.innerHTML = `<p class="text-sm text-red-400">⚠️ ${e.message}</p>`;
   }
+}
+
+// searchLogs の件数を Firestore REST の集計クエリで数える（ログイン中ユーザーのトークンで呼ぶ＝ルールは管理者のみ）
+async function countSearchLogs(sinceDate) {
+  const token = await firebase.auth().currentUser.getIdToken();
+  const sq = { from: [{ collectionId: 'searchLogs' }] };
+  if (sinceDate) sq.where = { fieldFilter: { field: { fieldPath: 'searchedAt' }, op: 'GREATER_THAN_OR_EQUAL',
+                                             value: { timestampValue: sinceDate.toISOString() } } };
+  const body = { structuredAggregationQuery: { structuredQuery: sq, aggregations: [{ alias: 'n', count: {} }] } };
+  const r = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRE.projectId}/databases/(default)/documents:runAggregationQuery`,
+    { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('count HTTP ' + r.status);
+  const j = await r.json();
+  return parseInt(j[0].result.aggregateFields.n.integerValue, 10);
 }
 
 const LOG_SAMPLE = 1000;   // 一覧・傾向集計に使う直近件数
