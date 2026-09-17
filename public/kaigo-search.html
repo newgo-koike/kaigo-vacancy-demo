@@ -463,7 +463,7 @@
       <div class="f-grp">
         <label class="f-lbl">フリー検索（施設名・駅名・住所など）</label>
         <input class="f-inp" id="q-station" type="text" placeholder="例：さくらヴィラ、豊中駅、豊中市" oninput="liveFilter()">
-        <div class="f-hint">駅名を入れると、その駅を最寄駅として登録している施設を徒歩分数の近い順に表示します（「駅」は省略可）</div>
+        <div class="f-hint">駅名を入れると、その駅を最寄駅として登録している施設を徒歩分数の近い順に表示します（「駅」は省略可）。並べ替えで「月額が安い順」などを選ぶとその順になります</div>
       </div>
     </div>
 
@@ -579,6 +579,7 @@
         <option value="updated">更新が新しい順</option>
         <option value="fee_asc">月額が安い順</option>
         <option value="fee_desc">月額が高い順</option>
+        <option value="eki">最寄駅から近い順（駅名で検索したとき）</option>
       </select>
     </div>
 
@@ -970,7 +971,8 @@ function applySort() {
   SORTED = [...DATA];
   if (sort === 'fee_asc')  SORTED.sort((a, b) => (a.feeKey ?? 999) - (b.feeKey ?? 999));
   if (sort === 'fee_desc') SORTED.sort((a, b) => (b.feeKey ?? 0) - (a.feeKey ?? 0));
-  if (sort === 'updated')  SORTED.sort((a, b) => a.daysAgo - b.daysAgo);
+  // 「最寄駅から近い順」は駅名検索中だけ意味を持つ。駅名が無いときは更新順で表示する
+  if (sort === 'updated' || sort === 'eki') SORTED.sort((a, b) => a.daysAgo - b.daysAgo);
   liveFilter();
 }
 
@@ -1104,10 +1106,13 @@ function liveFilter() {
   });
 
   EKI_Q = eki;
-  // 最寄駅検索中は駅からの距離の近い順。座標が無い施設は登録駅の徒歩分数を
-  // 80m/分で距離に換算して混ぜる。安定ソートなので同距離内は既存の並び順を保つ。
+  // 最寄駅検索中の並び順。並べ替えが「更新が新しい順」（初期値）か「最寄駅から近い順」のときだけ
+  // 徒歩分数の近い順に並べ替える。「月額が安い順／高い順」を選んでいるときはその順を崩さない
+  // （v2.15.2まで: 駅名を入れると安い順を選んでいても徒歩順で上書きされていた）。
+  // 座標が無い施設は登録駅の徒歩分数を80m/分で距離に換算して混ぜる。安定ソートなので同距離内は既存の並び順を保つ。
+  const sortSel = document.getElementById('sort-sel').value;
   const ekiKey = f => f._eki?.km ?? (f._eki?.walk != null ? f._eki.walk * 0.08 : 9999);
-  if (eki) list.sort((a, b) => ekiKey(a) - ekiKey(b));
+  if (eki && (sortSel === 'updated' || sortSel === 'eki')) list.sort((a, b) => ekiKey(a) - ekiKey(b));
 
   shownCount = PAGE_SIZE;   // 新しい絞り込みは先頭ページから
   renderCards(list);
