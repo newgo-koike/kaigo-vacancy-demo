@@ -52,6 +52,39 @@
     };
   }
 
+  // 地図の初期表示ズーム。16（街区レベル）だと周辺の駅や幹線道路が入らないため、2段階広域の14にする
+  // （兵頭さん要望 2026-09-18）。施設詳細ページの地図と印刷用の静的地図の両方がこの値を使う
+  const MAP_ZOOM = 14;
+
+  // 住所（空白除去）→ [緯度, 経度]。kaigo-geo-data.js が読み込まれていなければ null
+  function lookupGeo(addr) {
+    return (global.KAIGO_GEO || {})[String(addr || '').replace(/[\s\u3000]/g, '')] || null;
+  }
+
+  // 印刷・PDF用の静的地図。Leaflet のような対話地図は印刷時にタイルの読み込み待ちや
+  // 拡大縮小のずれで欠けやすいので、国土地理院のタイル画像をそのまま並べて中央にピンを置く
+  // （無料・APIキー不要・従量課金なし）。pt=[緯度,経度]
+  function staticMapHTML(pt, opts) {
+    opts = opts || {};
+    const z = opts.zoom || MAP_ZOOM, W = opts.width || 700, H = opts.height || 190, T = 256;
+    const n = Math.pow(2, z);
+    const latR = pt[0] * Math.PI / 180;
+    const cx = (pt[1] + 180) / 360 * n * T;
+    const cy = (1 - Math.log(Math.tan(latR) + 1 / Math.cos(latR)) / Math.PI) / 2 * n * T;
+    const left = cx - W / 2, top = cy - H / 2;
+    let tiles = '';
+    for (let ty = Math.floor(top / T); ty <= Math.floor((top + H) / T); ty++) {
+      for (let tx = Math.floor(left / T); tx <= Math.floor((left + W) / T); tx++) {
+        if (ty < 0 || ty >= n) continue;
+        const x = ((tx % n) + n) % n;
+        tiles += `<img src="https://cyberjapandata.gsi.go.jp/xyz/std/${z}/${x}/${ty}.png" alt="" style="position:absolute;left:${tx * T - left}px;top:${ty * T - top}px;width:${T}px;height:${T}px;max-width:none;">`;
+      }
+    }
+    const pin  = `<div style="position:absolute;left:${W / 2}px;top:${H / 2}px;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#d93025;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);"></div>`;
+    const attr = `<div style="position:absolute;right:0;bottom:0;background:rgba(255,255,255,.85);font-size:8px;color:#333;padding:1px 5px;">地図: 国土地理院</div>`;
+    return `<div style="position:relative;width:${W}px;max-width:100%;height:${H}px;overflow:hidden;border:1px solid #999;margin:0 auto;background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${tiles}${pin}${attr}</div>`;
+  }
+
   // feeNotes（\n区切り・※始まりの注意書き）を箇条書きHTMLに変換
   function feeNotesListHtml(notes) {
     const lines = String(notes || '').split(/\n/).flatMap(line => line.split(/(?=※)/)).map(l => l.trim()).filter(Boolean);
@@ -91,6 +124,22 @@
       ['連絡先担当', f.contactName],
       ['連絡先TEL', f.contactTel],
     ].filter(([, v]) => v != null && String(v).trim() !== '');
+    // 所在地の地図（座標が引けた施設だけ）。費用ページ（1枚目）のレイアウトを崩さないよう、
+    // 2枚目に「所在地・アクセス」ページとして大きめの地図を出す（兵頭さん要望 2026-09-18）
+    const geoPt = f.geo || lookupGeo(f.addr || f.address);
+    const mapBlock = geoPt ? `
+    <div style="page-break-before:always;break-before:page;padding-top:2mm;">
+      <div style="border-bottom:2.5px solid #000;padding-bottom:6px;margin-bottom:10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
+        <div style="font-size:16pt;font-weight:900;letter-spacing:-.3px;">所在地・アクセス</div>
+        <div style="font-size:10pt;font-weight:700;color:#333;">${f.name}</div>
+      </div>
+      <div style="font-size:10pt;color:#333;margin-bottom:10px;line-height:1.8;">
+        住所: ${f.addr || f.address || '—'}${stStr !== '—' ? `<br>最寄り: ${stStr}` : ''}
+      </div>
+      ${staticMapHTML(geoPt, { width: 700, height: 440 })}
+      <div style="font-size:8pt;color:#666;margin-top:6px;">※ 赤丸が施設の位置です。地図は国土地理院の地図タイルを使用しています</div>
+    </div>` : '';
+
     const detailTable = detailRows.length ? `
     <table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:12px;">
       <tbody>
@@ -176,7 +225,8 @@
     <div style="font-size:8pt;color:#666;margin-bottom:12px;">※ 介護度・負担割合・生活スタイルにより変動します</div>
 
     ${detailTable}
-    <div style="font-size:8pt;color:#666;padding-top:6px;border-top:1px solid #ccc;">※ 月々の目安は介護度・負担割合・生活スタイルにより変動します。空室状況は Meets Medical へお問い合わせください。</div>`;
+    <div style="font-size:8pt;color:#666;padding-top:6px;border-top:1px solid #ccc;">※ 月々の目安は介護度・負担割合・生活スタイルにより変動します。空室状況は Meets Medical へお問い合わせください。</div>
+    ${mapBlock}`;
 
     return `<!DOCTYPE html>
 <html lang="ja">
@@ -225,5 +275,5 @@
     win.document.close();
   }
 
-  global.KaigoPrint = { mapDoc, facilitySheetHTML, printFacilitySheet, feeNotesListHtml };
+  global.KaigoPrint = { mapDoc, facilitySheetHTML, printFacilitySheet, feeNotesListHtml, staticMapHTML, lookupGeo, MAP_ZOOM };
 })(window);
