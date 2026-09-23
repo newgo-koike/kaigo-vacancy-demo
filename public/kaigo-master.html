@@ -101,6 +101,19 @@
       #hosp-card { border:none !important; box-shadow:none !important; padding:0 !important; }
       #hospitals-list > div { break-inside:avoid; page-break-inside:avoid; }
     }
+      /* パンフレット（PDF）列：行のどこにドロップしても登録できる */
+    tbody tr.drop-over { background:#e0f2fe; box-shadow:inset 0 0 0 2px #38bdf8; }
+    .doc-cell { min-width:190px; }
+    .doc-item { display:flex; align-items:center; gap:4px; margin-bottom:3px; }
+    .doc-item a { flex:1; min-width:0; font-size:11px; font-weight:700; color:#1d4ed8; text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:3px 8px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; }
+    .doc-item a:hover { text-decoration:underline; }
+    .doc-del { flex-shrink:0; width:20px; height:20px; border:1px solid var(--g300); background:#fff; color:var(--g600); border-radius:5px; font-size:12px; line-height:1; cursor:pointer; font-family:inherit; }
+    .doc-del:hover { background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }
+    .doc-drop { margin-top:4px; padding:7px 8px; border:1.5px dashed var(--g300); border-radius:8px; font-size:10.5px; color:var(--g500); text-align:center; cursor:pointer; line-height:1.4; background:#fafafa; }
+    .doc-drop:hover, tr.drop-over .doc-drop { border-color:#0284c7; color:#0369a1; background:#f0f9ff; }
+    .doc-drop span { font-size:9.5px; color:var(--g400); }
+    .doc-prog { font-size:10.5px; color:#0369a1; font-weight:700; margin:2px 0; }
+    .doc-prog:empty { display:none; }
   </style>
 </head>
 <body>
@@ -151,6 +164,8 @@
   <div class="stat-sep"></div>
   <div class="stat"><div class="stat-num" style="color:var(--brand)" id="st-approved">—</div><div class="stat-lbl">掲載承認済</div></div>
   <div class="stat-sep"></div>
+  <div class="stat"><div class="stat-num" style="color:#0369a1" id="st-docs">—</div><div class="stat-lbl">PDF登録済</div></div>
+  <div class="stat-sep"></div>
   <div class="stat" style="cursor:pointer" onclick="toggleAlerts()" title="クリックで内訳を表示">
     <div class="stat-num" style="color:#dc2626" id="st-alerts">—</div><div class="stat-lbl">⚠ 要確認データ</div>
   </div>
@@ -185,6 +200,7 @@
         <th style="width:80px">最終更新</th>
         <th>共有ページ URL</th>
         <th style="width:60px;text-align:center">情報編集</th>
+        <th class="doc-cell">パンフレット（PDF）<div style="font-size:9px;font-weight:400;color:var(--g400)">行にドロップで登録</div></th>
         <th style="width:80px;text-align:center">プラン</th>
         <th>更新URL（LINEで送付）</th>
         <th style="width:96px;text-align:center">共有QR</th>
@@ -192,7 +208,7 @@
       </tr>
     </thead>
     <tbody id="tbody">
-      <tr class="empty-row"><td colspan="12">読み込み中...</td></tr>
+      <tr class="empty-row"><td colspan="13">読み込み中...</td></tr>
     </tbody>
   </table>
 </div>
@@ -422,7 +438,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="kaigo-brochure.js"></script>
 <script>
 const FIRE = {
   apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
@@ -481,13 +499,14 @@ function startApp() {
           feeNotes: d.feeNotes || '',
           address: d.address || '',
           station: d.station || '',
+          brochures: KaigoBrochure.list(d),
         };
       });
       updateStats();
       renderTable();
     },
     err => {
-      document.getElementById('tbody').innerHTML = `<tr class="empty-row"><td colspan="12">⚠️ 読み込みエラー: ${err.message}</td></tr>`;
+      document.getElementById('tbody').innerHTML = `<tr class="empty-row"><td colspan="13">⚠️ 読み込みエラー: ${err.message}</td></tr>`;
     }
   );
 }
@@ -498,6 +517,7 @@ function updateStats() {
   document.getElementById('st-full').textContent  = DATA.filter(f => f.vacancy === 0).length;
   document.getElementById('st-stale').textContent    = DATA.filter(f => f.daysAgo > 14).length;
   document.getElementById('st-approved').textContent = DATA.filter(f => f.approved).length;
+  document.getElementById('st-docs').textContent     = DATA.filter(f => f.brochures.length).length;
   renderAlerts();
 }
 
@@ -601,7 +621,7 @@ function renderTable() {
 
   const tbody = document.getElementById('tbody');
   if (!list.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="12">条件に合う施設がありません</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="13">条件に合う施設がありません</td></tr>`;
     return;
   }
 
@@ -613,7 +633,7 @@ function renderTable() {
     const manageUrl = `${BASE}/kaigo-manage.html?id=${f.id}`;
     const viewUrl   = `${BASE}/kaigo-facility-view.html?id=${f.id}`;
 
-    return `<tr>
+    return `<tr ondragover="brochureDragOver(event,this)" ondragleave="brochureDragLeave(event,this)" ondrop="brochureDrop(event,'${f.id}',this)">
       <td style="color:var(--g400);font-size:12px;text-align:center">${i + 1}</td>
       <td style="text-align:center">
         <button class="apv-btn ${f.approved?'apv-on':''}" onclick="toggleApproved('${f.id}',${!f.approved})">${f.approved?'✅ 済':'□ 未'}</button>
@@ -641,6 +661,14 @@ function renderTable() {
           <a href="${BASE}/kaigo-register.html?id=${f.id}" target="_blank" style="display:inline-block;padding:5px 10px;background:var(--g100);color:var(--g700);border:1px solid var(--g200);border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📝 編集</a>
           <a href="${BASE}/kaigo-hearing-sheet.html?id=${f.id}" target="_blank" style="display:inline-block;padding:5px 10px;background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📋 ヒアリング</a>
         </div>
+      </td>
+      <td class="doc-cell">
+        ${f.brochures.map((b, bi) => `<div class="doc-item">
+          <a href="${KaigoBrochure.url(b)}" target="_blank" rel="noopener" title="${esc(b.name)}（${KaigoBrochure.fmtSize(b.size)}）">${esc(KaigoBrochure.shortName(b.name, 16))}</a>
+          <button class="doc-del" title="このPDFを削除" onclick="deleteBrochure('${f.id}', ${bi})">×</button>
+        </div>`).join('')}
+        <div class="doc-prog" id="doc-prog-${f.id}">${brochureProgText(f.id)}</div>
+        <div class="doc-drop" onclick="pickBrochure('${f.id}')">PDFをここにドロップ<br><span>またはクリックで選択</span></div>
       </td>
       <td style="text-align:center">
         <button class="plan-toggle ${f.plan!=='free'?'paid':''}" onclick="togglePlan('${f.id}','${f.plan}')">${f.plan!=='free'?'✅ 有料':'🔒 無料'}</button>
@@ -681,6 +709,97 @@ function renderTable() {
       });
     });
   });
+}
+
+// ── パンフレット（PDF）の登録・削除 ─────────────────────────────
+// 行にドロップ（またはクリックで選択）→ Storage へ保存 → 施設docと索引に追記（kaigo-brochure.js）。
+// 保存が終わると onSnapshot で一覧が描き直され、その行にPDFが表示される。
+const UPLOADING = {};            // 施設ID → { name, pct, done, total }（進捗表示用）
+let BROCHURE_PICK_FID = null;
+
+function brochureProgText(fid) {
+  const u = UPLOADING[fid];
+  if (!u) return '';
+  const nth = u.total > 1 ? `（${u.done + 1}/${u.total}）` : '';
+  return `アップロード中${nth} ${Math.round(u.pct * 100)}%`;
+}
+function renderBrochureProg(fid) {
+  const el = document.getElementById('doc-prog-' + fid);
+  if (el) el.textContent = brochureProgText(fid);
+}
+function hasFiles(ev) {
+  return !!(ev.dataTransfer && Array.from(ev.dataTransfer.types || []).includes('Files'));
+}
+function brochureDragOver(ev, tr) {
+  if (!hasFiles(ev)) return;
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect = 'copy';
+  tr.classList.add('drop-over');
+}
+function brochureDragLeave(ev, tr) {
+  if (ev.relatedTarget && tr.contains(ev.relatedTarget)) return;   // 行内の子要素へ移っただけ
+  tr.classList.remove('drop-over');
+}
+function brochureDrop(ev, fid, tr) {
+  if (!hasFiles(ev)) return;
+  ev.preventDefault();
+  tr.classList.remove('drop-over');
+  handleBrochureFiles(fid, ev.dataTransfer.files);
+}
+// 行の外に落としたときにブラウザがPDFを開いてしまうのを防ぐ
+window.addEventListener('dragover', ev => { if (hasFiles(ev)) ev.preventDefault(); });
+window.addEventListener('drop',     ev => { if (hasFiles(ev)) ev.preventDefault(); });
+
+function pickBrochure(fid) {
+  BROCHURE_PICK_FID = fid;
+  let inp = document.getElementById('brochure-file');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.type = 'file'; inp.id = 'brochure-file'; inp.accept = 'application/pdf,.pdf'; inp.multiple = true; inp.style.display = 'none';
+    inp.addEventListener('change', () => { if (BROCHURE_PICK_FID) handleBrochureFiles(BROCHURE_PICK_FID, inp.files); inp.value = ''; });
+    document.body.appendChild(inp);
+  }
+  inp.click();
+}
+
+async function handleBrochureFiles(fid, files) {
+  const arr = Array.from(files || []);
+  if (!arr.length) return;
+  const f = DATA.find(x => x.id === fid);
+  try { arr.forEach(KaigoBrochure.checkFile); }
+  catch (e) { showToast(e.message); return; }
+  if (UPLOADING[fid]) { showToast('この施設は別のPDFをアップロード中です。終わってからもう一度お願いします'); return; }
+  UPLOADING[fid] = { name: arr[0].name, pct: 0, done: 0, total: arr.length };
+  renderBrochureProg(fid);
+  try {
+    let done = 0;
+    await KaigoBrochure.upload(fid, arr, (file, pct) => {
+      if (pct >= 1) done = Math.min(arr.length - 1, done + 1);
+      UPLOADING[fid] = { name: file.name, pct, done, total: arr.length };
+      renderBrochureProg(fid);
+    });
+    showToast(`${f ? f.name : ''} にPDFを${arr.length}件登録しました`);
+  } catch (e) {
+    console.error(e);
+    showToast('PDFの登録に失敗しました: ' + (e && e.message ? e.message : e));
+  } finally {
+    delete UPLOADING[fid];
+    renderBrochureProg(fid);
+  }
+}
+
+async function deleteBrochure(fid, idx) {
+  const f = DATA.find(x => x.id === fid);
+  const b = f && f.brochures[idx];
+  if (!b) return;
+  if (!confirm(`「${b.name}」を削除しますか？\n（病院側の検索結果・施設ページからも消えます）`)) return;
+  try {
+    await KaigoBrochure.remove(fid, b.path);
+    showToast(`「${b.name}」を削除しました`);
+  } catch (e) {
+    console.error(e);
+    showToast('削除に失敗しました: ' + (e && e.message ? e.message : e));
+  }
 }
 
 function copyText(text) {

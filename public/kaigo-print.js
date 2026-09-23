@@ -49,8 +49,11 @@
       rentYen, mgmtYen, mealYen, otherYen,
       monthlyTotal,
       monthlyTotalYen,
+      brochures: global.KaigoBrochure ? global.KaigoBrochure.list(d) : (Array.isArray(d.brochures) ? d.brochures : []),
     };
   }
+
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   // 地図の初期表示ズーム。16（街区レベル）だと周辺の駅や幹線道路が入らないため、2段階広域の14にする
   // （兵頭さん要望 2026-09-18）。施設詳細ページの地図と印刷用の静的地図の両方がこの値を使う
@@ -124,10 +127,22 @@
       ['連絡先担当', f.contactName],
       ['連絡先TEL', f.contactTel],
     ].filter(([, v]) => v != null && String(v).trim() !== '');
-    // 所在地の地図（座標が引けた施設だけ）。費用ページ（1枚目）のレイアウトを崩さないよう、
-    // 2枚目に「所在地・アクセス」ページとして大きめの地図を出す（兵頭さん要望 2026-09-18）
+    // 2枚目「所在地・アクセス」：地図（座標が引けた施設）とパンフレットPDFのQRコード（登録がある施設）。
+    // 費用ページ（1枚目）のレイアウトを崩さないよう別ページにする（兵頭さん要望 2026-09-18／PDF 2026-09-23）
     const geoPt = f.geo || lookupGeo(f.addr || f.address);
-    const mapBlock = geoPt ? `
+    const docs = Array.isArray(f.brochures) ? f.brochures.filter(b => b && b.path) : [];
+    const docsBlock = docs.length ? `
+      <div style="margin-top:8mm;page-break-inside:avoid;break-inside:avoid;">
+        <div style="font-size:11pt;font-weight:900;border-bottom:1.5px solid #000;padding-bottom:4px;margin-bottom:6px;">パンフレット・資料（PDF）</div>
+        <div style="font-size:8.5pt;color:#555;margin-bottom:8px;">スマートフォンでQRコードを読み取ると、そのPDFが開きます</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;">
+          ${docs.map(b => `<div style="display:flex;align-items:center;gap:10px;border:1px solid #ccc;padding:6px 10px;border-radius:4px;">
+            <div class="doc-qr" data-url="${esc(global.KaigoBrochure ? global.KaigoBrochure.url(b) : '')}" style="width:110px;height:110px;flex-shrink:0;"></div>
+            <div style="font-size:9.5pt;font-weight:700;max-width:180px;word-break:break-all;line-height:1.5;">${esc(b.name)}<div style="font-size:8pt;font-weight:400;color:#666;margin-top:3px;">${b.size ? (b.size / 1024 / 1024).toFixed(1) + 'MB' : ''}</div></div>
+          </div>`).join('')}
+        </div>
+      </div>` : '';
+    const mapBlock = (geoPt || docs.length) ? `
     <div style="page-break-before:always;break-before:page;padding-top:2mm;">
       <div style="border-bottom:2.5px solid #000;padding-bottom:6px;margin-bottom:10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
         <div style="font-size:16pt;font-weight:900;letter-spacing:-.3px;">所在地・アクセス</div>
@@ -136,8 +151,9 @@
       <div style="font-size:10pt;color:#333;margin-bottom:10px;line-height:1.8;">
         住所: ${f.addr || f.address || '—'}${stStr !== '—' ? `<br>最寄り: ${stStr}` : ''}
       </div>
-      ${staticMapHTML(geoPt, { width: 700, height: 440 })}
-      <div style="font-size:8pt;color:#666;margin-top:6px;">※ 赤丸が施設の位置です。地図は国土地理院の地図タイルを使用しています</div>
+      ${geoPt ? staticMapHTML(geoPt, { width: 700, height: 440 }) + `
+      <div style="font-size:8pt;color:#666;margin-top:6px;">※ 赤丸が施設の位置です。地図は国土地理院の地図タイルを使用しています</div>` : ''}
+      ${docsBlock}
     </div>` : '';
 
     const detailTable = detailRows.length ? `
@@ -248,6 +264,7 @@
     .print-btn:hover { background:#333; }
     @media print { .print-btn { display:none !important; } }
   </style>
+  ${docs.length ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>' : ''}
 </head>
 <body>
   <div class="sheet">
@@ -260,6 +277,12 @@
     </div>
     ${body}
   </div>
+  ${docs.length ? `<script>
+    document.querySelectorAll('.doc-qr').forEach(el => {
+      try { new QRCode(el, { text: el.dataset.url, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.L }); }
+      catch (e) { el.textContent = 'QR生成不可'; }
+    });
+  </script>` : ''}
 </body>
 </html>`;
   }

@@ -44,6 +44,13 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // パンフレット索引（meta/brochures：施設ID → PDF一覧。検索ページが1回だけ読む）
+    // 閲覧はログイン必須 / 更新は管理者（kaigo-brochure.js がアップロード時に施設docと同時更新）
+    match /meta/{doc} {
+      allow read:  if signedIn();
+      allow write: if isAdmin();
+    }
+
     // 申請：作成は誰でも（申請フォーム）/ 閲覧・更新は管理者
     match /applications/{aid} {
       allow create: if true;

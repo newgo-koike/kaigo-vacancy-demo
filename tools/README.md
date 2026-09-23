@@ -188,3 +188,17 @@ tools/run_refresh_list.sh     # 生成（要ADC）→ firebase deploy（要 fire
 ```
 管理画面で施設を直したあと・施設側が情報を更新したあとに実行する。認証が切れていれば
 `gcloud auth application-default login` → `set-quota-project kaigo-link-dev-59bc5`、`firebase login --reauth`。
+
+## kaigo_rebuild_brochure_index.py — パンフレット索引の確認・作り直し（2026-09-23〜）
+
+パンフレットPDFは `facilities/<id>.brochures` が正本で、検索ページが1回で全施設分を引くための
+索引 `meta/brochures`（施設ID → PDF一覧）を `public/kaigo-brochure.js` がアップロード・削除のたびに同時更新する。
+食い違いが疑わしいときだけ使う。
+
+```bash
+tools/venv/bin/python tools/kaigo_rebuild_brochure_index.py show      # 差分表示（書き込みなし）
+tools/venv/bin/python tools/kaigo_rebuild_brochure_index.py rebuild   # 施設docの内容で索引を書き直す
+```
+
+PDF本体は Firebase Storage `brochures/<施設ID>/<日時>_<ファイル名>.pdf`（公開読み取り、書き込みは管理者のみ＝`storage.rules`）。
+Storage は Blaze プラン専用のため、初回だけ「Blaze へ切替 → Storage を開始 → `firebase deploy --only firestore:rules,storage`」が必要。

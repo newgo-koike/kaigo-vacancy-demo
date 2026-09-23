@@ -106,6 +106,19 @@
       .v-grid { grid-template-columns:1fr; }
       .photo-action-row { flex-direction:column; }
     }
+      /* パンフレット（PDF）：管理者だけに表示。ドロップまたはクリックで登録 */
+    .doc-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border:1.5px solid var(--g200); border-radius:10px; margin-bottom:8px; }
+    .doc-item a { flex:1; min-width:0; font-size:13px; font-weight:700; color:#1d4ed8; text-decoration:none; word-break:break-all; }
+    .doc-size { font-size:11px; color:var(--g500); white-space:nowrap; }
+    .doc-del { padding:5px 10px; background:#fff; color:#b91c1c; border:1.5px solid #fca5a5; border-radius:100px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .doc-del:hover { background:#fee2e2; }
+    .doc-empty { font-size:12px; color:var(--g400); margin-bottom:8px; }
+    .doc-drop { padding:22px 12px; border:2px dashed var(--g300); border-radius:10px; text-align:center; font-size:13px; font-weight:700; color:var(--g600); cursor:pointer; background:var(--g50); line-height:1.6; }
+    .doc-drop span { display:block; font-size:11px; font-weight:400; color:var(--g400); }
+    .doc-drop.over, .doc-drop:hover { border-color:#0284c7; color:#0369a1; background:#f0f9ff; }
+    .doc-prog { font-size:12px; color:#0369a1; font-weight:700; margin:6px 0; }
+    .doc-prog:empty { display:none; }
+    .doc-note { font-size:11px; color:var(--g500); margin-top:10px; line-height:1.6; }
   </style>
 </head>
 <body>
@@ -133,6 +146,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="kaigo-brochure.js"></script>
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
@@ -153,11 +167,14 @@ const main = document.getElementById('main');
 let currentPhotoUrl = null;
 let pendingPhotoFile = null;
 let currentDocData = null;
+let CURRENT_ROLE = '';          // パンフレット欄は管理者だけに出す
+let BROCHURES = [];             // この施設に登録済みのPDF（kaigo-brochure.js のエントリ）
 
 auth.onAuthStateChanged(async user => {
   if (!user) { location.href = 'kaigo-login.html'; return; }
   const uSnap = await db.collection('users').doc(user.uid).get();
   const role = uSnap.data()?.role;
+  CURRENT_ROLE = role || '';
   if (!['facility', 'admin'].includes(role)) {
     await auth.signOut();
     location.href = 'kaigo-login.html';
@@ -189,6 +206,7 @@ async function loadFacility(id) {
     }
     currentDocData = doc.data();
     currentPhotoUrl = currentDocData.photoUrl || null;
+    BROCHURES = KaigoBrochure.list(currentDocData);
     renderPage(doc);
   } catch(e) {
     main.innerHTML = `<div class="err-page"><div class="err-ico">⚠️</div><div class="err-ttl">読み込みエラー</div><div class="err-msg">${e.message}<br>ページを再読み込みしてください。</div></div>`;
@@ -266,6 +284,8 @@ function renderPage(doc) {
         </div>
       </div>
     </div>
+
+    ${CURRENT_ROLE === 'admin' ? brochureCardHTML(doc.id) : ''}
 
     <div class="s-card">
       <div class="sc-ttl">🔗 施設公開ページのURL</div>
@@ -369,6 +389,77 @@ async function uploadPhoto(id) {
     showToast('⚠️ アップロードに失敗しました。Meets Medicalにお問い合わせください。');
   } finally {
     btn.disabled = false; btn.textContent = 'この写真で保存する';
+  }
+}
+
+// ── パンフレット（PDF）：管理者のみ ─────────────────────────────
+function brochureCardHTML(id) {
+  const items = BROCHURES.length
+    ? BROCHURES.map((b, i) => `<div class="doc-item">
+        <a href="${KaigoBrochure.url(b)}" target="_blank" rel="noopener">${KaigoBrochure.esc(b.name)}</a>
+        <span class="doc-size">${KaigoBrochure.fmtSize(b.size)}</span>
+        <button class="doc-del" onclick="deleteBrochure('${id}', ${i})">削除</button>
+      </div>`).join('')
+    : '<div class="doc-empty">まだ登録されていません</div>';
+  return `<div class="s-card" id="brochure-card">
+      <div class="sc-ttl">パンフレット・資料（PDF）</div>
+      ${items}
+      <div class="doc-prog" id="doc-prog"></div>
+      <div class="doc-drop" ondragover="brochureDragOver(event,this)" ondragleave="this.classList.remove('over')" ondrop="brochureDrop(event,'${id}',this)" onclick="document.getElementById('brochure-file').click()">
+        PDFをここにドロップ<span>またはクリックして選択（複数可・1ファイル${KaigoBrochure.MAX_MB}MBまで）</span>
+      </div>
+      <input type="file" id="brochure-file" accept="application/pdf,.pdf" multiple style="display:none" onchange="handleBrochureFiles('${id}', this.files); this.value='';">
+      <div class="doc-note">登録したPDFは、病院側の検索結果・施設ページ・資料出力（QRコード）に表示されます。管理画面（施設一覧）の行にドロップしても同じように登録できます。</div>
+    </div>`;
+}
+function rerenderBrochureCard(id) {
+  const el = document.getElementById('brochure-card');
+  if (el) el.outerHTML = brochureCardHTML(id);
+}
+function hasFiles(ev) { return !!(ev.dataTransfer && Array.from(ev.dataTransfer.types || []).includes('Files')); }
+function brochureDragOver(ev, el) { if (!hasFiles(ev)) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; el.classList.add('over'); }
+function brochureDrop(ev, id, el) { if (!hasFiles(ev)) return; ev.preventDefault(); el.classList.remove('over'); handleBrochureFiles(id, ev.dataTransfer.files); }
+window.addEventListener('dragover', ev => { if (hasFiles(ev)) ev.preventDefault(); });
+window.addEventListener('drop',     ev => { if (hasFiles(ev)) ev.preventDefault(); });
+
+let BROCHURE_BUSY = false;
+async function handleBrochureFiles(id, files) {
+  const arr = Array.from(files || []);
+  if (!arr.length) return;
+  try { arr.forEach(KaigoBrochure.checkFile); }
+  catch (e) { showToast(e.message); return; }
+  if (BROCHURE_BUSY) { showToast('アップロード中です。終わってからもう一度お願いします'); return; }
+  BROCHURE_BUSY = true;
+  const prog = () => document.getElementById('doc-prog');
+  try {
+    let done = 0;
+    const added = await KaigoBrochure.upload(id, arr, (file, pct) => {
+      if (pct >= 1) done = Math.min(arr.length, done + 1);
+      const el = prog();
+      if (el) el.textContent = `アップロード中${arr.length > 1 ? `（${Math.min(done + 1, arr.length)}/${arr.length}）` : ''} ${Math.round(pct * 100)}%`;
+    });
+    BROCHURES = BROCHURES.concat(added);
+    rerenderBrochureCard(id);
+    showToast(`PDFを${added.length}件登録しました`);
+  } catch (e) {
+    console.error(e);
+    const el = prog(); if (el) el.textContent = '';
+    showToast('PDFの登録に失敗しました: ' + (e && e.message ? e.message : e));
+  } finally {
+    BROCHURE_BUSY = false;
+  }
+}
+async function deleteBrochure(id, i) {
+  const b = BROCHURES[i];
+  if (!b) return;
+  if (!confirm(`「${b.name}」を削除しますか？\n（病院側の検索結果・施設ページからも消えます）`)) return;
+  try {
+    BROCHURES = await KaigoBrochure.remove(id, b.path);
+    rerenderBrochureCard(id);
+    showToast(`「${b.name}」を削除しました`);
+  } catch (e) {
+    console.error(e);
+    showToast('削除に失敗しました: ' + (e && e.message ? e.message : e));
   }
 }
 

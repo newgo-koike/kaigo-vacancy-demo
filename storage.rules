@@ -1,0 +1,35 @@
+rules_version = '2';
+// Firebase Storage のアクセス制御。施設写真（facilities/）とパンフレットPDF（brochures/）だけを許可する。
+// 役割は Firestore の users/<uid>.role を参照（Storage ルールから Firestore を読む cross-service rules）。
+service firebase.storage {
+  match /b/{bucket}/o {
+    function role() {
+      return request.auth != null
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role
+        : '';
+    }
+    function isAdmin() { return role() == 'admin'; }
+
+    // 施設写真：閲覧は公開 / 更新は管理者・施設担当者、画像のみ10MBまで
+    match /facilities/{fid}/{file} {
+      allow read:  if true;
+      allow write: if (isAdmin() || role() == 'facility')
+                   && request.resource.size <= 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // パンフレットPDF：閲覧は公開（URLを知っている人＝病院・家族が開ける）
+    // 追加・削除は管理者のみ。PDF以外・20MB超は拒否（kaigo-brochure.js の MAX_MB と合わせる）
+    match /brochures/{fid}/{file} {
+      allow read:   if true;
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin()
+                   && request.resource.size <= 20 * 1024 * 1024
+                   && request.resource.contentType == 'application/pdf';
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

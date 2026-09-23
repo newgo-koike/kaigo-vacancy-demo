@@ -266,6 +266,10 @@
 
     /* 施設情報エリア */
     .fc-info { flex:1 1 240px; padding:16px 18px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+    /* パンフレット（PDF）ボタン：カード内クリックで詳細に飛ばず、PDFだけ別タブで開く */
+    .fc-docs { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .fc-doc { font-size:11px; font-weight:800; padding:4px 10px; border:1.5px solid var(--ink); border-radius:100px; background:#fff; color:var(--ink); text-decoration:none; white-space:nowrap; }
+    .fc-doc:hover { background:var(--ink); color:#fff; }
     .fc-name-row { display:flex; align-items:center; gap:9px; margin-bottom:7px; flex-wrap:wrap; }
     .fc-type-badge {
       font-size:11px; background:#fff; color:var(--ink); border:1.5px solid var(--ink);
@@ -605,6 +609,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="kaigo-cost-data.js"></script>
 <script src="kaigo-geo-data.js"></script>
+<script src="kaigo-brochure.js"></script>
 <script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
@@ -903,6 +908,7 @@ async function doSearch() {
         selectedFacilities.clear();
         updateFloatBtn();
         applySort();
+        refreshBrochureIndex();
       };
       // 静的ファイルを最優先（Firestore の読み取りが発生しない）
       const staticDocs = await loadFacilitiesStatic();
@@ -962,6 +968,23 @@ async function saveSearchLog() {
     },
     resultCount,
   });
+}
+
+// ── パンフレット索引 ───────────────────────────────────────────
+// 一覧ファイル（静的JSON）は再生成するまで古いので、管理画面でPDFを追加した直後でも検索カードに
+// 出るよう、索引ドキュメント meta/brochures（施設ID → PDF一覧）を1回だけ読んで上書きする。
+// 読めないとき（索引未作成・オフライン等）は一覧ファイルの内容のまま
+async function refreshBrochureIndex() {
+  if (typeof KaigoBrochure === 'undefined') return;
+  try {
+    const idx = await KaigoBrochure.loadIndex(db);
+    let changed = false;
+    DATA.forEach(f => {
+      const v = idx[f.id];
+      if (Array.isArray(v)) { f.brochures = v.filter(b => b && b.path); changed = true; }
+    });
+    if (changed && LAST_LIST.length) renderCards(LAST_LIST);
+  } catch (e) { /* 索引なし・権限なしは一覧ファイルの内容で表示 */ }
 }
 
 // ── ソート ──────────────────────────────────────────────────
@@ -1182,6 +1205,7 @@ function mapDoc(doc) {
     kaigoNintei: d.kaigoNintei || '',
     feeNotes: d.feeNotes || '',
     sourceUrl: d.sourceUrl || '',
+    brochures: (typeof KaigoBrochure !== 'undefined') ? KaigoBrochure.list(d) : [],   // パンフレットPDF（索引で上書きされる）
     campaign: d.campaign || '',
     contactName: d.contactName || '',
     contactTel: d.contactTel || '',
@@ -1313,6 +1337,11 @@ function cardHTML(f) {
     <div class="fc-fee-extra">${f.estMin != null ? `施設費用 ${f.monthlyTotal}万円 ＋ 介護保険自己負担・医療費・生活費の目安` : '【別途】介護保険自己負担分・おむつ代など'}</div>
   </div>`;
 
+  const docs = Array.isArray(f.brochures) ? f.brochures : [];
+  const docsHTML = docs.length
+    ? `<div class="fc-docs">${docs.map(b => `<a class="fc-doc" href="${KaigoBrochure.url(b)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${KaigoBrochure.esc(b.name)}（${KaigoBrochure.fmtSize(b.size)}）">PDF ${KaigoBrochure.esc(KaigoBrochure.shortName(b.name, 14))}</a>`).join('')}</div>`
+    : '';
+
   const isChecked = selectedFacilities.has(f.id);
 
   return `<div class="fcard${isChecked ? ' selected' : ''}" id="card-${f.id}" onclick="goToFacility('${f.id}')">
@@ -1330,6 +1359,7 @@ function cardHTML(f) {
       </div>
       ${locationTags.length ? `<div class="fc-meta">${locationTags.map(t=>`<span class="fc-tag">${t}</span>`).join('')}</div>` : ''}
       ${condBadges ? `<div class="fc-conds">${condBadges}</div>` : ''}
+      ${docsHTML}
     </div>
     ${feeCol}
     <div class="fc-vac-col ${vacCls}">
@@ -1434,6 +1464,7 @@ function printSelected() {
     ['　└ 一時金', f => yen(f.initialFeeAmountYen)],
     ['　└ 敷金',   f => yen(f.depositAmountYen)],
     ['住所',       f => txt(f.addr || f.city)],
+    ['パンフレット', f => (f.brochures && f.brochures.length) ? txt(f.brochures.map(b => b.name).join('、')) : '—'],
     ['エリア',     f => txt(f.area)],
     ['最寄り・アクセス', f => txt(f.stationSearch.split(' ').filter(Boolean).join('　'))],
     ['特徴・タグ', f => (f.features && f.features.length) ? f.features.join('・') : '—'],
