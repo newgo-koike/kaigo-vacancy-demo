@@ -202,3 +202,12 @@ tools/venv/bin/python tools/kaigo_rebuild_brochure_index.py rebuild   # 施設do
 
 PDF本体は Firebase Storage `brochures/<施設ID>/<日時>_<ファイル名>.pdf`（公開読み取り、書き込みは管理者のみ＝`storage.rules`）。
 Storage は Blaze プラン専用のため、初回だけ「Blaze へ切替 → Storage を開始 → `firebase deploy --only firestore:rules,storage`」が必要。
+
+### kaigo_brochure_link.py — URL指定のPDFを登録・解除（Storage を使わない暫定／外部リンク用）
+
+```bash
+tools/venv/bin/python tools/kaigo_brochure_link.py show   <施設ID>
+tools/venv/bin/python tools/kaigo_brochure_link.py add    <施設ID> https://kaigo.meetsmedical.com/brochures/<施設ID>/20260923-1.pdf --name "パンフレット.pdf" --size <バイト数>
+tools/venv/bin/python tools/kaigo_brochure_link.py remove <施設ID> <URL>
+```
+2026-09-23 に箕面市11施設をこの方式で掲載（PDF本体は `public/brochures/`、GitHub 管理外）。登録後は `tools/run_refresh_list.sh` で一覧ファイルも更新する。
