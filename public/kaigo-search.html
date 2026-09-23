@@ -981,7 +981,7 @@ async function refreshBrochureIndex() {
     let changed = false;
     DATA.forEach(f => {
       const v = idx[f.id];
-      if (Array.isArray(v)) { f.brochures = v.filter(b => b && b.path); changed = true; }
+      if (Array.isArray(v)) { f.brochures = v.filter(b => b && (b.path || b.url)); changed = true; }
     });
     if (changed && LAST_LIST.length) renderCards(LAST_LIST);
   } catch (e) { /* 索引なし・権限なしは一覧ファイルの内容で表示 */ }

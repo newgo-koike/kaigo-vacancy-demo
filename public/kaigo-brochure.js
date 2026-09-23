@@ -12,13 +12,15 @@
   const INDEX_COLL = 'meta';
   const INDEX_DOC  = 'brochures';
 
-  // 公開URL。storage.rules で brochures/** は誰でも読めるので、ダウンロードトークン無しで開ける
+  // 公開URL。通常は Storage の brochures/**（storage.rules で誰でも読める＝ダウンロードトークン不要）。
+  // entry.url がある場合はそれを優先（Hosting 直置き・Google Drive 共有リンクなど Storage 以外に置いたPDF）
   function url(entry) {
+    if (entry.url) return entry.url;
     return `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(entry.path)}?alt=media`;
   }
 
   function list(d) {
-    return Array.isArray(d && d.brochures) ? d.brochures.filter(b => b && b.path) : [];
+    return Array.isArray(d && d.brochures) ? d.brochures.filter(b => b && (b.path || b.url)) : [];
   }
 
   function fmtSize(bytes) {
@@ -92,14 +94,16 @@
     const storage = fb.storage(), db = fb.firestore();
     const facRef = db.collection('facilities').doc(fid);
     const snap = await facRef.get();
-    const rest = list(snap.data()).filter(b => b.path !== path);
+    const rest = list(snap.data()).filter(b => (b.path || b.url) !== path);
     const batch = db.batch();
     batch.update(facRef, { brochures: rest });
     batch.set(db.collection(INDEX_COLL).doc(INDEX_DOC), { [fid]: rest }, { merge: true });
     await batch.commit();
-    // Storage 側の削除は最後に。既に無い場合（二重削除）はエラーにしない
-    try { await storage.ref(path).delete(); }
-    catch (e) { if (!e || e.code !== 'storage/object-not-found') throw e; }
+    // Storage 側の削除は最後に。既に無い場合（二重削除）はエラーにしない。Storage 以外（url指定）は消すものが無い
+    if (path && !/^https?:/.test(path)) {
+      try { await storage.ref(path).delete(); }
+      catch (e) { if (!e || e.code !== 'storage/object-not-found') throw e; }
+    }
     return rest;
   }
 

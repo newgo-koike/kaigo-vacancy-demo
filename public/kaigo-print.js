@@ -130,7 +130,7 @@
     // 2枚目「所在地・アクセス」：地図（座標が引けた施設）とパンフレットPDFのQRコード（登録がある施設）。
     // 費用ページ（1枚目）のレイアウトを崩さないよう別ページにする（兵頭さん要望 2026-09-18／PDF 2026-09-23）
     const geoPt = f.geo || lookupGeo(f.addr || f.address);
-    const docs = Array.isArray(f.brochures) ? f.brochures.filter(b => b && b.path) : [];
+    const docs = Array.isArray(f.brochures) ? f.brochures.filter(b => b && (b.path || b.url)) : [];
     const docsBlock = docs.length ? `
       <div style="margin-top:8mm;page-break-inside:avoid;break-inside:avoid;">
         <div style="font-size:11pt;font-weight:900;border-bottom:1.5px solid #000;padding-bottom:4px;margin-bottom:6px;">パンフレット・資料（PDF）</div>

@@ -454,7 +454,7 @@ async function deleteBrochure(id, i) {
   if (!b) return;
   if (!confirm(`「${b.name}」を削除しますか？\n（病院側の検索結果・施設ページからも消えます）`)) return;
   try {
-    BROCHURES = await KaigoBrochure.remove(id, b.path);
+    BROCHURES = await KaigoBrochure.remove(id, b.path || b.url);
     rerenderBrochureCard(id);
     showToast(`「${b.name}」を削除しました`);
   } catch (e) {
