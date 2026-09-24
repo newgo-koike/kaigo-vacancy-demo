@@ -402,14 +402,14 @@ function brochureCardHTML(id) {
       </div>`).join('')
     : '<div class="doc-empty">まだ登録されていません</div>';
   return `<div class="s-card" id="brochure-card">
-      <div class="sc-ttl">パンフレット・資料（PDF）</div>
+      <div class="sc-ttl">パンフレット</div>
       ${items}
       <div class="doc-prog" id="doc-prog"></div>
       <div class="doc-drop" ondragover="brochureDragOver(event,this)" ondragleave="this.classList.remove('over')" ondrop="brochureDrop(event,'${id}',this)" onclick="document.getElementById('brochure-file').click()">
         PDFをここにドロップ<span>またはクリックして選択（複数可・1ファイル${KaigoBrochure.MAX_MB}MBまで）</span>
       </div>
       <input type="file" id="brochure-file" accept="application/pdf,.pdf" multiple style="display:none" onchange="handleBrochureFiles('${id}', this.files); this.value='';">
-      <div class="doc-note">登録したPDFは、病院側の検索結果・施設ページ・資料出力（QRコード）に表示されます。管理画面（施設一覧）の行にドロップしても同じように登録できます。</div>
+      <div class="doc-note">登録したパンフレットは、病院側の検索結果・施設ページ・資料出力（QRコード）に表示されます。管理画面（施設一覧）の行にドロップしても同じように登録できます。</div>
     </div>`;
 }
 function rerenderBrochureCard(id) {
@@ -440,11 +440,11 @@ async function handleBrochureFiles(id, files) {
     });
     BROCHURES = BROCHURES.concat(added);
     rerenderBrochureCard(id);
-    showToast(`PDFを${added.length}件登録しました`);
+    showToast(`パンフレットを${added.length}件登録しました`);
   } catch (e) {
     console.error(e);
     const el = prog(); if (el) el.textContent = '';
-    showToast('PDFの登録に失敗しました: ' + (e && e.message ? e.message : e));
+    showToast('パンフレットの登録に失敗しました: ' + (e && e.message ? e.message : e));
   } finally {
     BROCHURE_BUSY = false;
   }

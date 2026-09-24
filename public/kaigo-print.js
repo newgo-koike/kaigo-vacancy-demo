@@ -133,8 +133,8 @@
     const docs = Array.isArray(f.brochures) ? f.brochures.filter(b => b && (b.path || b.url)) : [];
     const docsBlock = docs.length ? `
       <div style="margin-top:8mm;page-break-inside:avoid;break-inside:avoid;">
-        <div style="font-size:11pt;font-weight:900;border-bottom:1.5px solid #000;padding-bottom:4px;margin-bottom:6px;">パンフレット・資料（PDF）</div>
-        <div style="font-size:8.5pt;color:#555;margin-bottom:8px;">スマートフォンでQRコードを読み取ると、そのPDFが開きます</div>
+        <div style="font-size:11pt;font-weight:900;border-bottom:1.5px solid #000;padding-bottom:4px;margin-bottom:6px;">パンフレット</div>
+        <div style="font-size:8.5pt;color:#555;margin-bottom:8px;">スマートフォンでQRコードを読み取ると、パンフレットが開きます</div>
         <div style="display:flex;flex-wrap:wrap;gap:12px;">
           ${docs.map(b => `<div style="display:flex;align-items:center;gap:10px;border:1px solid #ccc;padding:6px 10px;border-radius:4px;">
             <div class="doc-qr" data-url="${esc(global.KaigoBrochure ? global.KaigoBrochure.url(b) : '')}" style="width:110px;height:110px;flex-shrink:0;"></div>

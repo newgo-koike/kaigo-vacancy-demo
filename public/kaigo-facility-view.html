@@ -683,7 +683,7 @@ function renderBrochures(d) {
   const docs = (typeof KaigoBrochure !== 'undefined') ? KaigoBrochure.list(d) : [];
   if (!docs.length) { el.remove(); return; }
   el.outerHTML = `<div class="sec-card">
-    <div class="sec-hd">パンフレット・資料（PDF）</div>
+    <div class="sec-hd">パンフレット</div>
     ${docs.map(b => `<a class="fac-doc" href="${KaigoBrochure.url(b)}" target="_blank" rel="noopener">
       <span class="fac-doc-name">${KaigoBrochure.esc(b.name)}</span>
       <span class="fac-doc-size">${KaigoBrochure.fmtSize(b.size)}</span>

@@ -164,7 +164,7 @@
   <div class="stat-sep"></div>
   <div class="stat"><div class="stat-num" style="color:var(--brand)" id="st-approved">—</div><div class="stat-lbl">掲載承認済</div></div>
   <div class="stat-sep"></div>
-  <div class="stat"><div class="stat-num" style="color:#0369a1" id="st-docs">—</div><div class="stat-lbl">PDF登録済</div></div>
+  <div class="stat"><div class="stat-num" style="color:#0369a1" id="st-docs">—</div><div class="stat-lbl">パンフレット登録済</div></div>
   <div class="stat-sep"></div>
   <div class="stat" style="cursor:pointer" onclick="toggleAlerts()" title="クリックで内訳を表示">
     <div class="stat-num" style="color:#dc2626" id="st-alerts">—</div><div class="stat-lbl">⚠ 要確認データ</div>
@@ -200,7 +200,7 @@
         <th style="width:80px">最終更新</th>
         <th>共有ページ URL</th>
         <th style="width:60px;text-align:center">情報編集</th>
-        <th class="doc-cell">パンフレット（PDF）<div style="font-size:9px;font-weight:400;color:var(--g400)">行にドロップで登録</div></th>
+        <th class="doc-cell">パンフレット<div style="font-size:9px;font-weight:400;color:var(--g400)">PDFを行にドロップで登録</div></th>
         <th style="width:80px;text-align:center">プラン</th>
         <th>更新URL（LINEで送付）</th>
         <th style="width:96px;text-align:center">共有QR</th>
@@ -665,7 +665,7 @@ function renderTable() {
       <td class="doc-cell">
         ${f.brochures.map((b, bi) => `<div class="doc-item">
           <a href="${KaigoBrochure.url(b)}" target="_blank" rel="noopener" title="${esc(b.name)}（${KaigoBrochure.fmtSize(b.size)}）">${esc(KaigoBrochure.shortName(b.name, 16))}</a>
-          <button class="doc-del" title="このPDFを削除" onclick="deleteBrochure('${f.id}', ${bi})">×</button>
+          <button class="doc-del" title="このパンフレットを削除" onclick="deleteBrochure('${f.id}', ${bi})">×</button>
         </div>`).join('')}
         <div class="doc-prog" id="doc-prog-${f.id}">${brochureProgText(f.id)}</div>
         <div class="doc-drop" onclick="pickBrochure('${f.id}')">PDFをここにドロップ<br><span>またはクリックで選択</span></div>
@@ -768,7 +768,7 @@ async function handleBrochureFiles(fid, files) {
   const f = DATA.find(x => x.id === fid);
   try { arr.forEach(KaigoBrochure.checkFile); }
   catch (e) { showToast(e.message); return; }
-  if (UPLOADING[fid]) { showToast('この施設は別のPDFをアップロード中です。終わってからもう一度お願いします'); return; }
+  if (UPLOADING[fid]) { showToast('この施設は別のパンフレットをアップロード中です。終わってからもう一度お願いします'); return; }
   UPLOADING[fid] = { name: arr[0].name, pct: 0, done: 0, total: arr.length };
   renderBrochureProg(fid);
   try {
@@ -778,10 +778,10 @@ async function handleBrochureFiles(fid, files) {
       UPLOADING[fid] = { name: file.name, pct, done, total: arr.length };
       renderBrochureProg(fid);
     });
-    showToast(`${f ? f.name : ''} にPDFを${arr.length}件登録しました`);
+    showToast(`${f ? f.name : ''} にパンフレットを${arr.length}件登録しました`);
   } catch (e) {
     console.error(e);
-    showToast('PDFの登録に失敗しました: ' + (e && e.message ? e.message : e));
+    showToast('パンフレットの登録に失敗しました: ' + (e && e.message ? e.message : e));
   } finally {
     delete UPLOADING[fid];
     renderBrochureProg(fid);

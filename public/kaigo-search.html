@@ -266,7 +266,7 @@
 
     /* 施設情報エリア */
     .fc-info { flex:1 1 240px; padding:16px 18px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
-    /* パンフレット（PDF）ボタン：カード内クリックで詳細に飛ばず、PDFだけ別タブで開く */
+    /* パンフレットボタン：カード内クリックで詳細に飛ばず、パンフレットだけ別タブで開く */
     .fc-docs { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
     .fc-doc { font-size:11px; font-weight:800; padding:4px 10px; border:1.5px solid var(--ink); border-radius:100px; background:#fff; color:var(--ink); text-decoration:none; white-space:nowrap; }
     .fc-doc:hover { background:var(--ink); color:#fff; }
@@ -1339,7 +1339,7 @@ function cardHTML(f) {
 
   const docs = Array.isArray(f.brochures) ? f.brochures : [];
   const docsHTML = docs.length
-    ? `<div class="fc-docs">${docs.map(b => `<a class="fc-doc" href="${KaigoBrochure.url(b)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${KaigoBrochure.esc(b.name)}（${KaigoBrochure.fmtSize(b.size)}）">PDF ${KaigoBrochure.esc(KaigoBrochure.shortName(b.name, 14))}</a>`).join('')}</div>`
+    ? `<div class="fc-docs">${docs.map(b => `<a class="fc-doc" href="${KaigoBrochure.url(b)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${KaigoBrochure.esc(b.name)}（${KaigoBrochure.fmtSize(b.size)}）">${docs.length === 1 ? 'パンフレット' : 'パンフレット ' + KaigoBrochure.esc(KaigoBrochure.shortName(b.name, 14))}</a>`).join('')}</div>`
     : '';
 
   const isChecked = selectedFacilities.has(f.id);
