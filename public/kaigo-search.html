@@ -268,8 +268,9 @@
     .fc-info { flex:1 1 240px; padding:16px 18px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
     /* パンフレットボタン：カード内クリックで詳細に飛ばず、パンフレットだけ別タブで開く */
     .fc-docs { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-    .fc-doc { font-size:11px; font-weight:800; padding:4px 10px; border:1.5px solid var(--ink); border-radius:100px; background:#fff; color:var(--ink); text-decoration:none; white-space:nowrap; }
-    .fc-doc:hover { background:var(--ink); color:#fff; }
+    /* サイトの水色系（空室バッジ・ブランド色）に合わせた薄い色。黒い施設名・種別バッジと区別しやすくする */
+    .fc-doc { font-size:11px; font-weight:800; padding:4px 10px; border:1.5px solid var(--blue-d); border-radius:100px; background:var(--blue-l); color:var(--blue-d); text-decoration:none; white-space:nowrap; }
+    .fc-doc:hover { background:var(--blue-d); color:#fff; }
     .fc-name-row { display:flex; align-items:center; gap:9px; margin-bottom:7px; flex-wrap:wrap; }
     .fc-type-badge {
       font-size:11px; background:#fff; color:var(--ink); border:1.5px solid var(--ink);
