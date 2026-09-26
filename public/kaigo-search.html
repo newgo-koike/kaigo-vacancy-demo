@@ -732,7 +732,7 @@
       <div class="cs-grp"><div class="cs-grp-ttl">希望エリア <span class="req">必須</span></div><div class="cs-chips" id="cs-areas"></div><input id="cs-area-other" class="cs-inp" placeholder="その他の希望エリア（市名など）" style="display:none"></div>
       <div class="cs-grp"><div class="cs-grp-ttl">費用 <span class="req">必須</span></div><div class="cs-chips" id="cs-budget"></div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">こだわり・医療体制 <span class="opt">任意</span></div><div class="cs-chips" id="cs-needs"></div></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">詳細 <span class="opt">任意</span></div><div class="cs-note">※名前などの個人情報は記載しないでください。</div><textarea id="cs-detail" class="cs-ta" rows="4" placeholder="例）退院予定日、医療的ケアの頻度、ご家族の希望など"></textarea></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">詳細 <span class="opt">任意</span></div><div class="cs-note">※名前などの個人情報は記載しないでください。</div><textarea id="cs-detail" class="cs-ta" rows="4" placeholder="例）退院予定日、医療的ケアの頻度、吹田駅近くなどの希望、ご家族の希望など"></textarea></div>
       <div class="cs-err" id="cs-err"></div>
       </div>
     </div>
@@ -2252,7 +2252,7 @@ function renderChat() {
       const canNext = CHAT.sel.size > 0 || st.optional;
       comp.innerHTML = `<span class="chat-cnt">${CHAT.sel.size ? CHAT.sel.size + '件選択中' : (st.optional ? '任意です。なければそのまま次へ' : 'タップして選んでください')}</span><button class="chat-btn primary" ${canNext ? '' : 'disabled'} onclick="chatNext()">${(!CHAT.sel.size && st.optional) ? '選ばずに次へ' : '次へ'}</button>`;
     } else if (st.text) {
-      comp.innerHTML = `<textarea class="chat-ta" id="chat-detail" rows="2" placeholder="例）退院予定日、医療的ケアの頻度、ご家族の希望など" oninput="CHAT.a.detail = this.value">${esc(CHAT.a.detail)}</textarea>`
+      comp.innerHTML = `<textarea class="chat-ta" id="chat-detail" rows="2" placeholder="例）退院予定日、医療的ケアの頻度、吹田駅近くなどの希望、ご家族の希望など" oninput="CHAT.a.detail = this.value">${esc(CHAT.a.detail)}</textarea>`
                      + '<button class="chat-btn" onclick="chatSkip()">補足なしで進む</button><button class="chat-btn primary" onclick="chatNext()">次へ</button>';
     } else {
       html += `<div class="ci-bub me"><div class="ci-bub-body">${esc(KaigoConsult.firstMessageText(CHAT.a, []))}</div></div>`;
