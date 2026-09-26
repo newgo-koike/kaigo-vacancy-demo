@@ -365,9 +365,50 @@
     }
     .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
 
+    /* 右下のフローティング操作：空室相談（常時）＋資料出力（施設を選んだとき） */
+    .float-bar { position:fixed; bottom:28px; right:28px; z-index:500; display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+    #float-consult-btn {
+      display:flex; background:var(--pink); color:#fff; padding:15px 26px; border-radius:100px; font-size:15px; font-weight:900;
+      cursor:pointer; font-family:inherit; border:2px solid var(--ink); box-shadow:4px 4px 0 var(--ink);
+      align-items:center; gap:10px; transition:transform .15s, box-shadow .15s;
+    }
+    #float-consult-btn:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--ink); }
+    #float-consult-btn .float-cnt { color:var(--pink-d); }
+    .hdr-badge { display:inline-block; min-width:18px; height:18px; padding:0 5px; margin-left:6px; border-radius:100px; background:var(--pink); color:#fff; font-size:11px; font-weight:800; line-height:18px; text-align:center; vertical-align:middle; }
+    /* 空室相談フォーム（モーダル） */
+    .cs-modal-bg { position:fixed; inset:0; background:rgba(43,43,43,.45); z-index:900; display:flex; align-items:center; justify-content:center; padding:16px; }
+    .cs-modal { background:var(--paper); border:2px solid var(--ink); border-radius:18px; box-shadow:6px 6px 0 var(--ink); width:min(720px,100%); max-height:92vh; display:flex; flex-direction:column; }
+    .cs-modal-hd { display:flex; align-items:center; padding:16px 20px; border-bottom:2px solid var(--ink); }
+    .cs-modal-ttl { font-size:18px; font-weight:900; }
+    .cs-close { margin-left:auto; width:34px; height:34px; border-radius:50%; border:2px solid var(--ink); background:#fff; font-size:18px; cursor:pointer; font-family:inherit; }
+    .cs-modal-body { padding:16px 20px; overflow-y:auto; }
+    .cs-intro { font-size:13px; color:var(--g600); margin-bottom:12px; line-height:1.7; }
+    .cs-sel-fac { display:none; background:var(--blue-l); border:1.5px solid var(--blue-d); border-radius:12px; padding:10px 12px; margin-bottom:14px; font-size:13px; }
+    .cs-sel-fac .ttl { font-weight:800; color:var(--blue-d); margin-bottom:6px; }
+    .cs-sel-fac .fac { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--blue-d); border-radius:100px; padding:3px 6px 3px 10px; margin:2px 4px 2px 0; font-weight:700; }
+    .cs-sel-fac .fac button { border:none; background:none; cursor:pointer; font-size:14px; color:var(--g500); font-family:inherit; line-height:1; }
+    .cs-grp { margin-bottom:14px; }
+    .cs-grp-ttl { font-size:13px; font-weight:800; margin-bottom:7px; display:flex; align-items:center; gap:6px; }
+    .cs-grp-ttl .req { font-size:10px; font-weight:800; color:#fff; background:var(--pink); border-radius:4px; padding:1px 6px; }
+    .cs-grp-ttl .opt { font-size:10px; font-weight:700; color:var(--g500); border:1px solid var(--g300); border-radius:4px; padding:1px 6px; }
+    .cs-chips { display:flex; flex-wrap:wrap; gap:6px; }
+    .cs-chip { display:inline-flex; align-items:center; padding:6px 12px; border:1.5px solid var(--g300); border-radius:100px; background:#fff; font-size:13px; font-weight:700; cursor:pointer; user-select:none; }
+    .cs-chip input { display:none; }
+    .cs-chip:has(input:checked) { background:var(--ink); color:#fff; border-color:var(--ink); }
+    .cs-inp, .cs-ta { width:100%; margin-top:8px; padding:9px 12px; border:1.5px solid var(--g300); border-radius:10px; font-family:inherit; font-size:13px; background:#fff; }
+    .cs-ta { margin-top:4px; resize:vertical; }
+    .cs-note { font-size:12px; color:#b91c1c; font-weight:700; margin-bottom:4px; }
+    .cs-err { color:#b91c1c; font-size:13px; font-weight:700; white-space:pre-line; }
+    .cs-err:empty { display:none; }
+    .cs-modal-ft { display:flex; gap:10px; justify-content:flex-end; padding:14px 20px; border-top:2px solid var(--ink); }
+    .cs-cancel { padding:10px 18px; border:2px solid var(--ink); background:#fff; border-radius:100px; font-family:inherit; font-weight:700; cursor:pointer; }
+    .cs-submit { padding:10px 26px; border:2px solid var(--ink); background:var(--pink); color:#fff; border-radius:100px; font-family:inherit; font-weight:900; cursor:pointer; box-shadow:3px 3px 0 var(--ink); }
+    .cs-submit:disabled { opacity:.6; cursor:not-allowed; }
+    @media (max-width:640px) { .float-bar { right:14px; bottom:14px; } #float-consult-btn, #float-export-btn { padding:12px 18px; font-size:13px; } .cs-modal-body { padding:12px 14px; } }
+
     /* 資料出力フローティングボタン */
     #float-export-btn {
-      display:none; position:fixed; bottom:28px; right:28px;
+      display:none; position:static;
       background:var(--blue); color:#fff; padding:15px 26px; border-radius:100px; font-size:15px; font-weight:900;
       cursor:pointer; font-family:inherit; border:2px solid var(--ink);
       box-shadow:4px 4px 0 var(--ink);
@@ -428,6 +469,7 @@
   </div>
   <div class="hdr-right">
     <span class="hdr-user" id="hdr-user"></span>
+    <a class="hdr-logout" href="kaigo-consult.html" id="hdr-consult-link" style="text-decoration:none;">空室相談<span class="hdr-badge" id="hdr-consult-badge" style="display:none">0</span></a>
     <a class="hdr-logout" href="kaigo-hospital-members.html" style="text-decoration:none;">👥 担当者管理</a>
     <button class="hdr-logout" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
@@ -597,11 +639,41 @@
   </div>
 </div>
 
-<!-- 資料出力フローティングボタン -->
-<button id="float-export-btn" onclick="printSelected()">
-  📄 資料出力
-  <span class="float-cnt" id="float-cnt">0</span>
-</button>
+<!-- 右下のフローティング操作：資料出力（施設を選んだとき）＋空室相談（常時） -->
+<div class="float-bar">
+  <button id="float-export-btn" onclick="printSelected()">
+    📄 資料出力
+    <span class="float-cnt" id="float-cnt">0</span>
+  </button>
+  <button id="float-consult-btn" onclick="openConsult()">
+    <span id="float-consult-lbl">空室相談</span>
+    <span class="float-cnt" id="float-consult-cnt" style="display:none">0</span>
+  </button>
+</div>
+
+<!-- 空室相談フォーム -->
+<div class="cs-modal-bg" id="consult-modal" style="display:none" onclick="if (event.target === this) closeConsult()">
+  <div class="cs-modal" role="dialog" aria-label="空室相談">
+    <div class="cs-modal-hd">
+      <div class="cs-modal-ttl">空室相談</div>
+      <button class="cs-close" onclick="closeConsult()" title="閉じる">×</button>
+    </div>
+    <div class="cs-modal-body">
+      <div class="cs-intro">受け入れ可能な施設を Meets Medical が探してご連絡します。当てはまるものにチェックしてください（複数選択できます）。</div>
+      <div id="cs-facilities" class="cs-sel-fac"></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">相談条件 <span class="req">必須</span></div><div class="cs-chips" id="cs-care"></div></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">希望エリア <span class="req">必須</span></div><div class="cs-chips" id="cs-areas"></div><input id="cs-area-other" class="cs-inp" placeholder="その他の希望エリア（市名など）" style="display:none"></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">費用 <span class="req">必須</span></div><div class="cs-chips" id="cs-budget"></div></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">こだわり・医療体制 <span class="req">必須</span></div><div class="cs-chips" id="cs-needs"></div></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">詳細 <span class="opt">任意</span></div><div class="cs-note">※名前などの個人情報は記載しないでください。</div><textarea id="cs-detail" class="cs-ta" rows="4" placeholder="例）退院予定日、医療的ケアの頻度、ご家族の希望など"></textarea></div>
+      <div class="cs-err" id="cs-err"></div>
+    </div>
+    <div class="cs-modal-ft">
+      <button class="cs-cancel" onclick="closeConsult()">キャンセル</button>
+      <button class="cs-submit" id="cs-submit" onclick="submitConsult()">送信する</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -611,6 +683,7 @@
 <script src="kaigo-cost-data.js"></script>
 <script src="kaigo-geo-data.js"></script>
 <script src="kaigo-brochure.js"></script>
+<script src="kaigo-consult.js"></script>
 <script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
@@ -640,7 +713,9 @@ auth.onAuthStateChanged(async user => {
   // 病院名と同じなら担当者名として扱わない（「〇〇病院 さん」と出てしまうため）。
   const hospName = uData?.hospitalName || '';
   const person   = (uData?.name && uData.name !== hospName) ? uData.name : '';
-  currentUser = { uid: user.uid, email: user.email, name: person, hospitalName: hospName, role };
+  currentUser = { uid: user.uid, email: user.email, name: person, role,
+    hospitalName: hospName || (role === 'admin' ? 'Meets Medical（管理者）' : ''),
+    hospitalId: uData?.hospitalId || (role === 'admin' ? 'ADMIN' : '') };
   // 名前に敬称（様・さん・先生）が既に付いていれば「さん」を重ねない（例:「渕上様 さん」防止）
   const label = person ? (/(様|さま|さん|先生)$/.test(person) ? person : person + ' さん') : hospName;
   if (label) document.getElementById('hdr-user').textContent = label;
@@ -649,6 +724,9 @@ auth.onAuthStateChanged(async user => {
   // 施設詳細から戻ってきたら結果を復元。そうでなければ前回の検索条件を読み込む
   if (!restoreResultsIfReturning()) loadSavedConditions();
   updateSaveBtnState();
+  watchConsultBadge();
+  // 相談履歴ページの「新しく相談する」から来たときはフォームをすぐ開く
+  if (new URLSearchParams(location.search).get('consult') === '1') openConsult();
 });
 
 // ── 定数 ─────────────────────────────────────────────────
@@ -1392,6 +1470,7 @@ function updateFloatBtn() {
   } else {
     btn.style.display = 'none';
   }
+  updateConsultBtn();
   // 結果一覧上部の「選択をすべて解除」ボタンも選択数に連動させる
   const clr = document.getElementById('clear-sel-btn');
   if (clr) {
@@ -1773,6 +1852,106 @@ function clearAllFilters() {
   if (r) { r.checked=true; syncRadioChip(r); }
   setVac('all', document.querySelector('.vac-tab'));
   toggleAll('type', true);
+}
+
+// ── 空室相談（病院 → Meets Medical） ──────────────────────────
+// 右下の「空室相談」から条件をチェックして送信する。検索結果でチェック中の施設があれば
+// 「この施設の情報を知りたい」として一緒に送る（兵頭さん要望 2026-09-26）
+let CS_BUILT = false;
+function buildConsultForm() {
+  if (CS_BUILT) return;
+  CS_BUILT = true;
+  const chips = (id, list) => {
+    document.getElementById(id).innerHTML = list.map(v =>
+      `<label class="cs-chip"><input type="checkbox" value="${KaigoConsult.esc(v)}"><span>${KaigoConsult.esc(v)}</span></label>`).join('');
+  };
+  chips('cs-care',   KaigoConsult.CARE);
+  chips('cs-areas',  KaigoConsult.areaOptions(CITY_MAP, SHOWN_PREFS));
+  chips('cs-budget', KaigoConsult.BUDGET);
+  chips('cs-needs',  KaigoConsult.NEEDS);
+  document.getElementById('cs-areas').addEventListener('change', () => {
+    const other = [...document.querySelectorAll('#cs-areas input')].find(i => i.value === KaigoConsult.OTHER_AREA);
+    document.getElementById('cs-area-other').style.display = (other && other.checked) ? 'block' : 'none';
+  });
+}
+function consultFacilities() {
+  return [...selectedFacilities].map(id => DATA.find(f => f.id === id)).filter(Boolean).map(f => ({ id: f.id, name: f.name }));
+}
+function renderConsultFacilities() {
+  const box = document.getElementById('cs-facilities');
+  const facs = consultFacilities();
+  if (!facs.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = 'block';
+  box.innerHTML = `<div class="ttl">この施設の情報を知りたい（${facs.length}件）</div>`
+    + facs.map(f => `<span class="fac">${KaigoConsult.esc(f.name)}<button type="button" title="外す" onclick="removeConsultFacility('${f.id}')">×</button></span>`).join('')
+    + `<div style="font-size:11px;color:var(--g500);margin-top:6px">検索結果でチェックした施設が自動で入ります。外すときは ×</div>`;
+}
+function removeConsultFacility(id) {
+  selectedFacilities.delete(id);
+  const cb = document.querySelector(`#card-${id} input[type=checkbox]`);
+  if (cb) cb.checked = false;
+  document.getElementById('card-' + id)?.classList.remove('selected');
+  updateFloatBtn();
+  renderConsultFacilities();
+}
+function openConsult() {
+  buildConsultForm();
+  renderConsultFacilities();
+  document.getElementById('cs-err').textContent = '';
+  document.getElementById('consult-modal').style.display = 'flex';
+}
+function closeConsult() { document.getElementById('consult-modal').style.display = 'none'; }
+function consultChecked(id) { return [...document.querySelectorAll(`#${id} input:checked`)].map(i => i.value); }
+function resetConsultForm() {
+  document.querySelectorAll('#consult-modal input[type=checkbox]').forEach(i => { i.checked = false; });
+  const other = document.getElementById('cs-area-other'); other.value = ''; other.style.display = 'none';
+  document.getElementById('cs-detail').value = '';
+}
+async function submitConsult() {
+  const c = {
+    care: consultChecked('cs-care'), areas: consultChecked('cs-areas'),
+    areaOther: document.getElementById('cs-area-other').value.trim(),
+    budget: consultChecked('cs-budget'), needs: consultChecked('cs-needs'),
+    detail: document.getElementById('cs-detail').value,
+  };
+  const errEl = document.getElementById('cs-err');
+  const errs = KaigoConsult.validate(c);
+  if (errs.length) { errEl.textContent = errs.join('\n'); return; }
+  errEl.textContent = '';
+  const btn = document.getElementById('cs-submit');
+  btn.disabled = true; btn.textContent = '送信中...';
+  try {
+    await KaigoConsult.create(db, currentUser, c, consultFacilities());
+    closeConsult();
+    resetConsultForm();
+    showToast('空室相談を送信しました。返信は上部の「空室相談」で確認できます');
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = '送信に失敗しました: ' + (e && e.message ? e.message : e);
+  } finally {
+    btn.disabled = false; btn.textContent = '送信する';
+  }
+}
+function updateConsultBtn() {
+  const c = document.getElementById('float-consult-cnt'), lbl = document.getElementById('float-consult-lbl');
+  if (!c || !lbl) return;
+  const n = selectedFacilities.size;
+  c.style.display = n ? 'inline-flex' : 'none';
+  c.textContent = n;
+  lbl.textContent = n ? '選んだ施設について空室相談' : '空室相談';
+}
+// Meets Medical からの返信があるとヘッダーの「空室相談」に未読数を出す（病院ユーザーのみ）
+function watchConsultBadge() {
+  if (!currentUser || currentUser.role !== 'hospital' || !currentUser.hospitalId) return;
+  db.collection('consultations')
+    .where('hospitalId', '==', currentUser.hospitalId)
+    .where('unreadForHospital', '==', true)
+    .onSnapshot(s => {
+      const b = document.getElementById('hdr-consult-badge');
+      if (!b) return;
+      b.style.display = s.size ? 'inline-block' : 'none';
+      b.textContent = s.size;
+    }, () => { /* 権限なし等は無視 */ });
 }
 
 function showToast(msg) {

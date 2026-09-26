@@ -44,6 +44,33 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // 空室相談（病院 → Meets Medical のチャット）：病院は自病院の相談だけ作成・閲覧・返信、管理者は全件
+    function myHospital() { return me().hospitalId; }
+    function isHospital() { return myRole() == 'hospital'; }
+    match /consultations/{cid} {
+      allow create: if isAdmin()
+                    || (isHospital() && request.resource.data.hospitalId == myHospital()
+                        && request.resource.data.createdBy == request.auth.uid);
+      allow read:   if isAdmin() || (isHospital() && resource.data.hospitalId == myHospital());
+      // 病院側は返信に伴う更新（最終メッセージ・未読フラグ・件数）だけ。条件やステータスは変えられない
+      allow update: if isAdmin()
+                    || (isHospital() && resource.data.hospitalId == myHospital()
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['lastMessageAt','lastMessageBy','lastMessageText','unreadForAdmin','unreadForHospital','updatedAt','messageCount']));
+      allow delete: if isAdmin();
+
+      match /messages/{mid} {
+        allow read:   if isAdmin()
+                      || (isHospital() && get(/databases/$(database)/documents/consultations/$(cid)).data.hospitalId == myHospital());
+        // 相談本体と同じバッチで最初のメッセージを書くため getAfter（書き込み後の状態）で親を確認する
+        allow create: if (isAdmin() && request.resource.data.by == 'admin')
+                      || (isHospital() && request.resource.data.by == 'hospital'
+                          && request.resource.data.uid == request.auth.uid
+                          && getAfter(/databases/$(database)/documents/consultations/$(cid)).data.hospitalId == myHospital());
+        allow update, delete: if isAdmin();
+      }
+    }
+
     // パンフレット索引（meta/brochures：施設ID → PDF一覧。検索ページが1回だけ読む）
     // 閲覧はログイン必須 / 更新は管理者（kaigo-brochure.js がアップロード時に施設docと同時更新）
     match /meta/{doc} {
