@@ -959,7 +959,7 @@ function renderConsultList() {
     const facs = (c.facilities || []).map(x => x.name).join('、');
     return `<div class="cs-item ${c.id === CS_CUR ? 'active' : ''} ${c.unreadForAdmin ? 'unread' : ''}" onclick="openConsultThread('${c.id}')">
       <div class="cs-item-top">${KaigoConsult.statusBadge(c.status)}${c.unreadForAdmin ? '<span class="cs-unread">新着</span>' : ''}<span class="cs-item-date">${KaigoConsult.fmtShort(c.lastMessageAt)}</span></div>
-      <div class="cs-item-title">${esc(c.hospitalName || '病院名未設定')}${c.createdByName ? `<span class="text-xs text-slate-500 font-normal ml-1">${esc(c.createdByName)}</span>` : ''}</div>
+      <div class="cs-item-title"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${KaigoConsult.caseColor(c.id)};margin-right:6px;vertical-align:middle"></span>${esc(KaigoConsult.caseName(c))}<span class="text-xs text-slate-500 font-normal ml-2">${esc(c.hospitalName || '病院名未設定')}${c.createdByName ? '／' + esc(c.createdByName) : ''}</span></div>
       <div class="cs-item-sub">${facs ? esc(KaigoConsult.shortText('施設: ' + facs, 40)) : esc(KaigoConsult.areasText(c.conditions || { areas: [] }))}</div>
       <div class="cs-item-sub">${c.lastMessageBy === 'admin' ? '自分: ' : ''}${esc(c.lastMessageText || '')}</div>
     </div>`;
@@ -971,8 +971,9 @@ function renderConsultHead() {
   if (!c) return;
   document.getElementById('cs-thread-hd').innerHTML = `
     <div class="flex items-center gap-3 flex-wrap">
-      <div><div class="text-base font-black text-slate-800">${esc(c.hospitalName || '病院名未設定')}<span class="text-xs text-slate-500 font-normal ml-2">${esc(c.createdByName || '')}</span></div>
-      <div class="text-xs text-slate-400">${KaigoConsult.fmtDate(c.createdAt)} 受信　病院ID: ${esc(c.hospitalId || '')}</div></div>
+      <div class="flex items-center gap-3"><span style="width:34px;height:34px;border-radius:50%;background:${KaigoConsult.caseColor(c.id)};color:#fff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;font-size:16px">${esc((c.caseLabel || '相').trim().slice(0, 1))}</span>
+      <div><div class="text-base font-black text-slate-800">${esc(KaigoConsult.caseName(c))}<span class="text-sm text-slate-600 font-bold ml-2">${esc(c.hospitalName || '病院名未設定')}</span><span class="text-xs text-slate-500 font-normal ml-2">${esc(c.createdByName || '')}</span></div>
+      <div class="text-xs text-slate-400">${KaigoConsult.fmtDate(c.createdAt)} 受信　病院ID: ${esc(c.hospitalId || '')}</div></div></div>
       <div class="ml-auto">${KaigoConsult.statusBadge(c.status)}</div>
     </div>`;
   const sel = document.getElementById('cs-status');

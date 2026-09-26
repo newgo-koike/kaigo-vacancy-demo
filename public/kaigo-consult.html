@@ -6,85 +6,124 @@
 <title>空室相談 | 介護施設空室検索システム</title>
 <link rel="icon" href="logo.png">
 <style>
+  /* LINE のトーク一覧／トークルームに寄せた画面。文字は大きめ・操作は少なめ（スマホでも迷わない） */
   :root{
     --ink:#2b2b2b; --paper:#fdfdfb; --hair:#e7e7e3;
     --pink:#e88494; --pink-d:#e0707f; --pink-l:#fbe7ea;
     --blue:#5fb0de; --blue-d:#2c7ba6; --blue-l:#e4f2fa;
     --g50:#fbfbf9; --g100:#f1f1ee; --g200:#e7e7e3; --g300:#cfcfca;
     --g400:#9a9a95; --g500:#7a7a75; --g600:#5f5f5a; --g700:#454541;
+    --room:#eef3f6;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,'Hiragino Sans',Arial,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;visibility:hidden;-webkit-font-smoothing:antialiased;}
-  .hdr{display:flex;align-items:center;gap:12px;padding:10px 18px;background:#fff;border-bottom:2px solid var(--ink);position:sticky;top:0;z-index:10;}
+  html,body{height:100%;}
+  body{font-family:-apple-system,'Hiragino Sans',Arial,sans-serif;background:var(--paper);color:var(--ink);font-size:15px;visibility:hidden;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
+  .hdr{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:2px solid var(--ink);flex-shrink:0;}
   .hdr-logo{width:36px;height:36px;border:2px solid var(--ink);border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .hdr-title{font-size:16px;font-weight:900;}
+  .hdr-title{font-size:17px;font-weight:900;}
   .hdr-sub{font-size:11px;color:var(--g500);}
-  .hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
-  .hdr-user{font-size:12.5px;color:var(--g600);font-weight:600;}
-  .hdr-btn{background:#fff;border:2px solid var(--ink);color:var(--ink);font-size:12.5px;font-weight:700;padding:7px 16px;border-radius:100px;cursor:pointer;font-family:inherit;text-decoration:none;white-space:nowrap;}
+  .hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+  .hdr-btn{background:#fff;border:2px solid var(--ink);color:var(--ink);font-size:13px;font-weight:800;padding:8px 16px;border-radius:100px;cursor:pointer;font-family:inherit;text-decoration:none;white-space:nowrap;}
   .hdr-btn:hover{background:var(--ink);color:#fff;}
   .hdr-btn.primary{background:var(--pink);color:#fff;}
   .hdr-btn.primary:hover{background:var(--pink-d);}
-  .wrap{display:flex;height:calc(100vh - 58px);}
-  .list{width:340px;flex-shrink:0;border-right:2px solid var(--ink);background:#fff;display:flex;flex-direction:column;}
-  .list-hd{padding:12px 14px;border-bottom:1px solid var(--hair);font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;}
-  .list-body{flex:1;overflow-y:auto;}
-  .item{padding:12px 14px;border-bottom:1px solid var(--hair);cursor:pointer;}
-  .item:hover{background:var(--g50);}
-  .item.active{background:var(--blue-l);}
-  .item-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
-  .item-date{font-size:11px;color:var(--g500);margin-left:auto;}
-  .item-title{font-size:13px;font-weight:800;}
-  .item-sub{font-size:12px;color:var(--g600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .thread{flex:1;display:flex;flex-direction:column;min-width:0;}
-  .thread-hd{padding:12px 18px;border-bottom:1px solid var(--hair);background:#fff;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .thread-title{font-size:15px;font-weight:900;}
-  .thread-sub{font-size:12px;color:var(--g500);}
-  .thread-body{flex:1;overflow-y:auto;padding:16px 18px;background:var(--g50);}
-  .reply{padding:12px 18px;border-top:2px solid var(--ink);background:#fff;}
-  .reply textarea{width:100%;padding:10px 12px;border:1.5px solid var(--g300);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;}
-  .reply-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
-  .reply-note{font-size:11px;color:var(--g500);}
-  .send-btn{margin-left:auto;padding:10px 22px;border:2px solid var(--ink);background:var(--blue);color:#fff;border-radius:100px;font-family:inherit;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 var(--ink);}
-  .send-btn:disabled{opacity:.6;cursor:not-allowed;}
-  .empty{padding:40px 20px;text-align:center;color:var(--g500);font-size:14px;line-height:1.8;}
-  .empty a{color:var(--blue-d);font-weight:800;}
+
+  .app{flex:1;display:flex;min-height:0;}
+  /* トーク一覧 */
+  .talks{width:360px;flex-shrink:0;border-right:2px solid var(--ink);background:#fff;display:flex;flex-direction:column;min-height:0;}
+  .talks-hd{padding:14px 16px;border-bottom:1px solid var(--hair);font-size:15px;font-weight:900;display:flex;align-items:center;gap:8px;}
+  .talks-hd span{font-weight:600;color:var(--g500);font-size:13px;}
+  .talks-list{flex:1;overflow-y:auto;}
+  .talk{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--hair);cursor:pointer;text-decoration:none;color:var(--ink);}
+  .talk:hover{background:var(--g50);}
+  .talk.active{background:var(--blue-l);}
+  .avatar{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:900;background:var(--g400);}
+  .talk-body{flex:1;min-width:0;}
+  .talk-top{display:flex;align-items:baseline;gap:8px;}
+  .talk-name{font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .talk-time{margin-left:auto;font-size:12px;color:var(--g500);white-space:nowrap;}
+  .talk-last{font-size:13.5px;color:var(--g600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
+  .talk.unread .talk-last{color:var(--ink);font-weight:700;}
+  .talk-meta{margin-top:5px;}
+  .badge{min-width:22px;height:22px;padding:0 7px;border-radius:100px;background:#e0707f;color:#fff;font-size:12px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .talks-empty{padding:36px 20px;text-align:center;color:var(--g500);line-height:1.9;}
+  .talks-empty a{color:var(--blue-d);font-weight:900;}
+
+  /* トークルーム */
+  .room{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--room);}
+  .room-hd{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--hair);flex-shrink:0;}
+  .room-back{display:none;border:2px solid var(--ink);background:#fff;border-radius:100px;padding:8px 14px;font-family:inherit;font-weight:900;font-size:14px;cursor:pointer;}
+  .room-hd .avatar{width:40px;height:40px;font-size:18px;}
+  .room-name{font-size:17px;font-weight:900;}
+  .room-sub{font-size:12px;color:var(--g500);margin-top:2px;}
+  .room-st{margin-left:auto;}
+  .room-body{flex:1;overflow-y:auto;padding:16px 18px 10px;}
+  .day{text-align:center;margin:10px 0 6px;}
+  .day span{font-size:12px;color:var(--g600);background:rgba(255,255,255,.85);border-radius:100px;padding:3px 12px;}
+  .msg{display:flex;flex-direction:column;max-width:80%;margin:6px 0;}
+  .msg.me{margin-left:auto;align-items:flex-end;}
+  .msg.them{align-items:flex-start;}
+  .who{font-size:12px;color:var(--g600);margin:0 6px 3px;font-weight:700;}
+  .bubble{font-size:15px;line-height:1.75;padding:11px 15px;border-radius:18px;background:#fff;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.06);}
+  .msg.them .bubble{border-top-left-radius:6px;}
+  .msg.me .bubble{background:var(--blue-l);border-top-right-radius:6px;}
+  .time{font-size:11px;color:var(--g500);margin:3px 6px 0;}
+  .facs{margin:6px 0 0 6px;font-size:13px;}
+  .facs a{display:inline-block;margin:2px 6px 2px 0;color:var(--blue-d);font-weight:800;}
+  .sys{text-align:center;font-size:13px;color:var(--g600);margin:14px 0;line-height:1.7;}
+  .room-empty{height:100%;display:flex;align-items:center;justify-content:center;color:var(--g500);text-align:center;line-height:1.9;padding:20px;}
+  .room-composer{flex-shrink:0;background:#fff;border-top:1px solid var(--hair);padding:10px 14px 12px;}
+  .composer-row{display:flex;align-items:flex-end;gap:10px;}
+  .composer-row textarea{flex:1;font-family:inherit;font-size:16px;line-height:1.6;padding:11px 14px;border:2px solid var(--g300);border-radius:16px;resize:none;min-height:52px;max-height:160px;background:#fff;}
+  .composer-row textarea:focus{outline:none;border-color:var(--blue-d);}
+  .send{flex-shrink:0;width:64px;height:52px;border-radius:100px;border:2px solid var(--ink);background:var(--pink);color:#fff;font-family:inherit;font-size:15px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 var(--ink);}
+  .send:hover:not(:disabled){background:var(--pink-d);}
+  .send:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;}
+  .composer-note{font-size:11.5px;color:var(--g500);margin-top:6px;}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:100px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:99;}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
   @media (max-width:760px){
-    .wrap{flex-direction:column;height:auto;}
-    .list{width:100%;border-right:none;border-bottom:2px solid var(--ink);max-height:38vh;}
-    .thread{min-height:60vh;}
-    .hdr-user{display:none;}
+    .hdr{padding:8px 12px;}
+    .hdr-sub,.hdr-btn.ghost-mobile{display:none;}
+    .hdr-btn{padding:7px 12px;font-size:12px;}
+    .talks{width:100%;border-right:none;}
+    .room{position:fixed;inset:0;z-index:20;display:none;}
+    .app.show-room .room{display:flex;}
+    .room-back{display:inline-block;}
+    .room-hd .room-st{display:none;}
+    .msg{max-width:88%;}
   }
 </style>
 </head>
 <body>
 <header class="hdr">
   <div class="hdr-logo"><img src="logo.png" style="width:100%;height:100%;object-fit:contain"></div>
-  <div><div class="hdr-title">空室相談</div><div class="hdr-sub">Meets Medical への相談と返信</div></div>
+  <div><div class="hdr-title">空室相談</div><div class="hdr-sub">Meets Medical とのやり取り</div></div>
   <div class="hdr-right">
-    <span class="hdr-user" id="hdr-user"></span>
-    <a class="hdr-btn primary" href="kaigo-search.html?consult=1">新しく相談する</a>
+    <a class="hdr-btn primary" href="kaigo-search.html?consult=1">＋ 新しい相談</a>
     <a class="hdr-btn" href="kaigo-search.html">検索に戻る</a>
-    <button class="hdr-btn" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
+    <button class="hdr-btn ghost-mobile" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
 </header>
 
-<div class="wrap">
-  <aside class="list">
-    <div class="list-hd">相談一覧 <span id="list-count" style="font-weight:400;color:var(--g500)"></span></div>
-    <div class="list-body" id="list"><div class="empty">読み込み中...</div></div>
+<div class="app" id="app">
+  <aside class="talks">
+    <div class="talks-hd">トーク <span id="list-count"></span></div>
+    <div class="talks-list" id="list"><div class="talks-empty">読み込み中...</div></div>
   </aside>
-  <section class="thread">
-    <div class="thread-hd" id="thread-hd"><div class="thread-sub">左の一覧から相談を選ぶと内容と返信が表示されます</div></div>
-    <div class="thread-body" id="thread-body"><div class="empty">相談が届くと Meets Medical から返信します。<br>新しい相談は右上の「新しく相談する」から送れます。</div></div>
-    <div class="reply" id="reply-box" style="display:none">
-      <textarea id="reply-text" rows="3" placeholder="Meets Medical への追加のご質問・補足があれば入力してください（個人情報は記載しないでください）"></textarea>
-      <div class="reply-row">
-        <span class="reply-note">送信すると Meets Medical に通知されます</span>
-        <button class="send-btn" id="send-btn" onclick="sendReply()">送信する</button>
+  <section class="room">
+    <div class="room-hd" id="room-hd">
+      <button class="room-back" onclick="showList()">← 一覧</button>
+      <div class="room-sub">左の一覧から相談を選んでください</div>
+    </div>
+    <div class="room-body" id="room-body"><div class="room-empty">相談を選ぶと、やり取りがここに表示されます。<br>新しい相談は右上の「＋ 新しい相談」から送れます。</div></div>
+    <div class="room-composer" id="composer" style="display:none">
+      <div class="composer-row">
+        <textarea id="reply-text" rows="2" placeholder="Meets Medical へのメッセージ（名前などの個人情報は書かないでください）" oninput="autoGrow(this)"></textarea>
+        <button class="send" id="send-btn" onclick="sendReply()">送信</button>
       </div>
+      <div class="composer-note" id="composer-note">送信すると Meets Medical に届きます</div>
     </div>
   </section>
 </div>
@@ -107,10 +146,11 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: KaigoConsult.CSS }));
 
-let ME = null;          // { uid, name, hospitalId, hospitalName, role }
-let ITEMS = [];         // 自病院の相談一覧
-let CUR = null;         // 表示中の相談ID
+let ME = null;
+let ITEMS = [];
+let CUR = null;
 let unsubMsgs = null;
+const esc = KaigoConsult.esc;
 
 auth.onAuthStateChanged(async user => {
   if (!user) { location.href = 'kaigo-login.html'; return; }
@@ -120,68 +160,110 @@ auth.onAuthStateChanged(async user => {
   const hospName = u.hospitalName || '';
   const person = (u.name && u.name !== hospName) ? u.name : '';
   ME = { uid: user.uid, name: person, hospitalId: u.hospitalId || '', hospitalName: hospName, role: 'hospital' };
-  document.getElementById('hdr-user').textContent = person ? person : hospName;
   document.body.style.visibility = 'visible';
   watchList();
 });
 
 function watchList() {
-  // 並び替えは端末側（複合インデックス不要）。件数は病院1件あたり少数の想定
   db.collection('consultations').where('hospitalId', '==', ME.hospitalId).onSnapshot(s => {
     ITEMS = s.docs.map(d => ({ id: d.id, ...d.data() }));
     const t = x => (x.lastMessageAt && x.lastMessageAt.toMillis) ? x.lastMessageAt.toMillis() : Date.now();
     ITEMS.sort((a, b) => t(b) - t(a));
     renderList();
+    if (CUR) renderRoomHead();
     const hash = location.hash.replace('#', '');
-    if (!CUR && (hash ? ITEMS.some(x => x.id === hash) : ITEMS.length)) openThread(hash || ITEMS[0].id);
-  }, e => { document.getElementById('list').innerHTML = `<div class="empty">読み込みエラー: ${KaigoConsult.esc(e.message)}</div>`; });
+    if (!CUR) {
+      if (hash && ITEMS.some(x => x.id === hash)) openThread(hash, true);
+      else if (ITEMS.length && !isMobile()) openThread(ITEMS[0].id, false);
+    }
+  }, e => { document.getElementById('list').innerHTML = `<div class="talks-empty">読み込みエラー: ${esc(e.message)}</div>`; });
 }
+
+function isMobile() { return matchMedia('(max-width:760px)').matches; }
+function initial(x) { return esc((x.caseLabel || '相').trim().slice(0, 1)); }
 
 function renderList() {
   const el = document.getElementById('list');
   document.getElementById('list-count').textContent = ITEMS.length ? `${ITEMS.length}件` : '';
-  if (!ITEMS.length) { el.innerHTML = '<div class="empty">まだ相談はありません。<br><a href="kaigo-search.html?consult=1">新しく相談する</a></div>'; return; }
+  if (!ITEMS.length) { el.innerHTML = '<div class="talks-empty">まだ相談はありません。<br><a href="kaigo-search.html?consult=1">＋ 新しい相談を送る</a></div>'; return; }
   el.innerHTML = ITEMS.map(x => {
-    const title = (x.facilities && x.facilities.length) ? x.facilities.map(f => f.name).join('、') : KaigoConsult.areasText(x.conditions || { areas: [] }) || '空室相談';
-    return `<div class="item ${x.id === CUR ? 'active' : ''}" onclick="openThread('${x.id}')">
-      <div class="item-top">${KaigoConsult.statusBadge(x.status)}${x.unreadForHospital ? '<span class="cs-unread">新着</span>' : ''}<span class="item-date">${KaigoConsult.fmtShort(x.lastMessageAt)}</span></div>
-      <div class="item-title">${KaigoConsult.esc(KaigoConsult.shortText(title, 26))}</div>
-      <div class="item-sub">${x.lastMessageBy === 'admin' ? 'Meets Medical: ' : ''}${KaigoConsult.esc(x.lastMessageText || '')}</div>
-    </div>`;
+    const last = x.lastMessageBy === 'admin' ? 'Meets Medical: ' + (x.lastMessageText || '') : (x.messageCount > 1 ? '自分: ' + (x.lastMessageText || '') : '相談を送信しました');
+    return `<a class="talk ${x.id === CUR ? 'active' : ''} ${x.unreadForHospital ? 'unread' : ''}" onclick="openThread('${x.id}', true)">
+      <div class="avatar" style="background:${KaigoConsult.caseColor(x.id)}">${initial(x)}</div>
+      <div class="talk-body">
+        <div class="talk-top"><span class="talk-name">${esc(KaigoConsult.caseName(x))}</span><span class="talk-time">${KaigoConsult.fmtShort(x.lastMessageAt)}</span></div>
+        <div class="talk-last">${esc(last.replace(/■ /g, ''))}</div>
+        <div class="talk-meta">${KaigoConsult.statusBadge(x.status)}</div>
+      </div>
+      ${x.unreadForHospital ? '<span class="badge">新着</span>' : ''}
+    </a>`;
   }).join('');
 }
 
-function openThread(id) {
+function renderRoomHead() {
+  const x = ITEMS.find(i => i.id === CUR);
+  if (!x) return;
+  document.getElementById('room-hd').innerHTML = `
+    <button class="room-back" onclick="showList()">← 一覧</button>
+    <div class="avatar" style="background:${KaigoConsult.caseColor(x.id)}">${initial(x)}</div>
+    <div><div class="room-name">${esc(KaigoConsult.caseName(x))}</div><div class="room-sub">${KaigoConsult.fmtDate(x.createdAt)} に送信　担当: ${esc(x.createdByName || x.hospitalName || '')}</div></div>
+    <span class="room-st">${KaigoConsult.statusBadge(x.status)}</span>`;
+  document.getElementById('composer-note').textContent = `「${KaigoConsult.caseName(x)}」への返信として Meets Medical に届きます`;
+}
+
+function dayLabel(ts) {
+  const d = ts && ts.toDate ? ts.toDate() : null;
+  if (!d) return '';
+  const today = new Date(), y = new Date(); y.setDate(today.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return '今日';
+  if (d.toDateString() === y.toDateString()) return '昨日';
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function openThread(id, front) {
   CUR = id;
   history.replaceState(null, '', '#' + id);
   renderList();
+  renderRoomHead();
+  document.getElementById('composer').style.display = 'block';
+  if (front) document.getElementById('app').classList.add('show-room');
   const x = ITEMS.find(i => i.id === id);
-  if (!x) return;
-  document.getElementById('thread-hd').innerHTML = `
-    <div><div class="thread-title">${KaigoConsult.esc((x.facilities && x.facilities.length) ? x.facilities.map(f => f.name).join('、') : '空室相談')}</div>
-    <div class="thread-sub">${KaigoConsult.fmtDate(x.createdAt)} 送信　担当: ${KaigoConsult.esc(x.createdByName || x.hospitalName || '')}</div></div>
-    <div style="margin-left:auto">${KaigoConsult.statusBadge(x.status)}</div>`;
-  document.getElementById('reply-box').style.display = 'block';
   if (unsubMsgs) unsubMsgs();
   unsubMsgs = db.collection('consultations').doc(id).collection('messages').orderBy('createdAt').onSnapshot(s => {
     const msgs = s.docs.map(d => d.data());
-    const body = document.getElementById('thread-body');
-    body.innerHTML = KaigoConsult.conditionsHTML(x) + KaigoConsult.messagesHTML(msgs, 'hospital');
+    const body = document.getElementById('room-body');
+    let html = '', lastDay = '';
+    msgs.forEach((m, i) => {
+      const day = dayLabel(m.createdAt);
+      if (day && day !== lastDay) { html += `<div class="day"><span>${day}</span></div>`; lastDay = day; }
+      const mine = m.by === 'hospital';
+      const facs = (i === 0 && x && x.facilities && x.facilities.length)
+        ? `<div class="facs">施設ページ: ${x.facilities.map(f => `<a href="kaigo-facility-view.html?id=${esc(f.id)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join('')}</div>` : '';
+      html += `<div class="msg ${mine ? 'me' : 'them'}"><div class="who">${mine ? esc(m.name || '自分') : 'Meets Medical'}</div><div class="bubble">${esc(m.text)}</div>${facs}<div class="time">${KaigoConsult.fmtShort(m.createdAt)}</div></div>`;
+    });
+    if (msgs.length <= 1) html += '<div class="sys">Meets Medical が確認中です。返信はここに届きます。<br>追加の情報があれば下の欄から送れます。</div>';
+    body.innerHTML = html;
     body.scrollTop = body.scrollHeight;
   });
-  if (x.unreadForHospital) KaigoConsult.markRead(db, id, 'hospital').catch(() => {});
+  if (x && x.unreadForHospital) KaigoConsult.markRead(db, id, 'hospital').catch(() => {});
 }
+
+function showList() { document.getElementById('app').classList.remove('show-room'); }
+
+function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(160, ta.scrollHeight) + 'px'; }
 
 async function sendReply() {
   const ta = document.getElementById('reply-text');
   const text = ta.value.trim();
-  if (!CUR || !text) return;
+  if (!CUR) return;
+  if (!text) { showToast('メッセージを入力してください'); ta.focus(); return; }
   const btn = document.getElementById('send-btn');
   btn.disabled = true;
   try {
     await KaigoConsult.send(db, CUR, 'hospital', ME, text);
-    ta.value = '';
+    ta.value = ''; autoGrow(ta);
     showToast('送信しました');
+    ta.focus();
   } catch (e) {
     console.error(e); showToast('送信に失敗しました: ' + (e.message || e));
   } finally { btn.disabled = false; }
