@@ -50,21 +50,38 @@
 
     /* ── フルページ検索モード ── */
     .body-wrap.search-only {
-      flex-direction:column; align-items:center; overflow-y:auto;
-      background:var(--paper);
-      padding-bottom:80px; position:relative;
+      display:grid; grid-template-columns:repeat(2, minmax(0, 680px)); grid-auto-rows:max-content; gap:0 22px;
+      justify-content:center; align-content:start; align-items:start;
+      overflow-y:auto; background:var(--paper);
+      padding:0 32px 80px; position:relative;
+    }
+    .body-wrap.search-only .search-hero { grid-column:1 / -1; }
+    /* 二択であることを見せる：左右のカードに色の帯（左＝青「施設を探す」、右＝ピンク「または、空室相談を送る」） */
+    .body-wrap.search-only .sidebar { border-color:var(--blue-d); overflow:visible; }
+    .body-wrap.search-only .sidebar::before {
+      content:'A　施設を探す'; grid-column:1 / -1; display:block; border-radius:17px 17px 0 0;
+      background:var(--blue-d); color:#fff; font-size:15px; font-weight:900; letter-spacing:.04em; padding:12px 20px;
+    }
+    .body-wrap.search-only .consult-inline { border-color:var(--pink-d); padding-top:0; }
+    .col-hd-consult { display:flex; align-items:center; gap:10px; margin:0 -22px 16px; background:var(--pink); color:#fff; font-size:15px; font-weight:900; letter-spacing:.04em; padding:12px 20px; border-radius:17px 17px 0 0; }
+    .col-hd-consult .or { font-size:11px; font-weight:800; background:#fff; color:var(--pink-d); border-radius:100px; padding:2px 9px; }
+    .hero-sub b { color:var(--ink); }
+    .body-wrap.search-only .main { grid-column:1 / -1; height:0; }
+    @media (max-width:1000px) {
+      .body-wrap.search-only { grid-template-columns:minmax(0, 1fr); padding:0 16px 80px; }
+      .body-wrap.search-only .consult-inline { margin-top:18px; }
     }
     .body-wrap.search-only .search-hero,
     .body-wrap.search-only .sidebar { position:relative; z-index:1; }
     .body-wrap.search-only .sidebar {
-      width:100%; max-width:1120px; min-width:unset;
+      width:100%; max-width:none; min-width:unset;
       border-right:none; border-radius:20px; background:#fff;
       border:2px solid var(--ink); box-shadow:none;
       overflow-y:visible;
       display:grid; grid-template-columns:1fr 1fr; align-items:start;
       padding:0;
     }
-    .body-wrap.search-only .sb-sec { border-bottom:none; padding:20px 26px; }
+    .body-wrap.search-only .sb-sec { border-bottom:none; padding:18px 20px; }
     .body-wrap.search-only .sb-sec:nth-child(odd)  { border-right:1px dashed var(--hair); }
     .body-wrap.search-only .sb-sec:nth-child(even) { border-right:none; }
     /* 施設種別は検索モードでフル幅 */
@@ -73,12 +90,12 @@
     .body-wrap.search-only .sb-sec-vac { display:none; }
     /* 入居条件は常に非表示（将来復活予定） */
     .sb-sec-cond { display:none !important; }
-    .body-wrap.search-only .sb-action-area { position:static; grid-column:1/-1; padding:22px 26px 26px; border-top:2px dashed var(--hair); }
+    .body-wrap.search-only .sb-action-area { position:static; grid-column:1/-1; padding:20px 20px 22px; border-top:2px dashed var(--hair); }
     .body-wrap.search-only .sb-action-area .sb-search-btn { font-size:17px; padding:15px; border-radius:100px; }
     .body-wrap.search-only .main { flex:0 0 0; min-width:0; overflow:hidden; opacity:0; pointer-events:none; }
 
     /* 空室相談ブロック（トップページに常設。検索結果モードでは隠れ、右下ボタン→モーダルに同じフォームが移る） */
-    .consult-inline { display:none; width:100%; max-width:1120px; margin-top:22px; background:#fff; border:2px solid var(--ink); border-radius:20px; padding:22px 26px 26px; }
+    .consult-inline { display:none; width:100%; margin-top:0; background:#fff; border:2px solid var(--ink); border-radius:20px; padding:20px 22px 22px; }
     .body-wrap.search-only .consult-inline { display:block; }
     body:has(.body-wrap.search-only) #float-consult-btn { display:none; }
     .ci-hd { display:flex; align-items:flex-start; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
@@ -91,10 +108,43 @@
     .ci-submit:hover { background:var(--pink-d); }
     .ci-submit:disabled { opacity:.6; cursor:not-allowed; }
     .ci-done { background:var(--blue-l); border:1.5px solid var(--blue-d); border-radius:12px; padding:12px 16px; font-size:14px; font-weight:700; color:var(--blue-d); margin-bottom:10px; }
-    @media (max-width:640px) { .consult-inline { padding:16px 14px 18px; border-radius:14px; margin-top:14px; } .ci-link { margin-left:0; } }
+    /* 最近のやり取り（チャット風。自分の相談は右、Meets Medical の返信は左） */
+    .ci-recent { display:none; background:var(--g50); border:1.5px solid var(--g200); border-radius:14px; padding:12px 14px; margin-bottom:16px; }
+    .ci-recent-hd { display:flex; align-items:center; font-size:12px; font-weight:800; color:var(--g600); margin-bottom:8px; }
+    .ci-recent-hd a { margin-left:auto; font-size:12px; color:var(--blue-d); font-weight:800; text-decoration:none; }
+    .ci-recent-hd a:hover { text-decoration:underline; }
+    .ci-item { display:block; text-decoration:none; color:var(--ink); padding:6px 0; border-top:1px dashed var(--g200); }
+    .ci-item:first-of-type { border-top:none; }
+    .ci-item:hover .ci-bub-body { border-color:var(--blue-d); }
+    .ci-bub { max-width:88%; margin:4px 0; }
+    .ci-bub.me { margin-left:auto; }
+    .ci-bub-meta { font-size:11px; color:var(--g500); margin:0 6px 2px; display:flex; align-items:center; gap:6px; }
+    .ci-bub.me .ci-bub-meta { justify-content:flex-end; }
+    .ci-bub-body { font-size:13px; line-height:1.6; padding:8px 12px; border-radius:12px; border:1.5px solid var(--ink); background:#fff; }
+    .ci-bub.me .ci-bub-body { background:var(--blue-l); }
+    .ci-item.unread .ci-bub.them .ci-bub-body { border-color:var(--pink); box-shadow:2px 2px 0 var(--pink); }
+    .ci-wait { font-size:11.5px; color:var(--g500); margin:2px 6px 4px; }
+    .ci-empty { font-size:13px; color:var(--g600); line-height:1.7; padding:4px 2px; }
+    .ci-compose-ttl { font-size:13px; font-weight:800; color:var(--g700); margin:0 0 10px; padding-left:10px; border-left:3px solid var(--pink); }
+    /* 必須未入力の項目を赤く示す */
+    .cs-grp.err .cs-grp-ttl { color:#b91c1c; }
+    .cs-grp.err .cs-chips { outline:2px solid #fca5a5; outline-offset:6px; border-radius:6px; }
+    /* チップはキーボードでも選べるように（入力欄は見えないがフォーカスは受ける） */
+    .cs-chip { position:relative; }
+    .cs-chip input { position:absolute; opacity:0; width:1px; height:1px; pointer-events:none; }
+    .cs-chip:has(input:focus-visible) { outline:2px solid var(--blue-d); outline-offset:2px; }
+    @media (max-width:640px) {
+      .consult-inline { padding:16px 14px 18px; border-radius:14px; margin-top:14px; }
+      .col-hd-consult { margin:0 -14px 14px; border-radius:11px 11px 0 0; }
+      .ci-link { margin-left:0; }
+      .hdr-title { white-space:nowrap; font-size:13px; }
+      .hdr-user { display:none; }
+      .hdr-logout { padding:5px 9px; font-size:11px; }
+    }
+    @media (max-width:430px) { .hdr-title { display:none; } }
 
     /* ヒーロー（フルページ検索モードのみ表示） */
-    .search-hero { display:none; width:100%; max-width:1120px; padding:44px 32px 22px; }
+    .search-hero { display:none; width:100%; padding:40px 0 20px; }
     .body-wrap.search-only .search-hero { display:flex; align-items:center; gap:20px; }
     .hero-icon { flex-shrink:0; }
     .hero-icon img { width:80px; height:80px; object-fit:contain; filter:drop-shadow(0 3px 10px rgba(43,43,43,.18)); }
@@ -409,7 +459,6 @@
     .cs-grp-ttl .opt { font-size:10px; font-weight:700; color:var(--g500); border:1px solid var(--g300); border-radius:4px; padding:1px 6px; }
     .cs-chips { display:flex; flex-wrap:wrap; gap:6px; }
     .cs-chip { display:inline-flex; align-items:center; padding:6px 12px; border:1.5px solid var(--g300); border-radius:100px; background:#fff; font-size:13px; font-weight:700; cursor:pointer; user-select:none; }
-    .cs-chip input { display:none; }
     .cs-chip:has(input:checked) { background:var(--ink); color:#fff; border-color:var(--ink); }
     .cs-inp, .cs-ta { width:100%; margin-top:8px; padding:9px 12px; border:1.5px solid var(--g300); border-radius:10px; font-family:inherit; font-size:13px; background:#fff; }
     .cs-ta { margin-top:4px; resize:vertical; }
@@ -498,8 +547,8 @@
   <div class="search-hero">
     <div class="hero-icon"><img src="logo.png" alt="介護施設検索"></div>
     <div>
-      <div class="hero-title">介護施設を探す</div>
-      <div class="hero-sub">エリア・費用・入居条件から最適な施設を見つけましょう</div>
+      <div class="hero-title">施設を探す ／ 空室相談を送る</div>
+      <div class="hero-sub">どちらか一方でOKです。<b>A</b>：条件を選んで施設を検索　<b>B</b>：「こんな方がいます」と Meets Medical に相談（受け入れ先を探してご連絡します）</div>
     </div>
   </div>
 
@@ -629,13 +678,15 @@
 
   <!-- 空室相談（トップページに常設。検索結果モードではモーダルに移る） -->
   <section class="consult-inline" id="consult-inline">
+    <div class="col-hd-consult"><span class="or">または</span>B　空室相談を送る</div>
     <div class="ci-hd">
       <div>
-        <div class="ci-title">空室相談</div>
-        <div class="ci-sub">「こんな方がいます。受け入れ可能な施設はありますか」を Meets Medical に送れます。当てはまるものにチェックして送るだけ、何件でも。</div>
+        <div class="ci-sub" style="margin-top:0">「こんな方がいます。受け入れ可能な施設はありますか」を Meets Medical に送れます。当てはまるものにチェックして送るだけ、何件でも。</div>
       </div>
       <a class="ci-link" href="kaigo-consult.html">これまでの相談・返信を見る</a>
     </div>
+    <div class="ci-recent" id="ci-recent"></div>
+    <div class="ci-compose-ttl">新しい相談を送る</div>
     <div id="cs-inline-host">
       <div id="cs-form">
       <div id="cs-facilities" class="cs-sel-fac"></div>
@@ -1960,7 +2011,22 @@ async function submitConsult(mode) {
   };
   const errEl = document.getElementById('cs-err');
   const errs = KaigoConsult.validate(c);
-  if (errs.length) { errEl.textContent = errs.join('\n'); return; }
+  // 未入力の項目を赤く示し、最初の項目までスクロールする
+  const missing = {
+    'cs-care': !c.care.length, 'cs-areas': !c.areas.length || (c.areas.includes(KaigoConsult.OTHER_AREA) && !c.areaOther),
+    'cs-budget': !c.budget.length, 'cs-needs': !c.needs.length,
+  };
+  let first = null;
+  Object.entries(missing).forEach(([id, bad]) => {
+    const grp = document.getElementById(id).closest('.cs-grp');
+    grp.classList.toggle('err', bad);
+    if (bad && !first) first = grp;
+  });
+  if (errs.length) {
+    errEl.textContent = errs.join('\n');
+    (first || errEl).scrollIntoView({ block: 'center', behavior: 'smooth' });
+    return;
+  }
   errEl.textContent = '';
   const btn = document.getElementById(mode === 'inline' ? 'cs-inline-submit' : 'cs-submit');
   const label = btn.textContent;
@@ -1994,19 +2060,58 @@ function updateConsultBtn() {
   c.textContent = n;
   lbl.textContent = n ? '選んだ施設について空室相談' : '空室相談';
 }
-// Meets Medical からの返信があるとヘッダーの「空室相談」に未読数を出す（病院ユーザーのみ）
+// 自病院の相談を監視し、ヘッダーの未読数と右カラムの「最近のやり取り」を更新する（病院ユーザーのみ）。
+// 病院1件あたりの相談は少数なので、全件を1つの監視で受けて端末側で並べ替える
+let MY_CONSULTS = [];
 function watchConsultBadge() {
-  if (!currentUser || currentUser.role !== 'hospital' || !currentUser.hospitalId) return;
+  const box = document.getElementById('ci-recent');
+  if (!currentUser || currentUser.role !== 'hospital' || !currentUser.hospitalId) { if (box) box.style.display = 'none'; return; }
   db.collection('consultations')
     .where('hospitalId', '==', currentUser.hospitalId)
-    .where('unreadForHospital', '==', true)
     .onSnapshot(s => {
+      MY_CONSULTS = s.docs.map(d => ({ id: d.id, ...d.data() }));
+      const t = x => (x.lastMessageAt && x.lastMessageAt.toMillis) ? x.lastMessageAt.toMillis() : Date.now();   // 送信直後（サーバー時刻未確定）は先頭
+      MY_CONSULTS.sort((a, b) => t(b) - t(a));
+      const unread = MY_CONSULTS.filter(x => x.unreadForHospital).length;
       const b = document.getElementById('hdr-consult-badge');
-      if (!b) return;
-      b.style.display = s.size ? 'inline-block' : 'none';
-      b.textContent = s.size;
+      if (b) { b.style.display = unread ? 'inline-block' : 'none'; b.textContent = unread; }
+      renderRecentConsults();
     }, () => { /* 権限なし等は無視 */ });
 }
+function consultSummary(x) {
+  const c = x.conditions || {};
+  const parts = [];
+  if (x.facilities && x.facilities.length) parts.push('施設: ' + x.facilities.map(f => f.name).join('、'));
+  if ((c.care || []).length)   parts.push(c.care.join('・'));
+  if ((c.areas || []).length)  parts.push(KaigoConsult.areasText(c));
+  if ((c.budget || []).length) parts.push(c.budget.join('・'));
+  return parts.join(' ／ ');
+}
+function renderRecentConsults() {
+  const box = document.getElementById('ci-recent');
+  if (!box) return;
+  box.style.display = 'block';
+  if (!MY_CONSULTS.length) {
+    box.innerHTML = '<div class="ci-empty">まだ相談はありません。下のフォームから送ると、Meets Medical からの返信がここに届きます。</div>';
+    return;
+  }
+  const items = MY_CONSULTS.slice(0, 3).map(x => {
+    const replied = x.lastMessageBy === 'admin';
+    const tail = replied
+      ? `<div class="ci-bub them"><div class="ci-bub-meta">Meets Medical　${KaigoConsult.fmtShort(x.lastMessageAt)}${x.unreadForHospital ? ' <span class="cs-unread">新着</span>' : ''}</div><div class="ci-bub-body">${KaigoConsult.esc(KaigoConsult.shortText(x.lastMessageText, 70))}</div></div>`
+      : (x.messageCount > 1
+          ? '<div class="ci-wait">やり取り中です（続きは履歴で見られます）</div>'
+          : '<div class="ci-wait">Meets Medical からの返信をお待ちください</div>');
+    return `<a class="ci-item ${x.unreadForHospital ? 'unread' : ''}" href="kaigo-consult.html#${x.id}" title="やり取りの全文を見る">
+      <div class="ci-bub me"><div class="ci-bub-meta">${KaigoConsult.fmtShort(x.createdAt)} 送信 ${KaigoConsult.statusBadge(x.status)}</div><div class="ci-bub-body">${KaigoConsult.esc(KaigoConsult.shortText(consultSummary(x), 70))}</div></div>
+      ${tail}
+    </a>`;
+  }).join('');
+  box.innerHTML = `<div class="ci-recent-hd">最近のやり取り${MY_CONSULTS.length > 3 ? `<a href="kaigo-consult.html">すべて見る（${MY_CONSULTS.length}件）</a>` : '<a href="kaigo-consult.html">履歴を開く</a>'}</div>${items}`;
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('consult-modal')?.style.display === 'flex') closeConsult();
+});
 
 function showToast(msg) {
   const t = document.getElementById('toast');
