@@ -77,6 +77,22 @@
     .body-wrap.search-only .sb-action-area .sb-search-btn { font-size:17px; padding:15px; border-radius:100px; }
     .body-wrap.search-only .main { flex:0 0 0; min-width:0; overflow:hidden; opacity:0; pointer-events:none; }
 
+    /* 空室相談ブロック（トップページに常設。検索結果モードでは隠れ、右下ボタン→モーダルに同じフォームが移る） */
+    .consult-inline { display:none; width:100%; max-width:1120px; margin-top:22px; background:#fff; border:2px solid var(--ink); border-radius:20px; padding:22px 26px 26px; }
+    .body-wrap.search-only .consult-inline { display:block; }
+    body:has(.body-wrap.search-only) #float-consult-btn { display:none; }
+    .ci-hd { display:flex; align-items:flex-start; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
+    .ci-title { font-size:20px; font-weight:900; display:inline-flex; align-items:center; gap:10px; }
+    .ci-title::before { content:''; width:12px; height:12px; border-radius:50%; background:var(--pink); border:2px solid var(--ink); }
+    .ci-sub { font-size:13px; color:var(--g600); margin-top:4px; line-height:1.7; }
+    .ci-link { margin-left:auto; font-size:13px; font-weight:800; color:var(--blue-d); text-decoration:none; border:1.5px solid var(--blue-d); background:var(--blue-l); padding:7px 14px; border-radius:100px; white-space:nowrap; }
+    .ci-link:hover { background:var(--blue-d); color:#fff; }
+    .ci-submit { width:100%; margin-top:6px; padding:15px; border:2px solid var(--ink); background:var(--pink); color:#fff; border-radius:100px; font-family:inherit; font-size:17px; font-weight:900; cursor:pointer; box-shadow:4px 4px 0 var(--ink); }
+    .ci-submit:hover { background:var(--pink-d); }
+    .ci-submit:disabled { opacity:.6; cursor:not-allowed; }
+    .ci-done { background:var(--blue-l); border:1.5px solid var(--blue-d); border-radius:12px; padding:12px 16px; font-size:14px; font-weight:700; color:var(--blue-d); margin-bottom:10px; }
+    @media (max-width:640px) { .consult-inline { padding:16px 14px 18px; border-radius:14px; margin-top:14px; } .ci-link { margin-left:0; } }
+
     /* ヒーロー（フルページ検索モードのみ表示） */
     .search-hero { display:none; width:100%; max-width:1120px; padding:44px 32px 22px; }
     .body-wrap.search-only .search-hero { display:flex; align-items:center; gap:20px; }
@@ -611,6 +627,30 @@
 
   </div>
 
+  <!-- 空室相談（トップページに常設。検索結果モードではモーダルに移る） -->
+  <section class="consult-inline" id="consult-inline">
+    <div class="ci-hd">
+      <div>
+        <div class="ci-title">空室相談</div>
+        <div class="ci-sub">「こんな方がいます。受け入れ可能な施設はありますか」を Meets Medical に送れます。当てはまるものにチェックして送るだけ、何件でも。</div>
+      </div>
+      <a class="ci-link" href="kaigo-consult.html">これまでの相談・返信を見る</a>
+    </div>
+    <div id="cs-inline-host">
+      <div id="cs-form">
+      <div id="cs-facilities" class="cs-sel-fac"></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">相談条件 <span class="req">必須</span></div><div class="cs-chips" id="cs-care"></div></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">希望エリア <span class="req">必須</span></div><div class="cs-chips" id="cs-areas"></div><input id="cs-area-other" class="cs-inp" placeholder="その他の希望エリア（市名など）" style="display:none"></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">費用 <span class="req">必須</span></div><div class="cs-chips" id="cs-budget"></div></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">こだわり・医療体制 <span class="req">必須</span></div><div class="cs-chips" id="cs-needs"></div></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">詳細 <span class="opt">任意</span></div><div class="cs-note">※名前などの個人情報は記載しないでください。</div><textarea id="cs-detail" class="cs-ta" rows="4" placeholder="例）退院予定日、医療的ケアの頻度、ご家族の希望など"></textarea></div>
+      <div class="cs-err" id="cs-err"></div>
+      </div>
+    </div>
+    <div class="ci-done" id="cs-inline-done" style="display:none"></div>
+    <button class="ci-submit" id="cs-inline-submit" onclick="submitConsult('inline')">この内容で Meets Medical に送る</button>
+  </section>
+
   <!-- メインコンテンツ -->
   <div class="main">
 
@@ -660,13 +700,7 @@
     </div>
     <div class="cs-modal-body">
       <div class="cs-intro">受け入れ可能な施設を Meets Medical が探してご連絡します。当てはまるものにチェックしてください（複数選択できます）。</div>
-      <div id="cs-facilities" class="cs-sel-fac"></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">相談条件 <span class="req">必須</span></div><div class="cs-chips" id="cs-care"></div></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">希望エリア <span class="req">必須</span></div><div class="cs-chips" id="cs-areas"></div><input id="cs-area-other" class="cs-inp" placeholder="その他の希望エリア（市名など）" style="display:none"></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">費用 <span class="req">必須</span></div><div class="cs-chips" id="cs-budget"></div></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">こだわり・医療体制 <span class="req">必須</span></div><div class="cs-chips" id="cs-needs"></div></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">詳細 <span class="opt">任意</span></div><div class="cs-note">※名前などの個人情報は記載しないでください。</div><textarea id="cs-detail" class="cs-ta" rows="4" placeholder="例）退院予定日、医療的ケアの頻度、ご家族の希望など"></textarea></div>
-      <div class="cs-err" id="cs-err"></div>
+      <div id="cs-modal-host"></div>
     </div>
     <div class="cs-modal-ft">
       <button class="cs-cancel" onclick="closeConsult()">キャンセル</button>
@@ -725,8 +759,13 @@ auth.onAuthStateChanged(async user => {
   if (!restoreResultsIfReturning()) loadSavedConditions();
   updateSaveBtnState();
   watchConsultBadge();
-  // 相談履歴ページの「新しく相談する」から来たときはフォームをすぐ開く
-  if (new URLSearchParams(location.search).get('consult') === '1') openConsult();
+  buildConsultForm();
+  // 相談履歴ページの「新しく相談する」から来たとき：トップページなら相談ブロックへスクロール、結果画面ならモーダル
+  if (new URLSearchParams(location.search).get('consult') === '1') {
+    const wrap = document.getElementById('body-wrap');
+    if (wrap.classList.contains('search-only')) setTimeout(() => document.getElementById('consult-inline').scrollIntoView({ behavior: 'smooth' }), 300);
+    else openConsult();
+  }
 });
 
 // ── 定数 ─────────────────────────────────────────────────
@@ -1894,20 +1933,25 @@ function removeConsultFacility(id) {
   updateFloatBtn();
   renderConsultFacilities();
 }
+// フォーム本体（#cs-form）は1つだけ。トップページでは検索カードの下に、検索結果モードではモーダルに移して使う
 function openConsult() {
   buildConsultForm();
   renderConsultFacilities();
   document.getElementById('cs-err').textContent = '';
+  document.getElementById('cs-modal-host').appendChild(document.getElementById('cs-form'));
   document.getElementById('consult-modal').style.display = 'flex';
 }
-function closeConsult() { document.getElementById('consult-modal').style.display = 'none'; }
+function closeConsult() {
+  document.getElementById('consult-modal').style.display = 'none';
+  document.getElementById('cs-inline-host').appendChild(document.getElementById('cs-form'));
+}
 function consultChecked(id) { return [...document.querySelectorAll(`#${id} input:checked`)].map(i => i.value); }
 function resetConsultForm() {
-  document.querySelectorAll('#consult-modal input[type=checkbox]').forEach(i => { i.checked = false; });
+  document.querySelectorAll('#cs-form input[type=checkbox]').forEach(i => { i.checked = false; });   // フォームはトップページ／モーダルのどちらにもあり得る
   const other = document.getElementById('cs-area-other'); other.value = ''; other.style.display = 'none';
   document.getElementById('cs-detail').value = '';
 }
-async function submitConsult() {
+async function submitConsult(mode) {
   const c = {
     care: consultChecked('cs-care'), areas: consultChecked('cs-areas'),
     areaOther: document.getElementById('cs-area-other').value.trim(),
@@ -1918,18 +1962,28 @@ async function submitConsult() {
   const errs = KaigoConsult.validate(c);
   if (errs.length) { errEl.textContent = errs.join('\n'); return; }
   errEl.textContent = '';
-  const btn = document.getElementById('cs-submit');
+  const btn = document.getElementById(mode === 'inline' ? 'cs-inline-submit' : 'cs-submit');
+  const label = btn.textContent;
   btn.disabled = true; btn.textContent = '送信中...';
   try {
     await KaigoConsult.create(db, currentUser, c, consultFacilities());
-    closeConsult();
     resetConsultForm();
-    showToast('空室相談を送信しました。返信は上部の「空室相談」で確認できます');
+    if (mode === 'inline') {
+      // トップページ：その場に完了表示を出し、続けて次の相談を送れるようにする
+      const done = document.getElementById('cs-inline-done');
+      done.textContent = '送信しました。Meets Medical が確認して返信します（返信は「これまでの相談・返信を見る」から）。続けて別の方の相談も送れます。';
+      done.style.display = 'block';
+      done.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      clearTimeout(done._t); done._t = setTimeout(() => { done.style.display = 'none'; }, 8000);
+    } else {
+      closeConsult();
+    }
+    showToast('空室相談を送信しました');
   } catch (e) {
     console.error(e);
     errEl.textContent = '送信に失敗しました: ' + (e && e.message ? e.message : e);
   } finally {
-    btn.disabled = false; btn.textContent = '送信する';
+    btn.disabled = false; btn.textContent = label;
   }
 }
 function updateConsultBtn() {
