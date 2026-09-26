@@ -728,7 +728,7 @@
     <div id="cs-inline-host" hidden>
       <div id="cs-form">
       <div id="cs-facilities" class="cs-sel-fac"></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">この相談の呼び名 <span class="req">必須</span></div><input id="cs-label" class="cs-inp" maxlength="20" placeholder="例：Aさん、9月末退院の方（個人が特定されない仮名や番号で）" style="margin-top:0"><div class="cs-hint">誰の件のやり取りかを見分けるための名前です。本名は書かないでください</div></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">この方のイニシャル <span class="req">必須</span></div><input id="cs-label" class="cs-inp" maxlength="8" placeholder="例：T.K" style="margin-top:0;max-width:200px;text-transform:uppercase"><div class="cs-hint">誰の件かを見分けるためのイニシャルです（英字のみ）。本名は書かないでください</div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">相談条件 <span class="req">必須</span></div><div class="cs-chips" id="cs-care"></div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">希望エリア <span class="req">必須</span></div><div class="cs-chips" id="cs-areas"></div><input id="cs-area-other" class="cs-inp" placeholder="その他の希望エリア（市名など）" style="display:none"></div>
       <div class="cs-grp"><div class="cs-grp-ttl">費用 <span class="req">必須</span></div><div class="cs-chips" id="cs-budget"></div></div>
@@ -2054,7 +2054,7 @@ async function submitConsult(mode) {
   const errs = KaigoConsult.validate(c);
   // 未入力の項目を赤く示し、最初の項目までスクロールする
   const missing = {
-    'cs-label': !c.caseLabel || c.caseLabel.length > KaigoConsult.LABEL_MAX,
+    'cs-label': KaigoConsult.validate({ caseLabel: c.caseLabel, care: ['x'], areas: ['x'], budget: ['x'], needs: ['x'] }).length > 0,
     'cs-care': !c.care.length, 'cs-areas': !c.areas.length || (c.areas.includes(KaigoConsult.OTHER_AREA) && !c.areaOther),
     'cs-budget': !c.budget.length, 'cs-needs': !c.needs.length,
   };
@@ -2140,7 +2140,7 @@ function consultSummary(x) {
 //  ・「Aさんの件」：その相談のやり取り（相談内容・Meets Medical の返信・こちらの返信）と、その場で返信できる入力欄
 // データは通常のフォームと同じ形（consultations／messages）で保存する
 const CHAT_STEPS = [
-  { key: 'label',  q: 'こんにちは。受け入れ先を Meets Medical が探します。まず、この相談の呼び名を決めてください（個人が特定されない仮名や番号で。例：Aさん、9月末退院の方）', label: true },
+  { key: 'label',  q: 'こんにちは。受け入れ先を Meets Medical が探します。まず、この方のイニシャルを入力してください（例：T.K）。本名は書かないでください', label: true },
   { key: 'care',   q: '相談条件を選んでください（複数可）', opts: () => KaigoConsult.CARE },
   { key: 'areas',  q: '希望エリアはどちらですか（複数可）', opts: () => KaigoConsult.areaOptions(CITY_MAP, SHOWN_PREFS) },
   { key: 'budget', q: '費用の目安を選んでください（複数可）', opts: () => KaigoConsult.BUDGET },
@@ -2158,7 +2158,7 @@ function chatReset() {
   CHAT = { step: 0, maxStep: 0, a: { caseLabel: '', care: [], areas: [], areaOther: '', budget: [], needs: [], detail: '' }, sel: new Set(), other: '', done: false, sending: false };
 }
 function chatAnswerLabel(key, a) {
-  if (key === 'label')  return a.caseLabel;
+  if (key === 'label')  return KaigoConsult.normalizeInitials(a.caseLabel) + 'さん';
   if (key === 'areas')  return KaigoConsult.areasText(a);
   if (key === 'detail') return a.detail || '（補足なし）';
   return (a[key] || []).join('、');
@@ -2245,8 +2245,8 @@ function renderChat() {
     const st = CHAT_STEPS[CHAT.step];
     html += `<div class="ci-bub them bot"><div class="ci-bub-body">${esc(st.q)}</div></div>`;
     if (st.label) {
-      comp.innerHTML = `<input class="chat-ta" id="chat-label" maxlength="${KaigoConsult.LABEL_MAX}" placeholder="例：Aさん、9月末退院の方" value="${esc(CHAT.a.caseLabel)}" oninput="CHAT.a.caseLabel = this.value" onkeydown="if (event.key === 'Enter') { event.preventDefault(); chatNext(); }">
-        <span class="chat-hint">誰の件のやり取りかを見分けるための名前です。本名は書かないでください</span>
+      comp.innerHTML = `<input class="chat-ta" id="chat-label" maxlength="8" placeholder="例：T.K" value="${esc(CHAT.a.caseLabel)}" oninput="CHAT.a.caseLabel = this.value" onkeydown="if (event.key === 'Enter') { event.preventDefault(); chatNext(); }" style="flex:0 1 200px;text-transform:uppercase">
+        <span class="chat-hint">誰の件かを見分けるためのイニシャルです（英字のみ）。本名は書かないでください</span>
         <button class="chat-btn primary" onclick="chatNext()">次へ</button>`;
     } else if (st.opts) {
       html += `<div class="chat-qr">${st.opts().map(o => `<button type="button" class="chat-chip ${CHAT.sel.has(o) ? 'on' : ''}" data-v="${esc(o)}" onclick="chatToggle(this.dataset.v)">${esc(o)}</button>`).join('')}</div>`;
@@ -2271,7 +2271,7 @@ window.addEventListener('resize', () => { const st = document.getElementById('ch
 function chatToggle(v) { if (CHAT.sel.has(v)) CHAT.sel.delete(v); else CHAT.sel.add(v); renderChat(); }
 function chatSaveCurrent() {
   const st = CHAT_STEPS[CHAT.step];
-  if (st.label) CHAT.a.caseLabel = (document.getElementById('chat-label')?.value || CHAT.a.caseLabel || '').trim();
+  if (st.label) CHAT.a.caseLabel = KaigoConsult.normalizeInitials(document.getElementById('chat-label')?.value || CHAT.a.caseLabel || '');
   if (st.opts) CHAT.a[st.key] = st.opts().filter(o => CHAT.sel.has(o));
   if (st.key === 'areas') CHAT.a.areaOther = CHAT.sel.has(KaigoConsult.OTHER_AREA) ? CHAT.other.trim() : '';
   if (st.text) CHAT.a.detail = (document.getElementById('chat-detail')?.value || CHAT.a.detail || '').trim();
@@ -2286,8 +2286,10 @@ function chatGoto(i) {
 function chatNext() {
   const st = CHAT_STEPS[CHAT.step];
   if (st.label) {
-    const v = (document.getElementById('chat-label')?.value || '').trim();
-    if (!v) { showToast('呼び名を入力してください（例：Aさん）'); document.getElementById('chat-label')?.focus(); return; }
+    const v = KaigoConsult.normalizeInitials(document.getElementById('chat-label')?.value || '');
+    const errs = KaigoConsult.validate({ caseLabel: v, care: ['x'], areas: ['x'], budget: ['x'], needs: ['x'] });
+    if (errs.length) { showToast(errs[0]); document.getElementById('chat-label')?.focus(); return; }
+    CHAT.a.caseLabel = v;
   }
   if (st.opts && !CHAT.sel.size) return;
   if (st.key === 'areas' && CHAT.sel.has(KaigoConsult.OTHER_AREA) && !CHAT.other.trim()) { showToast('「その他」の希望エリアを入力してください'); document.getElementById('chat-other')?.focus(); return; }

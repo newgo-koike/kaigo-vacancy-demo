@@ -23,8 +23,17 @@
   const STATUS = { open: '新規', working: '対応中', answered: '回答済', closed: '終了' };
   const STATUS_ORDER = ['open', 'working', 'answered', 'closed'];
   const DETAIL_NOTE = '※名前などの個人情報は記載しないでください。';
-  const LABEL_HINT  = '個人が特定されない仮名や番号で（例：Aさん、9月末退院の方）';
-  const LABEL_MAX   = 20;
+  const LABEL_HINT  = 'イニシャル（例：T.K）。本名は書かないでください';
+  const LABEL_MAX   = 6;
+  // イニシャルの表記ゆれを揃える：全角→半角、空白除去、大文字化、「・」「，」→「.」
+  function normalizeInitials(s) {
+    return String(s || '')
+      .replace(/[Ａ-Ｚａ-ｚ．]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+      .replace(/[・，,]/g, '.')
+      .replace(/\s+/g, '')
+      .toUpperCase();
+  }
+  const INITIALS_RE = /^[A-Z](\.?[A-Z]){0,3}\.?$/;
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -60,9 +69,9 @@
   // 入力チェック。必須：相談条件・希望エリア・費用・こだわり（「特になし」で可）。詳細は任意
   function validate(c) {
     const errs = [];
-    const label = String(c.caseLabel || '').trim();
-    if (!label) errs.push('この相談の呼び名を入力してください（例：Aさん）');
-    else if (label.length > LABEL_MAX) errs.push(`呼び名は${LABEL_MAX}文字以内にしてください`);
+    const label = normalizeInitials(c.caseLabel);
+    if (!label) errs.push('この方のイニシャルを入力してください（例：T.K）');
+    else if (label.length > LABEL_MAX || !INITIALS_RE.test(label)) errs.push('イニシャルは英字で入力してください（例：T.K、A.S、K）');
     if (!c.care.length)   errs.push('相談条件を1つ以上選んでください');
     if (!c.areas.length)  errs.push('希望エリアを1つ以上選んでください');
     if (c.areas.includes(OTHER_AREA) && !String(c.areaOther || '').trim()) errs.push('希望エリア「その他」の内容を入力してください');
@@ -79,7 +88,7 @@
   // 最初のメッセージ本文（相談内容の要約）。管理画面・履歴の両方でそのまま読める形にする
   function firstMessageText(c, facilities) {
     const lines = [];
-    if ((c.caseLabel || '').trim()) { lines.push('■ 呼び名：' + c.caseLabel.trim()); lines.push(''); }
+    if (normalizeInitials(c.caseLabel)) { lines.push('■ イニシャル：' + normalizeInitials(c.caseLabel)); lines.push(''); }
     if (facilities && facilities.length) {
       lines.push('■ この施設の情報を知りたいです');
       facilities.forEach(f => lines.push(`　・${f.name}`));
@@ -112,7 +121,7 @@
       createdByName: user.name || '',
       createdAt: now, updatedAt: now,
       status: 'open',
-      caseLabel: String(c.caseLabel || '').trim(),
+      caseLabel: normalizeInitials(c.caseLabel),
       conditions: { care: c.care, areas: c.areas, areaOther: c.areaOther || '', budget: c.budget, needs: c.needs, detail: (c.detail || '').trim() },
       facilities: (facilities || []).map(f => ({ id: f.id, name: f.name })),
       lastMessageAt: now, lastMessageBy: 'hospital', lastMessageText: shortText(text, 80), messageCount: 1,
@@ -151,10 +160,10 @@
     await db.collection('consultations').doc(cid).update({ status, updatedAt: fb.firestore.FieldValue.serverTimestamp() });
   }
 
-  // 「誰の件か」の表示名。呼び名が無い古い相談は送信日で表す
+  // 「誰の件か」の表示名（イニシャル＋さんの件）。イニシャルが無い古い相談は送信日で表す
   function caseName(d) {
     const l = String(d.caseLabel || '').trim();
-    return l ? l + 'の件' : '相談（' + fmtShort(d.createdAt) + '）';
+    return l ? l + 'さんの件' : '相談（' + fmtShort(d.createdAt) + '）';
   }
   // 相談ごとの識別色（IDから決める。同じ相談はいつも同じ色）
   function caseColor(id) {
@@ -171,7 +180,7 @@
     const areas = (c.areas || []).map(a => a === OTHER_AREA && c.areaOther ? `その他（${c.areaOther}）` : a);
     const facs = (d.facilities || []);
     return `<div class="cs-cond">
-      ${(d.caseLabel || '').trim() ? `<div class="cs-row"><div class="cs-row-lbl">呼び名</div><div class="cs-row-val"><span class="cs-chip-ro" style="border-color:${caseColor(d.id)};color:${caseColor(d.id)}">${esc(d.caseLabel)}の件</span></div></div>` : ''}
+      ${(d.caseLabel || '').trim() ? `<div class="cs-row"><div class="cs-row-lbl">イニシャル</div><div class="cs-row-val"><span class="cs-chip-ro" style="border-color:${caseColor(d.id)};color:${caseColor(d.id)}">${esc(d.caseLabel)}さんの件</span></div></div>` : ''}
       ${facs.length ? `<div class="cs-row"><div class="cs-row-lbl">情報を知りたい施設</div><div class="cs-row-val">${facs.map(f => `<a class="cs-chip-ro cs-chip-link" href="kaigo-facility-view.html?id=${esc(f.id)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join('')}</div></div>` : ''}
       ${row('相談条件', c.care || [])}
       ${row('希望エリア', areas)}
@@ -226,6 +235,6 @@
   }
 
   global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_MAX, CSS,
-    esc, areaOptions, validate, firstMessageText, areasText, fmtDate, fmtShort, shortText, caseName, caseColor,
+    esc, areaOptions, validate, firstMessageText, areasText, fmtDate, fmtShort, shortText, caseName, caseColor, normalizeInitials,
     create, send, markRead, setStatus, conditionsHTML, messagesHTML, statusBadge };
 })(window);
