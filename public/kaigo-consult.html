@@ -37,7 +37,7 @@
   .talk{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--hair);cursor:pointer;text-decoration:none;color:var(--ink);}
   .talk:hover{background:var(--g50);}
   .talk.active{background:var(--blue-l);}
-  .avatar{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:900;background:var(--g400);}
+  .avatar{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:900;background:var(--g400);letter-spacing:-.02em;}
   .talk-body{flex:1;min-width:0;}
   .talk-top{display:flex;align-items:baseline;gap:8px;}
   .talk-name{font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -53,7 +53,7 @@
   .room{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--room);}
   .room-hd{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--hair);flex-shrink:0;}
   .room-back{display:none;border:2px solid var(--ink);background:#fff;border-radius:100px;padding:8px 14px;font-family:inherit;font-weight:900;font-size:14px;cursor:pointer;}
-  .room-hd .avatar{width:40px;height:40px;font-size:18px;}
+  .room-hd .avatar{width:40px;height:40px;font-size:12px;}
   .room-name{font-size:17px;font-weight:900;}
   .room-sub{font-size:12px;color:var(--g500);margin-top:2px;}
   .room-st{margin-left:auto;}
@@ -180,10 +180,12 @@ function watchList() {
 }
 
 function isMobile() { return matchMedia('(max-width:760px)').matches; }
-function initial(x) { return esc((x.caseLabel || '相').trim().slice(0, 1)); }
+function initial(x) { return esc(KaigoConsult.caseMark(x)); }
 
+let NAMES = {};
 function renderList() {
   const el = document.getElementById('list');
+  NAMES = KaigoConsult.uniqueCaseNames(ITEMS);
   document.getElementById('list-count').textContent = ITEMS.length ? `${ITEMS.length}件` : '';
   if (!ITEMS.length) { el.innerHTML = '<div class="talks-empty">まだ相談はありません。<br><a href="kaigo-search.html?consult=1">＋ 新しい相談を送る</a></div>'; return; }
   el.innerHTML = ITEMS.map(x => {
@@ -191,7 +193,7 @@ function renderList() {
     return `<a class="talk ${x.id === CUR ? 'active' : ''} ${x.unreadForHospital ? 'unread' : ''}" onclick="openThread('${x.id}', true)">
       <div class="avatar" style="background:${KaigoConsult.caseColor(x.id)}">${initial(x)}</div>
       <div class="talk-body">
-        <div class="talk-top"><span class="talk-name">${esc(KaigoConsult.caseName(x))}</span><span class="talk-time">${KaigoConsult.fmtShort(x.lastMessageAt)}</span></div>
+        <div class="talk-top"><span class="talk-name">${esc(NAMES[x.id] || KaigoConsult.caseName(x))}</span><span class="talk-time">${KaigoConsult.fmtShort(x.lastMessageAt)}</span></div>
         <div class="talk-last">${esc(last.replace(/■ /g, ''))}</div>
         <div class="talk-meta">${KaigoConsult.statusBadge(x.status)}</div>
       </div>
@@ -206,9 +208,9 @@ function renderRoomHead() {
   document.getElementById('room-hd').innerHTML = `
     <button class="room-back" onclick="showList()">← 一覧</button>
     <div class="avatar" style="background:${KaigoConsult.caseColor(x.id)}">${initial(x)}</div>
-    <div><div class="room-name">${esc(KaigoConsult.caseName(x))}</div><div class="room-sub">${KaigoConsult.fmtDate(x.createdAt)} に送信　担当: ${esc(x.createdByName || x.hospitalName || '')}</div></div>
+    <div><div class="room-name">${esc(NAMES[x.id] || KaigoConsult.caseName(x))}</div><div class="room-sub">${KaigoConsult.fmtDate(x.createdAt)} に送信　担当: ${esc(x.createdByName || x.hospitalName || '')}</div></div>
     <span class="room-st">${KaigoConsult.statusBadge(x.status)}</span>`;
-  document.getElementById('composer-note').textContent = `「${KaigoConsult.caseName(x)}」への返信として Meets Medical に届きます`;
+  document.getElementById('composer-note').textContent = `「${NAMES[x.id] || KaigoConsult.caseName(x)}」への返信として Meets Medical に届きます`;
 }
 
 function dayLabel(ts) {

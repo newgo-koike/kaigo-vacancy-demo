@@ -728,11 +728,10 @@
     <div id="cs-inline-host" hidden>
       <div id="cs-form">
       <div id="cs-facilities" class="cs-sel-fac"></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">この方のイニシャル <span class="req">必須</span></div><input id="cs-label" class="cs-inp" maxlength="8" placeholder="例：T.K" style="margin-top:0;max-width:200px;text-transform:uppercase"><div class="cs-hint">誰の件かを見分けるためのイニシャルです（英字のみ）。本名は書かないでください</div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">相談条件 <span class="req">必須</span></div><div class="cs-chips" id="cs-care"></div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">希望エリア <span class="req">必須</span></div><div class="cs-chips" id="cs-areas"></div><input id="cs-area-other" class="cs-inp" placeholder="その他の希望エリア（市名など）" style="display:none"></div>
       <div class="cs-grp"><div class="cs-grp-ttl">費用 <span class="req">必須</span></div><div class="cs-chips" id="cs-budget"></div></div>
-      <div class="cs-grp"><div class="cs-grp-ttl">こだわり・医療体制 <span class="req">必須</span></div><div class="cs-chips" id="cs-needs"></div></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">こだわり・医療体制 <span class="opt">任意</span></div><div class="cs-chips" id="cs-needs"></div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">詳細 <span class="opt">任意</span></div><div class="cs-note">※名前などの個人情報は記載しないでください。</div><textarea id="cs-detail" class="cs-ta" rows="4" placeholder="例）退院予定日、医療的ケアの頻度、ご家族の希望など"></textarea></div>
       <div class="cs-err" id="cs-err"></div>
       </div>
@@ -2039,12 +2038,10 @@ function resetConsultForm() {
   document.querySelectorAll('#cs-form input[type=checkbox]').forEach(i => { i.checked = false; });   // フォームはトップページ／モーダルのどちらにもあり得る
   const other = document.getElementById('cs-area-other'); other.value = ''; other.style.display = 'none';
   document.getElementById('cs-detail').value = '';
-  document.getElementById('cs-label').value = '';
   document.querySelectorAll('#cs-form .cs-grp.err').forEach(g => g.classList.remove('err'));
 }
 async function submitConsult(mode) {
   const c = {
-    caseLabel: document.getElementById('cs-label').value.trim(),
     care: consultChecked('cs-care'), areas: consultChecked('cs-areas'),
     areaOther: document.getElementById('cs-area-other').value.trim(),
     budget: consultChecked('cs-budget'), needs: consultChecked('cs-needs'),
@@ -2054,9 +2051,8 @@ async function submitConsult(mode) {
   const errs = KaigoConsult.validate(c);
   // 未入力の項目を赤く示し、最初の項目までスクロールする
   const missing = {
-    'cs-label': KaigoConsult.validate({ caseLabel: c.caseLabel, care: ['x'], areas: ['x'], budget: ['x'], needs: ['x'] }).length > 0,
     'cs-care': !c.care.length, 'cs-areas': !c.areas.length || (c.areas.includes(KaigoConsult.OTHER_AREA) && !c.areaOther),
-    'cs-budget': !c.budget.length, 'cs-needs': !c.needs.length,
+    'cs-budget': !c.budget.length, 'cs-needs': false,
   };
   let first = null;
   Object.entries(missing).forEach(([id, bad]) => {
@@ -2140,11 +2136,10 @@ function consultSummary(x) {
 //  ・「Aさんの件」：その相談のやり取り（相談内容・Meets Medical の返信・こちらの返信）と、その場で返信できる入力欄
 // データは通常のフォームと同じ形（consultations／messages）で保存する
 const CHAT_STEPS = [
-  { key: 'label',  q: 'こんにちは。受け入れ先を Meets Medical が探します。まず、この方のイニシャルを入力してください（例：T.K）。本名は書かないでください', label: true },
-  { key: 'care',   q: '相談条件を選んでください（複数可）', opts: () => KaigoConsult.CARE },
+  { key: 'care',   q: 'こんにちは。受け入れ先を Meets Medical が探します。まず相談条件を選んでください（複数可）', opts: () => KaigoConsult.CARE },
   { key: 'areas',  q: '希望エリアはどちらですか（複数可）', opts: () => KaigoConsult.areaOptions(CITY_MAP, SHOWN_PREFS) },
   { key: 'budget', q: '費用の目安を選んでください（複数可）', opts: () => KaigoConsult.BUDGET },
-  { key: 'needs',  q: 'こだわり・医療体制で必要なものはありますか（複数可。該当なしは「特になし」）', opts: () => KaigoConsult.NEEDS },
+  { key: 'needs',  q: 'こだわり・医療体制で必要なものはありますか（任意・複数可。なければそのまま「次へ」）', opts: () => KaigoConsult.NEEDS, optional: true },
   { key: 'detail', q: '補足があれば入力してください（任意）。名前などの個人情報は書かないでください', text: true },
   { key: 'confirm', q: 'この内容で送信しますか？' },
 ];
@@ -2207,18 +2202,19 @@ function renderChat() {
   const esc = KaigoConsult.esc, fmt = KaigoConsult.fmtShort;
   const tm = x => (x.lastMessageAt && x.lastMessageAt.toMillis) ? x.lastMessageAt.toMillis() : Date.now();
   const cases = [...MY_CONSULTS].sort((x, y) => tm(y) - tm(x));
-  // 呼び名タブ（新しい相談＋各件）
+  const NAMES = KaigoConsult.uniqueCaseNames(cases);
+  // 件ごとのタブ（新しい相談＋各件。名前は送信日時）
   const tabs = `<div class="chat-cases">
     <button type="button" class="chat-case new ${CHAT_VIEW.mode === 'wizard' ? 'on' : ''}" onclick="chatShowWizard()">＋ 新しい相談</button>
-    ${cases.map(x => `<button type="button" class="chat-case ${CHAT_VIEW.mode === 'thread' && CHAT_VIEW.caseId === x.id ? 'on' : ''}" style="--cc:${KaigoConsult.caseColor(x.id)}" onclick="chatOpenCase('${x.id}')"><span class="dot"></span>${esc(KaigoConsult.caseName(x))}${x.unreadForHospital ? '<span class="cs-unread">新着</span>' : ''}</button>`).join('')}
+    ${cases.map(x => `<button type="button" class="chat-case ${CHAT_VIEW.mode === 'thread' && CHAT_VIEW.caseId === x.id ? 'on' : ''}" style="--cc:${KaigoConsult.caseColor(x.id)}" onclick="chatOpenCase('${x.id}')"><span class="dot"></span>${esc(NAMES[x.id])}${x.unreadForHospital ? '<span class="cs-unread">新着</span>' : ''}</button>`).join('')}
   </div>`;
   let html = '';
   if (CHAT_VIEW.mode === 'thread') {
     const x = cases.find(c => c.id === CHAT_VIEW.caseId);
     if (!x) { CHAT_VIEW.mode = 'wizard'; return renderChat(); }
     const cc = KaigoConsult.caseColor(x.id);
-    html += `<div class="chat-thread-hd" style="--cc:${cc}"><span class="chat-case dot" style="background:${cc};color:#fff;border:none;padding:0;width:26px;height:26px;justify-content:center">${esc((x.caseLabel || '相').trim().slice(0, 1))}</span>
-      <div><div class="nm">${esc(KaigoConsult.caseName(x))}</div><div class="sub">${KaigoConsult.fmtDate(x.createdAt)} に送信</div></div>
+    html += `<div class="chat-thread-hd" style="--cc:${cc}"><span class="chat-case dot" style="background:${cc};color:#fff;border:none;padding:0 6px;height:26px;justify-content:center;font-size:11px;font-weight:900;display:inline-flex;align-items:center;border-radius:100px">${esc(KaigoConsult.caseMark(x))}</span>
+      <div><div class="nm">${esc(NAMES[x.id])}</div><div class="sub">${KaigoConsult.fmtDate(x.createdAt)} に送信</div></div>
       <span class="st">${KaigoConsult.statusBadge(x.status)}</span><a href="kaigo-consult.html#${x.id}">大きな画面で見る</a></div>`;
     html += `<div class="ci-bub me"><div class="ci-bub-meta">相談内容　${fmt(x.createdAt)}</div><div class="ci-bub-body">${esc(consultSummaryLines(x))}</div></div>`;
     let lastDay = chatDateLabel(x.createdAt);
@@ -2230,7 +2226,7 @@ function renderChat() {
     });
     if (CHAT_MSGS.length <= 1) html += '<div class="chat-sys">Meets Medical が確認中です。返信はここに届きます。追加の情報があれば下から送れます</div>';
     comp.innerHTML = `<textarea class="chat-ta" id="chat-reply" rows="2" placeholder="Meets Medical への返信・追記（名前などの個人情報は書かないでください）" oninput="CHAT_REPLY_DRAFT = this.value">${esc(CHAT_REPLY_DRAFT)}</textarea>
-      <span class="chat-hint">この件（${esc(KaigoConsult.caseName(x))}）への返信として送られます</span>
+      <span class="chat-hint">この件（${esc(NAMES[x.id])}）への返信として送られます</span>
       <button class="chat-btn primary" id="chat-reply-btn" onclick="chatReply()">送信</button>`;
   } else if (CHAT.done) {
     html += '<div class="ci-bub them bot"><div class="ci-bub-body">送信しました。Meets Medical が確認して返信します。返信は上のタブ（呼び名）から見られます。</div></div>';
@@ -2253,7 +2249,8 @@ function renderChat() {
       if (st.key === 'areas' && CHAT.sel.has(KaigoConsult.OTHER_AREA)) {
         html += `<input class="chat-inp" id="chat-other" placeholder="その他の希望エリア（市名など）" value="${esc(CHAT.other)}" oninput="CHAT.other = this.value">`;
       }
-      comp.innerHTML = `<span class="chat-cnt">${CHAT.sel.size ? CHAT.sel.size + '件選択中' : 'タップして選んでください'}</span><button class="chat-btn primary" ${CHAT.sel.size ? '' : 'disabled'} onclick="chatNext()">次へ</button>`;
+      const canNext = CHAT.sel.size > 0 || st.optional;
+      comp.innerHTML = `<span class="chat-cnt">${CHAT.sel.size ? CHAT.sel.size + '件選択中' : (st.optional ? '任意です。なければそのまま次へ' : 'タップして選んでください')}</span><button class="chat-btn primary" ${canNext ? '' : 'disabled'} onclick="chatNext()">${(!CHAT.sel.size && st.optional) ? '選ばずに次へ' : '次へ'}</button>`;
     } else if (st.text) {
       comp.innerHTML = `<textarea class="chat-ta" id="chat-detail" rows="2" placeholder="例）退院予定日、医療的ケアの頻度、ご家族の希望など" oninput="CHAT.a.detail = this.value">${esc(CHAT.a.detail)}</textarea>`
                      + '<button class="chat-btn" onclick="chatSkip()">補足なしで進む</button><button class="chat-btn primary" onclick="chatNext()">次へ</button>';
@@ -2291,7 +2288,7 @@ function chatNext() {
     if (errs.length) { showToast(errs[0]); document.getElementById('chat-label')?.focus(); return; }
     CHAT.a.caseLabel = v;
   }
-  if (st.opts && !CHAT.sel.size) return;
+  if (st.opts && !CHAT.sel.size && !st.optional) return;
   if (st.key === 'areas' && CHAT.sel.has(KaigoConsult.OTHER_AREA) && !CHAT.other.trim()) { showToast('「その他」の希望エリアを入力してください'); document.getElementById('chat-other')?.focus(); return; }
   chatSaveCurrent();
   const next = (CHAT.maxStep >= CHAT_CONFIRM) ? CHAT_CONFIRM : CHAT.step + 1;
