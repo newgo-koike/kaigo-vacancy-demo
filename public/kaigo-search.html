@@ -179,6 +179,8 @@
     .chat-form .chat-ta { width:100%; flex:none; margin-top:2px; }
     .chat-note { font-size:12px; color:#b91c1c; font-weight:700; margin-bottom:4px; }
     .chat-form-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:4px 0 6px; border-top:1px dashed var(--g200); margin-top:4px; }
+    .chat-fax, .cs-fax { font-size:12.5px; color:var(--g700); background:var(--pink-l); border:1.5px solid var(--pink); border-radius:10px; padding:8px 12px; margin:4px 0 10px; line-height:1.6; }
+    .chat-fax b, .cs-fax b { color:var(--pink-d); font-size:14px; letter-spacing:.03em; white-space:nowrap; }
     .chat-sec-ttl { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:900; margin:14px 0 8px; padding-left:10px; border-left:4px solid var(--pink); }
     .chat-sec-ttl:first-child { margin-top:0; }
     .chat-sec-cnt { font-size:12px; font-weight:700; color:var(--g500); }
@@ -778,6 +780,7 @@
       <div class="cs-grp"><div class="cs-grp-ttl">費用 <span class="req">必須</span></div><div class="cs-chips" id="cs-budget"></div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">こだわり・医療体制 <span class="opt">任意</span></div><div class="cs-chips" id="cs-needs"></div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">詳細 <span class="opt">任意</span></div><div class="cs-note">※名前などの個人情報は記載しないでください。</div><textarea id="cs-detail" class="cs-ta" rows="4" placeholder="例）退院予定日、医療的ケアの頻度、吹田駅近くなどの希望、ご家族の希望など"></textarea></div>
+      <div class="cs-fax">サマリー・診療情報提供書（診情）がある場合は、送信後に <b>FAX 06-7635-8813</b> へお送りください</div>
       <div class="cs-err" id="cs-err"></div>
       </div>
     </div>
@@ -2280,6 +2283,7 @@ function renderChat() {
       <div class="chat-note">※名前などの個人情報は記載しないでください。</div>
       <textarea class="chat-ta" id="chat-detail" rows="3" placeholder="例）退院予定日、医療的ケアの頻度、吹田駅近くなどの希望、ご家族の希望など" oninput="CHAT.a.detail = this.value">${esc(CHAT.a.detail)}</textarea>
     </div>
+    <div class="chat-fax">サマリー・診療情報提供書（診情）がある場合は、送信後に <b>FAX ${KaigoConsult.FAX}</b> へお送りください</div>
     <div class="chat-form-actions"><span class="chat-cnt">${n ? n + '項目を選択中' : '当てはまるものをタップしてください'}</span>
       <button type="button" class="chat-btn" onclick="chatReset(); renderChat()">入力をクリア</button>
       <button type="button" class="chat-btn primary" id="chat-send" onclick="chatSend()">送信する</button></div>
