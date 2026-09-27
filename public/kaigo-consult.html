@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>空室相談 | 介護施設空室検索システム</title>
+<title>チャット（案件管理） | 介護施設空室検索システム</title>
 <link rel="icon" href="logo.png">
 <style>
   /* LINE のトーク一覧／トークルームに寄せた画面。文字は大きめ・操作は少なめ（スマホでも迷わない） */
@@ -99,7 +99,7 @@
 <body>
 <header class="hdr">
   <div class="hdr-logo"><img src="logo.png" style="width:100%;height:100%;object-fit:contain"></div>
-  <div><div class="hdr-title">空室相談</div><div class="hdr-sub">Meets Medical とのやり取り</div></div>
+  <div><div class="hdr-title">チャット（案件管理）</div><div class="hdr-sub">空室相談のやり取り（Meets Medical と）</div></div>
   <div class="hdr-right">
     <a class="hdr-btn primary" href="kaigo-search.html?consult=1">＋ 新しい相談</a>
     <a class="hdr-btn" href="kaigo-search.html">検索に戻る</a>
@@ -109,7 +109,7 @@
 
 <div class="app" id="app">
   <aside class="talks">
-    <div class="talks-hd">トーク <span id="list-count"></span></div>
+    <div class="talks-hd">案件一覧 <span id="list-count"></span></div>
     <div class="talks-list" id="list"><div class="talks-empty">読み込み中...</div></div>
   </aside>
   <section class="room">
@@ -243,7 +243,7 @@ function openThread(id, front) {
         ? `<div class="facs">施設ページ: ${x.facilities.map(f => `<a href="kaigo-facility-view.html?id=${esc(f.id)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join('')}</div>` : '';
       html += `<div class="msg ${mine ? 'me' : 'them'}"><div class="who">${mine ? esc(m.name || '自分') : 'Meets Medical'}</div><div class="bubble">${esc(m.text)}</div>${facs}<div class="time">${KaigoConsult.fmtShort(m.createdAt)}</div></div>`;
     });
-    if (msgs.length <= 1) html += '<div class="sys">Meets Medical が確認中です。返信はここに届きます。<br>追加の情報があれば下の欄から送れます。</div>';
+    if (msgs.length <= 1) html += `<div class="msg them"><div class="who">Meets Medical</div><div class="bubble">送信ありがとうございます。担当者が確認して、ここに返信します。\nサマリーや診療情報提供書（診情）がある場合は、下記へFAXをお願いします。\nFAX <b style="font-size:17px;color:#e0707f">${KaigoConsult.FAX}</b></div></div><div class="sys">追加の情報や訂正があれば、下の欄からいつでも送れます。</div>`;
     body.innerHTML = html;
     body.scrollTop = body.scrollHeight;
   });

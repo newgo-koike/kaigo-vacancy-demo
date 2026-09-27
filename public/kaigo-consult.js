@@ -24,6 +24,9 @@
   const STATUS_ORDER = ['open', 'working', 'answered', 'closed'];
   const DETAIL_NOTE = '※名前などの個人情報は記載しないでください。';
   const LABEL_HINT  = 'イニシャル（例：T.K）。本名は書かないでください';
+  // 送信後の案内（兵頭さん 2026-09-27）：サマリー・診療情報提供書は FAX で
+  const FAX = '06-7635-8813';
+  const SENT_NOTE = 'サマリーや診療情報提供書（診情）がある場合は、FAX ' + FAX + ' へお送りください。';
   const LABEL_MAX   = 6;
   // イニシャルの表記ゆれを揃える：全角→半角、空白除去、大文字化、「・」「，」→「.」
   function normalizeInitials(s) {
@@ -252,7 +255,7 @@
     return `<span class="cs-status ${s}">${STATUS[s]}</span>`;
   }
 
-  global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_MAX, CSS,
+  global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_MAX, FAX, SENT_NOTE, CSS,
     esc, areaOptions, validate, firstMessageText, areasText, fmtDate, fmtShort, fmtShortDT, shortText, caseName, uniqueCaseNames, caseMark, caseColor, normalizeInitials,
     create, send, markRead, setStatus, conditionsHTML, messagesHTML, statusBadge };
 })(window);

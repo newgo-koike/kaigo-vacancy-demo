@@ -165,6 +165,17 @@
     .chat-date { text-align:center; font-size:11px; color:var(--g500); margin:8px 0 2px; }
     .chat-date span { background:var(--g100); border-radius:100px; padding:2px 10px; }
     .chat-hint { flex:1 1 100%; font-size:11.5px; color:var(--g500); }
+    /* 送信完了の案内（FAX番号を大きく） */
+    .sent-bg { position:fixed; inset:0; background:rgba(43,43,43,.45); z-index:950; display:flex; align-items:center; justify-content:center; padding:16px; }
+    .sent-box { background:#fff; border:2px solid var(--ink); border-radius:18px; box-shadow:6px 6px 0 var(--ink); width:min(520px,100%); padding:26px 24px 22px; text-align:center; }
+    .sent-ttl { font-size:20px; font-weight:900; margin-bottom:10px; }
+    .sent-msg { font-size:14px; color:var(--g700); line-height:1.8; }
+    .sent-fax-lbl { margin-top:16px; font-size:13px; font-weight:800; color:var(--g600); }
+    .sent-fax { font-size:34px; font-weight:900; letter-spacing:.04em; color:var(--pink-d); margin:2px 0 14px; }
+    .sent-note { font-size:12.5px; color:var(--g600); line-height:1.7; margin-bottom:18px; }
+    .sent-close { padding:12px 34px; border:2px solid var(--ink); background:var(--ink); color:#fff; border-radius:100px; font-family:inherit; font-size:15px; font-weight:900; cursor:pointer; }
+    .ci-bub.fax .ci-bub-body { border-color:var(--pink); background:var(--pink-l); }
+    .ci-bub.fax b { font-size:17px; color:var(--pink-d); letter-spacing:.03em; }
     @media (max-width:640px) { .chat-stream { max-height:62vh; } .col-hd-link { margin-left:8px; } }
     /* 必須未入力の項目を赤く示す */
     .cs-grp.err .cs-grp-ttl { color:#b91c1c; }
@@ -575,7 +586,7 @@
   </div>
   <div class="hdr-right">
     <span class="hdr-user" id="hdr-user"></span>
-    <a class="hdr-logout" href="kaigo-consult.html" id="hdr-consult-link" style="text-decoration:none;">空室相談<span class="hdr-badge" id="hdr-consult-badge" style="display:none">0</span></a>
+    <a class="hdr-logout" href="kaigo-consult.html" id="hdr-consult-link" style="text-decoration:none;">チャット（案件管理）<span class="hdr-badge" id="hdr-consult-badge" style="display:none">0</span></a>
     <a class="hdr-logout" href="kaigo-hospital-members.html" style="text-decoration:none;">👥 担当者管理</a>
     <button class="hdr-logout" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
@@ -719,7 +730,7 @@
 
   <!-- 空室相談（トップページに常設。検索結果モードではモーダルに移る） -->
   <section class="consult-inline" id="consult-inline">
-    <div class="col-hd-consult"><span class="or">または</span>B　空室相談（チャット）<a class="col-hd-link" href="kaigo-consult.html">履歴・全文を見る</a></div>
+    <div class="col-hd-consult"><span class="or">または</span>B　空室相談（チャット）<a class="col-hd-link" href="kaigo-consult.html">案件一覧を開く</a></div>
     <div class="chat">
       <div class="chat-stream" id="chat-stream"></div>
       <div class="chat-composer" id="chat-composer"></div>
@@ -2072,6 +2083,7 @@ async function submitConsult(mode) {
   try {
     await KaigoConsult.create(db, currentUser, c, consultFacilities());
     resetConsultForm();
+    showSentNotice();
     if (mode === 'inline' && document.getElementById('cs-inline-done')) {
       // トップページ：その場に完了表示を出し、続けて次の相談を送れるようにする
       const done = document.getElementById('cs-inline-done');
@@ -2082,7 +2094,6 @@ async function submitConsult(mode) {
     } else {
       closeConsult();
     }
-    showToast('空室相談を送信しました');
   } catch (e) {
     console.error(e);
     errEl.textContent = '送信に失敗しました: ' + (e && e.message ? e.message : e);
@@ -2215,7 +2226,7 @@ function renderChat() {
     const cc = KaigoConsult.caseColor(x.id);
     html += `<div class="chat-thread-hd" style="--cc:${cc}"><span class="chat-case dot" style="background:${cc};color:#fff;border:none;padding:0 6px;height:26px;justify-content:center;font-size:11px;font-weight:900;display:inline-flex;align-items:center;border-radius:100px">${esc(KaigoConsult.caseMark(x))}</span>
       <div><div class="nm">${esc(NAMES[x.id])}</div><div class="sub">${KaigoConsult.fmtDate(x.createdAt)} に送信</div></div>
-      <span class="st">${KaigoConsult.statusBadge(x.status)}</span><a href="kaigo-consult.html#${x.id}">大きな画面で見る</a></div>`;
+      <span class="st">${KaigoConsult.statusBadge(x.status)}</span><a href="kaigo-consult.html#${x.id}">案件管理で開く</a></div>`;
     html += `<div class="ci-bub me"><div class="ci-bub-meta">相談内容　${fmt(x.createdAt)}</div><div class="ci-bub-body">${esc(consultSummaryLines(x))}</div></div>`;
     let lastDay = chatDateLabel(x.createdAt);
     CHAT_MSGS.slice(1).forEach(m => {
@@ -2224,12 +2235,15 @@ function renderChat() {
       const mine = m.by === 'hospital';
       html += `<div class="ci-bub ${mine ? 'me' : 'them'}"><div class="ci-bub-meta">${mine ? esc(m.name || '自分') : 'Meets Medical'}　${fmt(m.createdAt)}</div><div class="ci-bub-body">${esc(m.text)}</div></div>`;
     });
-    if (CHAT_MSGS.length <= 1) html += '<div class="chat-sys">Meets Medical が確認中です。返信はここに届きます。追加の情報があれば下から送れます</div>';
+    if (CHAT_MSGS.length <= 1) {
+      html += `<div class="ci-bub them bot fax"><div class="ci-bub-meta">Meets Medical</div><div class="ci-bub-body">送信ありがとうございます。担当者が確認して、ここに返信します。\nサマリーや診療情報提供書（診情）がある場合は、下記へFAXをお願いします。\nFAX <b>${KaigoConsult.FAX}</b></div></div>`;
+      html += '<div class="chat-sys">追加の情報や訂正があれば、下の欄からいつでも送れます</div>';
+    }
     comp.innerHTML = `<textarea class="chat-ta" id="chat-reply" rows="2" placeholder="Meets Medical への返信・追記（名前などの個人情報は書かないでください）" oninput="CHAT_REPLY_DRAFT = this.value">${esc(CHAT_REPLY_DRAFT)}</textarea>
       <span class="chat-hint">この件（${esc(NAMES[x.id])}）への返信として送られます</span>
       <button class="chat-btn primary" id="chat-reply-btn" onclick="chatReply()">送信</button>`;
   } else if (CHAT.done) {
-    html += '<div class="ci-bub them bot"><div class="ci-bub-body">送信しました。Meets Medical が確認して返信します。返信は上のタブ（呼び名）から見られます。</div></div>';
+    html += '<div class="ci-bub them bot"><div class="ci-bub-body">送信しました。Meets Medical が確認して返信します。返信は上のタブから見られます。</div></div>';
     comp.innerHTML = '<button class="chat-btn primary" onclick="chatReset(); renderChat()">別の方の相談を始める</button>';
   } else {
     if (!cases.length) html += '<div class="chat-sys">ここが Meets Medical とのやり取りです。下の質問に答えていくと相談が送れます</div>';
@@ -2307,8 +2321,8 @@ async function chatSend() {
   try {
     const id = await KaigoConsult.create(db, currentUser, CHAT.a, []);
     CHAT.done = true;
-    showToast('空室相談を送信しました');
     chatOpenCase(id);   // 送った件の会話をそのまま開く（返信がここに届く）
+    showSentNotice();
     return;
   } catch (e) {
     console.error(e);
@@ -2318,6 +2332,26 @@ async function chatSend() {
     CHAT.sending = false;
   }
   renderChat();
+}
+// 送信完了の案内。サマリー・診療情報提供書のFAX先を大きく出す（兵頭さん 2026-09-27）
+function showSentNotice() {
+  let el = document.getElementById('sent-notice');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sent-notice'; el.className = 'sent-bg';
+    el.innerHTML = `<div class="sent-box" role="dialog" aria-label="送信完了">
+      <div class="sent-ttl">空室相談を送信しました</div>
+      <div class="sent-msg">Meets Medical が内容を確認して返信します。<br>返信はこの画面のチャットと、上の「チャット（案件管理）」に届きます。</div>
+      <div class="sent-fax-lbl">サマリー・診療情報提供書（診情）がある場合はこちらへFAX</div>
+      <div class="sent-fax">FAX ${KaigoConsult.FAX}</div>
+      <div class="sent-note">送付状に「空室相談・${KaigoConsult.esc(currentUser?.hospitalName || '')}」と書いていただけると、担当がすぐ紐づけられます</div>
+      <button class="sent-close" onclick="document.getElementById('sent-notice').style.display='none'">閉じる</button>
+    </div>`;
+    el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });
+    document.body.appendChild(el);
+  }
+  el.style.display = 'flex';
+  el.querySelector('.sent-close').focus();
 }
 async function chatReply() {
   const ta = document.getElementById('chat-reply');
