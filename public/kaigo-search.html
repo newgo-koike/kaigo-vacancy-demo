@@ -50,10 +50,10 @@
 
     /* ── フルページ検索モード ── */
     .body-wrap.search-only {
-      display:grid; grid-template-columns:repeat(2, minmax(0, 680px)); grid-auto-rows:max-content; gap:0 22px;
-      justify-content:center; align-content:start; align-items:start;
+      display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); grid-auto-rows:max-content; gap:0 20px;
+      align-content:start; align-items:start;
       overflow-y:auto; background:var(--paper);
-      padding:0 32px 80px; position:relative;
+      padding:0 20px 40px; position:relative;
     }
     .body-wrap.search-only .search-hero { grid-column:1 / -1; }
     /* 二択であることを見せる：左右のカードに色の帯（左＝青「施設を探す」、右＝ピンク「または、空室相談を送る」） */
@@ -68,8 +68,9 @@
     .hero-sub b { color:var(--ink); }
     .body-wrap.search-only .main { grid-column:1 / -1; height:0; }
     @media (max-width:1000px) {
-      .body-wrap.search-only { grid-template-columns:minmax(0, 1fr); padding:0 16px 80px; }
-      .body-wrap.search-only .consult-inline { margin-top:18px; }
+      .body-wrap.search-only { grid-template-columns:minmax(0, 1fr); padding:0 16px 40px; }
+      .body-wrap.search-only .consult-inline { margin-top:18px; height:auto !important; }
+      .body-wrap.search-only .chat-stream { max-height:62vh; }
     }
     .body-wrap.search-only .search-hero,
     .body-wrap.search-only .sidebar { position:relative; z-index:1; }
@@ -96,7 +97,10 @@
 
     /* 空室相談ブロック（トップページに常設。検索結果モードでは隠れ、右下ボタン→モーダルに同じフォームが移る） */
     .consult-inline { display:none; width:100%; margin-top:0; background:#fff; border:2px solid var(--ink); border-radius:20px; padding:20px 22px 22px; }
-    .body-wrap.search-only .consult-inline { display:block; }
+    /* Bの高さはAに合わせる（JSで揃える）。中身のチャットはその高さの中でスクロール */
+    .body-wrap.search-only .consult-inline { display:flex; flex-direction:column; min-height:0; }
+    .body-wrap.search-only .chat { flex:1; min-height:0; display:flex; flex-direction:column; }
+    .body-wrap.search-only .chat-stream { flex:1; min-height:0; max-height:none; }
     body:has(.body-wrap.search-only) #float-consult-btn { display:none; }
     .ci-hd { display:flex; align-items:flex-start; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
     .ci-title { font-size:20px; font-weight:900; display:inline-flex; align-items:center; gap:10px; }
@@ -196,6 +200,14 @@
     .chat-sent-item .last { font-size:12px; color:var(--g700); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .chat-sent-item .arrow { font-size:22px; color:var(--g400); font-weight:900; }
     .chat-back { border:2px solid var(--ink); background:#fff; border-radius:100px; padding:8px 14px; font-family:inherit; font-weight:900; font-size:13px; cursor:pointer; margin-bottom:10px; }
+    /* 未読バッジ（Bの帯・一覧の見出し・各件） */
+    .cs-unread { display:inline-block; min-width:18px; padding:1px 8px; border-radius:100px; background:#e0707f; color:#fff; font-size:11px; font-weight:900; line-height:18px; text-align:center; vertical-align:middle; }
+    .col-hd-consult .b-unread { margin-left:10px; background:#fff; color:var(--pink-d); font-size:12px; padding:2px 10px; box-shadow:0 0 0 2px var(--pink-d); }
+    .cs-status { font-size:11px; font-weight:800; padding:2px 8px; border-radius:100px; border:1px solid; white-space:nowrap; }
+    .cs-status.open { color:#b91c1c; border-color:#fca5a5; background:#fee2e2; }
+    .cs-status.working { color:#92400e; border-color:#fcd34d; background:#fef3c7; }
+    .cs-status.answered { color:#1d5c8a; border-color:#9ccfec; background:#e4f2fa; }
+    .cs-status.closed { color:#6b7280; border-color:#d1d5db; background:#f3f4f6; }
     .chat-unread-bar { display:block; width:100%; text-align:left; background:var(--pink); color:#fff; border:2px solid var(--ink); border-radius:12px; padding:10px 14px; font-family:inherit; font-weight:900; font-size:14px; cursor:pointer; margin-bottom:12px; box-shadow:3px 3px 0 var(--ink); }
     /* 送信完了の案内（FAX番号を大きく） */
     .sent-bg { position:fixed; inset:0; background:rgba(43,43,43,.45); z-index:950; display:flex; align-items:center; justify-content:center; padding:16px; }
@@ -227,7 +239,7 @@
     @media (max-width:430px) { .hdr-title { display:none; } }
 
     /* ヒーロー（フルページ検索モードのみ表示） */
-    .search-hero { display:none; width:100%; padding:40px 0 20px; }
+    .search-hero { display:none; width:100%; padding:22px 0 14px; }
     .body-wrap.search-only .search-hero { display:flex; align-items:center; gap:20px; }
     .hero-icon { flex-shrink:0; }
     .hero-icon img { width:80px; height:80px; object-fit:contain; filter:drop-shadow(0 3px 10px rgba(43,43,43,.18)); }
@@ -766,7 +778,7 @@
 
   <!-- 空室相談（トップページに常設。検索結果モードではモーダルに移る） -->
   <section class="consult-inline" id="consult-inline">
-    <div class="col-hd-consult"><span class="or">または</span>B　空室相談（チャット）<a class="col-hd-link" href="kaigo-consult.html">チャット管理を開く</a></div>
+    <div class="col-hd-consult"><span class="or">または</span>B　空室相談（チャット）<span class="cs-unread b-unread" id="b-unread" style="display:none"></span><a class="col-hd-link" href="kaigo-consult.html">チャット管理を開く</a></div>
     <div class="chat">
       <div class="chat-stream" id="chat-stream"></div>
       <div class="chat-composer" id="chat-composer"></div>
@@ -2161,6 +2173,8 @@ function watchConsultBadge() {
       const unread = MY_CONSULTS.filter(x => x.unreadForHospital).length;
       const b = document.getElementById('hdr-consult-badge');
       if (b) { b.style.display = unread ? 'inline-block' : 'none'; b.textContent = unread; }
+      const bb = document.getElementById('b-unread');
+      if (bb) { bb.style.display = unread ? 'inline-block' : 'none'; bb.textContent = `未読 ${unread}件`; }
       renderChat();
     }, () => { /* 権限なし等は無視 */ });
 }
@@ -2289,7 +2303,7 @@ function renderChat() {
       <button type="button" class="chat-btn primary" id="chat-send" onclick="chatSend()">送信する</button></div>
     </div>`;
     // ── 下：送信済みの相談一覧 ──
-    html += `<div class="chat-sec-ttl">送信済みの相談 <span class="chat-sec-cnt">${cases.length ? cases.length + '件' : ''}</span><a class="chat-sec-link" href="kaigo-consult.html">チャット管理で見る</a></div>`;
+    html += `<div class="chat-sec-ttl">送信済みの相談 <span class="chat-sec-cnt">${cases.length ? cases.length + '件' : ''}</span>${unread.length ? `<span class="cs-unread">未読 ${unread.length}件</span>` : ''}<a class="chat-sec-link" href="kaigo-consult.html">チャット管理で見る</a></div>`;
     if (!cases.length) html += '<div class="chat-sys">まだ送信した相談はありません。上のフォームから送ると、ここに並びます</div>';
     cases.forEach(x => {
       const last = x.lastMessageBy === 'admin' ? 'Meets Medical: ' + (x.lastMessageText || '') : (x.messageCount > 1 ? '自分: ' + (x.lastMessageText || '') : '返信をお待ちください');
@@ -2310,6 +2324,19 @@ function renderChat() {
   if (other && !other.value) other.focus();
 }
 window.addEventListener('resize', () => { const st = document.getElementById('chat-stream'); if (st && CHAT_VIEW.mode === 'thread') st.scrollTop = st.scrollHeight; });
+// トップページでは B（空室相談）の枠の高さを A（検索）に合わせる。Aが伸び縮みしたら追従する
+function syncColumnHeights() {
+  const wrap = document.getElementById('body-wrap'), sb = document.querySelector('.sidebar'), ci = document.getElementById('consult-inline');
+  if (!wrap || !sb || !ci) return;
+  if (!wrap.classList.contains('search-only') || window.innerWidth <= 1000) { ci.style.height = ''; return; }
+  ci.style.height = sb.offsetHeight + 'px';
+}
+window.addEventListener('resize', syncColumnHeights);
+window.addEventListener('DOMContentLoaded', () => {
+  const sb = document.querySelector('.sidebar');
+  if (sb && 'ResizeObserver' in window) new ResizeObserver(syncColumnHeights).observe(sb);
+  syncColumnHeights();
+});
 function chatToggle(key, v) {
   const g = CHAT_GROUPS.find(x => x.key === key);
   const cur = new Set(CHAT.a[key]);

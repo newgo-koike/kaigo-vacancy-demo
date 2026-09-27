@@ -27,6 +27,9 @@
   .hdr-btn:hover{background:var(--ink);color:#fff;}
   .hdr-btn.primary{background:var(--pink);color:#fff;}
   .hdr-btn.primary:hover{background:var(--pink-d);}
+  /* 検索へ戻るボタンは検索側の色（青）にして、行き先が分かるように */
+  .hdr-btn.search{background:var(--blue);color:#fff;}
+  .hdr-btn.search:hover{background:var(--blue-d);color:#fff;}
 
   .app{flex:1;display:flex;min-height:0;}
   /* トーク一覧 */
@@ -102,7 +105,7 @@
   <div><div class="hdr-title">チャット管理</div><div class="hdr-sub">空室相談のやり取り（Meets Medical と）</div></div>
   <div class="hdr-right">
     <a class="hdr-btn primary" href="kaigo-search.html?consult=1">＋ 新しい相談</a>
-    <a class="hdr-btn" href="kaigo-search.html">検索に戻る</a>
+    <a class="hdr-btn search" href="kaigo-search.html">検索に戻る</a>
     <button class="hdr-btn ghost-mobile" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
 </header>
