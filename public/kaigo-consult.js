@@ -240,7 +240,7 @@
     .cs-msg-meta { font-size:11px; color:var(--g500,#7a7a75); margin:0 6px 3px; }
     .cs-msg.mine .cs-msg-meta { text-align:right; }
     .cs-msg-body { white-space:pre-wrap; line-height:1.7; font-size:14px; padding:10px 14px; border-radius:14px; border:1.5px solid var(--ink,#2b2b2b); background:#fff; }
-    .cs-msg.mine .cs-msg-body { background:var(--blue-l,#e4f2fa); }
+    .cs-msg.mine .cs-msg-body { background:var(--pink-l,#fbe7ea); }
     .cs-empty { color:var(--g400,#9a9a95); font-size:13px; text-align:center; padding:20px; }
     .cs-status { font-size:11px; font-weight:800; padding:2px 8px; border-radius:100px; border:1px solid; white-space:nowrap; }
     .cs-status.open { color:#b91c1c; border-color:#fca5a5; background:#fee2e2; }
