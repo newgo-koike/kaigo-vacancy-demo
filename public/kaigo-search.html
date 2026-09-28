@@ -56,7 +56,7 @@
       padding:0 20px 40px; position:relative;
     }
     .body-wrap.search-only .search-hero { grid-column:1 / -1; }
-    /* 二択であることを見せる：左右のカードに色の帯（左＝青「施設を探す」、右＝ピンク「または、空室相談を送る」） */
+    /* 二択であることを見せる：左右のカードに色の帯（左＝青「施設を探す」、右＝ピンク「空室相談（チャット）」） */
     .body-wrap.search-only .sidebar { border-color:var(--blue-d); overflow:visible; }
     .body-wrap.search-only .sidebar::before {
       content:'A　施設を探す'; grid-column:1 / -1; display:block; border-radius:17px 17px 0 0;
@@ -64,7 +64,6 @@
     }
     .body-wrap.search-only .consult-inline { border-color:var(--pink-d); padding-top:0; }
     .col-hd-consult { display:flex; align-items:center; gap:10px; margin:0 -22px 16px; background:var(--pink); color:#fff; font-size:15px; font-weight:900; letter-spacing:.04em; padding:12px 20px; border-radius:17px 17px 0 0; }
-    .col-hd-consult .or { font-size:11px; font-weight:800; background:#fff; color:var(--pink-d); border-radius:100px; padding:2px 9px; white-space:nowrap; }
     .hero-sub b { color:var(--ink); }
     .body-wrap.search-only .main { grid-column:1 / -1; height:0; }
     @media (max-width:1000px) {
@@ -778,7 +777,7 @@
 
   <!-- 空室相談（トップページに常設。検索結果モードではモーダルに移る） -->
   <section class="consult-inline" id="consult-inline">
-    <div class="col-hd-consult"><span class="or">または</span>B　空室相談（チャット）<span class="cs-unread b-unread" id="b-unread" style="display:none"></span><a class="col-hd-link" href="kaigo-consult.html">チャット管理を開く</a></div>
+    <div class="col-hd-consult">B　空室相談（チャット）<span class="cs-unread b-unread" id="b-unread" style="display:none"></span><a class="col-hd-link" href="kaigo-consult.html">チャット管理を開く</a></div>
     <div class="chat">
       <div class="chat-stream" id="chat-stream"></div>
       <div class="chat-composer" id="chat-composer"></div>
@@ -833,7 +832,7 @@
     <span class="float-cnt" id="float-cnt">0</span>
   </button>
   <button id="float-consult-btn" onclick="openConsult()">
-    <span id="float-consult-lbl">空室相談</span>
+    <span id="float-consult-lbl">空室相談（チャット）</span>
     <span class="float-cnt" id="float-consult-cnt" style="display:none">0</span>
   </button>
 </div>
@@ -842,7 +841,7 @@
 <div class="cs-modal-bg" id="consult-modal" style="display:none" onclick="if (event.target === this) closeConsult()">
   <div class="cs-modal" role="dialog" aria-label="空室相談">
     <div class="cs-modal-hd">
-      <div class="cs-modal-ttl">空室相談</div>
+      <div class="cs-modal-ttl">空室相談（チャット）</div>
       <button class="cs-close" onclick="closeConsult()" title="閉じる">×</button>
     </div>
     <div class="cs-modal-body">
@@ -2156,7 +2155,7 @@ function updateConsultBtn() {
   const n = selectedFacilities.size;
   c.style.display = n ? 'inline-flex' : 'none';
   c.textContent = n;
-  lbl.textContent = n ? '選んだ施設について空室相談' : '空室相談';
+  lbl.textContent = n ? '選んだ施設について空室相談（チャット）' : '空室相談（チャット）';
 }
 // 自病院の相談を監視し、ヘッダーの未読数と右カラムの「最近のやり取り」を更新する（病院ユーザーのみ）。
 // 病院1件あたりの相談は少数なので、全件を1つの監視で受けて端末側で並べ替える
