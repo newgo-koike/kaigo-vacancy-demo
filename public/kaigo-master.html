@@ -233,6 +233,7 @@
           <option value="working">対応中</option>
           <option value="answered">回答済</option>
           <option value="closed">終了</option>
+          <option value="withdrawn">取り下げ</option>
         </select>
         <button type="button" onclick="toggleConsultSettings()" class="text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院が相談を送った直後に表示される自動返信の文面を変える">自動返信</button>
       </div>
@@ -260,6 +261,7 @@
             <option value="working">対応中</option>
             <option value="answered">回答済</option>
             <option value="closed">終了</option>
+            <option value="withdrawn">取り下げ</option>
           </select>
           <span class="text-xs text-slate-400">返信すると病院側に「新着」が付きます</span>
           <button id="cs-send" onclick="sendConsultReply()" class="ml-auto px-5 py-2 rounded-full bg-[#5fb0de] text-white text-sm font-bold hover:bg-[#2c7ba6]">返信を送る</button>

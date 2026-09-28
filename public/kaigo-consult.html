@@ -79,8 +79,9 @@
   .msg.auto .bubble b{color:var(--pink-d);font-size:17px;}
   .msg.deleted .bubble{background:var(--g100);border:1.5px dashed var(--g300);box-shadow:none;}
   .msg .cs-msg-edit{width:100%;}
-  .cond-act{margin:4px 6px 0;font-size:13px;}
+  .cond-act{margin:4px 6px 0;font-size:13px;display:flex;gap:14px;}
   .cond-act a{color:var(--pink-d);font-weight:800;}
+  .cond-act button{background:none;border:none;padding:0;font-family:inherit;font-size:13px;color:var(--g600);font-weight:700;text-decoration:underline;cursor:pointer;}
   .room-empty{height:100%;display:flex;align-items:center;justify-content:center;color:var(--g500);text-align:center;line-height:1.9;padding:20px;}
   .room-composer{flex-shrink:0;background:#fff;border-top:1px solid var(--hair);padding:10px 14px 12px;}
   .composer-row{display:flex;align-items:flex-end;gap:10px;}
@@ -224,6 +225,7 @@ function renderRoomHead() {
     <div><div class="room-name">${esc(NAMES[x.id] || KaigoConsult.caseName(x))}</div><div class="room-sub">${KaigoConsult.fmtDate(x.createdAt)} に送信　担当: ${esc(x.createdByName || x.hospitalName || '')}</div></div>
     <span class="room-st">${KaigoConsult.statusBadge(x.status)}</span>`;
   document.getElementById('composer-note').textContent = `「${NAMES[x.id] || KaigoConsult.caseName(x)}」への返信として Meets Medical に届きます`;
+  document.getElementById('composer').style.display = x.status === 'withdrawn' ? 'none' : 'block';   // 取り下げ済みは返信できない
 }
 
 function dayLabel(ts) {
@@ -240,7 +242,6 @@ function openThread(id, front) {
   history.replaceState(null, '', '#' + id);
   renderList();
   renderRoomHead();
-  document.getElementById('composer').style.display = 'block';
   if (front) document.getElementById('app').classList.add('show-room');
   const x = ITEMS.find(i => i.id === id);
   MSGS = []; EDIT_MSG = null;
@@ -264,19 +265,34 @@ function renderRoom() {
     const bubble = editing ? KaigoConsult.messageEditorHTML(m.id, EDIT_MSG.text, 'roomMsg') : `<div class="bubble">${KaigoConsult.messageBodyHTML(m)}</div>`;
     const facs = (i === 0 && x && x.facilities && x.facilities.length)
       ? `<div class="facs">施設ページ: ${x.facilities.map(f => `<a href="kaigo-facility-view.html?id=${esc(f.id)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join('')}</div>` : '';
-    // 最初の相談内容は「条件を修正」（トップページの修正画面へ）。それ以外の自分のメッセージは編集・取り消し
+    // 最初の相談内容は「条件を修正」（トップページの修正画面へ）と「取り下げ」。それ以外の自分のメッセージは編集・取り消し。取り下げ済みはどれも不可
+    const withdrawn = !!(x && x.status === 'withdrawn');
     const act = i === 0
-      ? `<div class="cond-act"><a href="kaigo-search.html?case=${esc(CUR)}&edit=1">条件を修正</a></div>`
-      : ((!editing && KaigoConsult.canEditMessage(m, 'hospital', i)) ? KaigoConsult.messageActionsHTML(m.id, 'roomMsg') : '');
+      ? (withdrawn ? '' : `<div class="cond-act"><a href="kaigo-search.html?case=${esc(CUR)}&edit=1">条件を修正</a><button type="button" onclick="roomWithdrawConsultation()">この相談を取り下げる</button></div>`)
+      : ((!editing && !withdrawn && KaigoConsult.canEditMessage(m, 'hospital', i)) ? KaigoConsult.messageActionsHTML(m.id, 'roomMsg') : '');
     html += `<div class="msg ${mine ? 'me' : 'them'}${m.deleted ? ' deleted' : ''}"><div class="who">${mine ? esc(m.name || '自分') : 'Meets Medical'}${KaigoConsult.editedMark(m)}</div>${bubble}${facs}${act}<div class="time">${KaigoConsult.fmtShort(m.createdAt)}</div></div>`;
     // 自動返信（保存はせず画面上で常に出す。文面は管理画面で変更できる）
     if (i === 0) html += `<div class="msg them auto"><div class="who">Meets Medical（自動返信）</div><div class="bubble">${KaigoConsult.autoReplyHTML()}</div><div class="time">${KaigoConsult.fmtShort(m.createdAt)}</div></div>`;
   });
-  if (MSGS.length <= 1) html += '<div class="sys">追加の情報や訂正があれば、下の欄からいつでも送れます。</div>';
+  if (x && x.status === 'withdrawn') html += '<div class="sys">この相談は取り下げました。必要になったら「＋ 新しい相談」から送ってください。</div>';
+  else if (MSGS.length <= 1) html += '<div class="sys">追加の情報や訂正があれば、下の欄からいつでも送れます。</div>';
   body.innerHTML = html;
   if (!EDIT_MSG) body.scrollTop = body.scrollHeight;
 }
 
+// ── 相談まるごとの取り下げ ──
+async function roomWithdrawConsultation() {
+  const x = ITEMS.find(i => i.id === CUR);
+  if (!x || x.status === 'withdrawn') return;
+  if (!confirm('この相談を取り下げますか？\nMeets Medical に「取り下げました」と伝わり、この相談への返信や修正はできなくなります。\n（必要になったら新しい相談を送ってください）')) return;
+  try {
+    await KaigoConsult.withdrawConsultation(db, CUR, ME);
+    EDIT_MSG = null;
+    showToast('相談を取り下げました');
+  } catch (e) {
+    console.error(e); showToast('取り下げに失敗しました: ' + (e.message || e));
+  }
+}
 // ── 自分のメッセージの編集・取り消し ──
 function roomMsgEdit(mid) {
   const m = MSGS.find(x => x.id === mid);

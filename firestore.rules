@@ -52,11 +52,12 @@ service cloud.firestore {
                     || (isHospital() && request.resource.data.hospitalId == myHospital()
                         && request.resource.data.createdBy == request.auth.uid);
       allow read:   if isAdmin() || (isHospital() && resource.data.hospitalId == myHospital());
-      // 病院側は返信・修正に伴う更新（最終メッセージ・未読フラグ・件数・相談条件）だけ。ステータスや所属は変えられない
+      // 病院側は返信・修正に伴う更新（最終メッセージ・未読フラグ・件数・相談条件）だけ。所属は変えられず、ステータスは「取り下げ」にするときだけ変えられる
       allow update: if isAdmin()
                     || (isHospital() && resource.data.hospitalId == myHospital()
                         && request.resource.data.diff(resource.data).affectedKeys()
-                             .hasOnly(['lastMessageAt','lastMessageBy','lastMessageText','unreadForAdmin','unreadForHospital','updatedAt','messageCount','conditions']));
+                             .hasOnly(['lastMessageAt','lastMessageBy','lastMessageText','unreadForAdmin','unreadForHospital','updatedAt','messageCount','conditions','status'])
+                        && (request.resource.data.status == resource.data.status || request.resource.data.status == 'withdrawn'));
       allow delete: if isAdmin();
 
       match /messages/{mid} {
