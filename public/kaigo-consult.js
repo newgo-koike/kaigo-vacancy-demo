@@ -10,7 +10,10 @@
 //     lastMessageAt, lastMessageBy('hospital'|'admin'), lastMessageText, messageCount,
 //     unreadForAdmin, unreadForHospital  … 相手の新着があるか（通知バッジ用）
 //   consultations/{cid}/messages/{mid}
-//     by('hospital'|'admin'), uid, name, text, createdAt
+//     by('hospital'|'admin'), uid, name, text, createdAt,
+//     editedAt（直したとき）, deleted/deletedAt（取り消したとき。text は空にする）, kind:'conditions'（条件修正の記録）
+//   meta/consultSettings
+//     autoReply … 相談直後に Meets Medical 役で常に表示する自動返信の文面（管理画面で変更）
 (function (global) {
   'use strict';
 
@@ -27,6 +30,12 @@
   // 送信後の案内（兵頭さん 2026-09-27）：サマリー・診療情報提供書は FAX で
   const FAX = '06-7635-8813';
   const SENT_NOTE = 'サマリーや診療情報提供書（診情）がある場合は、FAX ' + FAX + ' へお送りください。';
+  // 取り消したメッセージの代わりに出す文
+  const DELETED_TEXT = 'メッセージを取り消しました';
+  // 自動返信の既定文。実際に保存はせず、相談の最初のメッセージの直後に画面上で常に表示する（文面は管理画面で変更できる）
+  const AUTO_REPLY_DEFAULT = '受け付けました。担当者が確認して、ここに返信します。\nサマリーや診療情報提供書（診情）がある場合は、FAX ' + FAX + ' へお送りください。';
+  const SETTINGS_DOC = 'consultSettings';
+  const settings = { autoReply: AUTO_REPLY_DEFAULT, loaded: false };
   const LABEL_MAX   = 6;
   // イニシャルの表記ゆれを揃える：全角→半角、空白除去、大文字化、「・」「，」→「.」
   function normalizeInitials(s) {
@@ -158,6 +167,68 @@
     await db.collection('consultations').doc(cid).update({ status, updatedAt: fb.firestore.FieldValue.serverTimestamp() });
   }
 
+  // 自動返信などの設定を読む。未設定・読めないときは既定文で動く
+  async function loadSettings(db) {
+    try {
+      const s = await db.collection('meta').doc(SETTINGS_DOC).get();
+      const d = (s && s.exists && s.data()) || {};
+      settings.autoReply = String(d.autoReply || '').trim() || AUTO_REPLY_DEFAULT;
+    } catch (e) { settings.autoReply = AUTO_REPLY_DEFAULT; }
+    settings.loaded = true;
+    return settings;
+  }
+  async function saveSettings(db, user, patch) {
+    const fb = global.firebase;
+    const autoReply = String(patch.autoReply || '').trim() || AUTO_REPLY_DEFAULT;
+    await db.collection('meta').doc(SETTINGS_DOC).set({ autoReply, updatedAt: fb.firestore.FieldValue.serverTimestamp(), updatedBy: user.uid }, { merge: true });
+    settings.autoReply = autoReply;
+    return settings;
+  }
+
+  // 自分のメッセージの本文を直す。最新のメッセージなら一覧の「最後のメッセージ」も直し、相手側を未読にして変更に気づけるようにする
+  async function editMessage(db, cid, mid, by, text, isLast) {
+    const fb = global.firebase;
+    const now = fb.firestore.FieldValue.serverTimestamp();
+    const ref = db.collection('consultations').doc(cid);
+    const upd = { updatedAt: now, [by === 'admin' ? 'unreadForHospital' : 'unreadForAdmin']: true };
+    if (isLast) upd.lastMessageText = shortText(text, 80);
+    const batch = db.batch();
+    batch.update(ref.collection('messages').doc(mid), { text, editedAt: now });
+    batch.update(ref, upd);
+    await batch.commit();
+  }
+  // メッセージを取り消す。本文は消して「取り消しました」の印だけ残す（相手の画面からも本文が消える）
+  async function withdrawMessage(db, cid, mid, by, isLast) {
+    const fb = global.firebase;
+    const now = fb.firestore.FieldValue.serverTimestamp();
+    const ref = db.collection('consultations').doc(cid);
+    const upd = { updatedAt: now, [by === 'admin' ? 'unreadForHospital' : 'unreadForAdmin']: true };
+    if (isLast) upd.lastMessageText = DELETED_TEXT;
+    const batch = db.batch();
+    batch.update(ref.collection('messages').doc(mid), { text: '', deleted: true, deletedAt: now });
+    batch.update(ref, upd);
+    await batch.commit();
+  }
+  // 相談条件の修正（病院側）。条件を書き換え、修正後の内容をメッセージとして残す（Meets Medical 側に新着が付く）
+  async function updateConditions(db, cid, user, c, facilities) {
+    const fb = global.firebase;
+    const now = fb.firestore.FieldValue.serverTimestamp();
+    const ref = db.collection('consultations').doc(cid);
+    const cond = { care: c.care, areas: c.areas, areaOther: c.areaOther || '', budget: c.budget, needs: c.needs, detail: (c.detail || '').trim() };
+    const text = '相談条件を修正しました。\n' + firstMessageText(cond, facilities || []);
+    const batch = db.batch();
+    batch.set(ref.collection('messages').doc(), { by: 'hospital', uid: user.uid, name: user.name || user.hospitalName || '', text, kind: 'conditions', createdAt: now });
+    batch.update(ref, {
+      conditions: cond, updatedAt: now,
+      lastMessageAt: now, lastMessageBy: 'hospital', lastMessageText: shortText(text, 80),
+      messageCount: fb.firestore.FieldValue.increment(1), unreadForAdmin: true, unreadForHospital: false,
+    });
+    await batch.commit();
+  }
+  function isLastMessage(msgs, mid) { return !!msgs.length && msgs[msgs.length - 1].id === mid; }
+  // 編集・取り消しができるメッセージか：自分側の通常メッセージだけ（最初の相談内容と「条件を修正しました」の記録は対象外）
+  function canEditMessage(m, mySide, index) { return !!m && m.by === mySide && !m.deleted && m.kind !== 'conditions' && index > 0; }
+
   // 「どの件か」の表示名＝送信日時（兵頭さん 2026-09-26：送信時間が分かればよい）。例「9/26 13:35 の相談」
   function fmtShortDT(ts) {
     const d = toDate(ts);
@@ -211,16 +282,44 @@
     </div>`;
   }
 
+  // 吹き出しの本文（取り消し済みなら印だけ）
+  function messageBodyHTML(m) {
+    return m.deleted ? `<span class="cs-deleted">${DELETED_TEXT}</span>` : esc(m.text);
+  }
+  // 自動返信の文面（FAX番号だけ太字にする）。text 省略時は設定の文面
+  function autoReplyHTML(text) {
+    return esc(text == null ? settings.autoReply : text).split(FAX).join('<b>' + FAX + '</b>');
+  }
+  function editedMark(m) { return (m.editedAt && !m.deleted) ? '<span class="cs-edited">編集済み</span>' : ''; }
+  // 「編集」「取り消し」ボタン。使うページ側で <fn>Edit(mid) / <fn>Withdraw(mid) を用意する
+  function messageActionsHTML(mid, fn) {
+    return `<div class="cs-msg-act"><button type="button" onclick="${fn}Edit('${esc(mid)}')">編集</button><button type="button" onclick="${fn}Withdraw('${esc(mid)}')">取り消し</button></div>`;
+  }
+  // 吹き出しの中で直す入力欄。使うページ側で <fn>Draft(text) / <fn>Save(mid) / <fn>Cancel() を用意する
+  function messageEditorHTML(mid, text, fn) {
+    return `<div class="cs-msg-edit"><textarea rows="3" id="cs-edit-ta" oninput="${fn}Draft(this.value)">${esc(text)}</textarea>
+      <div class="cs-msg-edit-act"><button type="button" class="cancel" onclick="${fn}Cancel()">やめる</button><button type="button" class="save" onclick="${fn}Save('${esc(mid)}')">保存する</button></div></div>`;
+  }
+
   // チャットの吹き出し。mySide は閲覧者の側（'hospital'|'admin'）
-  function messagesHTML(msgs, mySide) {
+  // opts.fn を渡すと自分側のメッセージに編集・取り消しボタンが付く。opts.autoReply を渡すと最初のメッセージの直後に自動返信を出す
+  function messagesHTML(msgs, mySide, opts) {
+    opts = opts || {};
     if (!msgs.length) return '<div class="cs-empty">まだメッセージはありません</div>';
-    return msgs.map(m => {
+    return msgs.map((m, i) => {
       const mine = m.by === mySide;
       const who = m.by === 'admin' ? 'Meets Medical' : (m.name || '病院');
-      return `<div class="cs-msg ${mine ? 'mine' : 'theirs'}">
-        <div class="cs-msg-meta">${esc(who)}　${fmtDate(m.createdAt)}</div>
-        <div class="cs-msg-body">${esc(m.text)}</div>
-      </div>`;
+      const editing = !!(opts.editingId && m.id === opts.editingId);
+      const body = editing
+        ? messageEditorHTML(m.id, opts.editingText != null ? opts.editingText : m.text, opts.fn)
+        : `<div class="cs-msg-body">${messageBodyHTML(m)}</div>`;
+      const act = (!editing && opts.fn && canEditMessage(m, mySide, i)) ? messageActionsHTML(m.id, opts.fn) : '';
+      const auto = (i === 0 && opts.autoReply)
+        ? `<div class="cs-msg ${mySide === 'admin' ? 'mine' : 'theirs'} auto"><div class="cs-msg-meta">Meets Medical（自動返信）　${fmtDate(m.createdAt)}</div><div class="cs-msg-body">${autoReplyHTML(opts.autoReply)}</div></div>`
+        : '';
+      return `<div class="cs-msg ${mine ? 'mine' : 'theirs'}${m.deleted ? ' deleted' : ''}">
+        <div class="cs-msg-meta">${esc(who)}　${fmtDate(m.createdAt)}${editedMark(m)}</div>${body}${act}
+      </div>` + auto;
     }).join('');
   }
 
@@ -248,6 +347,19 @@
     .cs-status.answered { color:#1d5c8a; border-color:#9ccfec; background:#e4f2fa; }
     .cs-status.closed { color:#6b7280; border-color:#d1d5db; background:#f3f4f6; }
     .cs-unread { display:inline-block; min-width:18px; height:18px; padding:0 5px; border-radius:100px; background:#e88494; color:#fff; font-size:11px; font-weight:800; line-height:18px; text-align:center; }
+    .cs-msg.auto .cs-msg-body { background:#fff; border-style:dashed; border-color:var(--g400,#9a9a95); color:var(--g700,#454541); }
+    .cs-msg.deleted .cs-msg-body { background:var(--g100,#f1f1ee); border-style:dashed; border-color:var(--g300,#cfcfca); }
+    .cs-deleted { color:var(--g500,#7a7a75); }
+    .cs-edited { font-size:11px; color:var(--g500,#7a7a75); margin-left:6px; }
+    .cs-msg-act { display:flex; gap:10px; margin:2px 6px 0; }
+    .cs-msg.mine .cs-msg-act { justify-content:flex-end; }
+    .cs-msg-act button { background:none; border:none; padding:2px; font-family:inherit; font-size:12px; color:var(--g500,#7a7a75); cursor:pointer; text-decoration:underline; }
+    .cs-msg-act button:hover { color:var(--ink,#2b2b2b); }
+    .cs-msg-edit { border:1.5px solid var(--pink-d,#e0707f); border-radius:14px; padding:8px; background:#fff; }
+    .cs-msg-edit textarea { width:100%; font-family:inherit; font-size:14px; line-height:1.6; padding:8px 10px; border:1.5px solid var(--g300,#cfcfca); border-radius:10px; resize:vertical; box-sizing:border-box; }
+    .cs-msg-edit-act { display:flex; justify-content:flex-end; gap:8px; margin-top:6px; }
+    .cs-msg-edit-act button { font-family:inherit; font-size:13px; font-weight:800; padding:7px 14px; border-radius:100px; border:2px solid var(--ink,#2b2b2b); background:#fff; cursor:pointer; }
+    .cs-msg-edit-act button.save { background:var(--pink,#e88494); color:#fff; }
   `;
 
   function statusBadge(status) {
@@ -255,7 +367,8 @@
     return `<span class="cs-status ${s}">${STATUS[s]}</span>`;
   }
 
-  global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_MAX, FAX, SENT_NOTE, CSS,
+  global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_MAX, FAX, SENT_NOTE, DELETED_TEXT, AUTO_REPLY_DEFAULT, CSS, settings,
     esc, areaOptions, validate, firstMessageText, areasText, fmtDate, fmtShort, fmtShortDT, shortText, caseName, uniqueCaseNames, caseMark, caseColor, normalizeInitials,
-    create, send, markRead, setStatus, conditionsHTML, messagesHTML, statusBadge };
+    create, send, markRead, setStatus, loadSettings, saveSettings, editMessage, withdrawMessage, updateConditions, isLastMessage, canEditMessage,
+    conditionsHTML, messagesHTML, messageBodyHTML, autoReplyHTML, editedMark, messageActionsHTML, messageEditorHTML, statusBadge };
 })(window);

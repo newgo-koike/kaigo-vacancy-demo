@@ -219,6 +219,26 @@
     .sent-close { padding:12px 34px; border:2px solid var(--ink); background:var(--ink); color:#fff; border-radius:100px; font-family:inherit; font-size:15px; font-weight:900; cursor:pointer; }
     .ci-bub.fax .ci-bub-body { border-color:var(--pink); background:var(--pink-l); }
     .ci-bub.fax b { font-size:17px; color:var(--pink-d); letter-spacing:.03em; }
+    /* 自動返信（点線の枠で「システムの文」と分かるように） */
+    .ci-bub.auto .ci-bub-body { background:#fff; border-style:dashed; border-color:var(--g400); color:var(--g700); }
+    .ci-bub.auto b { color:var(--pink-d); font-size:15px; }
+    /* 自分のメッセージの編集・取り消し（吹き出しの下の小さな文字ボタン） */
+    .cs-msg-act { display:flex; gap:10px; margin:2px 6px 0; }
+    .ci-bub.me .cs-msg-act { justify-content:flex-end; }
+    .cs-msg-act button { background:none; border:none; padding:2px; font-family:inherit; font-size:12px; color:var(--g500); cursor:pointer; text-decoration:underline; }
+    .cs-msg-act button:hover { color:var(--ink); }
+    .cs-deleted { color:var(--g500); }
+    .ci-bub.deleted .ci-bub-body { background:var(--g100); border-style:dashed; border-color:var(--g300); }
+    .cs-edited { font-size:11px; color:var(--g500); }
+    .cs-msg-edit { border:1.5px solid var(--pink-d); border-radius:12px; padding:8px; background:#fff; }
+    .cs-msg-edit textarea { width:100%; box-sizing:border-box; font-family:inherit; font-size:13px; line-height:1.6; padding:8px 10px; border:1.5px solid var(--g300); border-radius:10px; resize:vertical; }
+    .cs-msg-edit-act { display:flex; justify-content:flex-end; gap:8px; margin-top:6px; }
+    .cs-msg-edit-act button { font-family:inherit; font-size:13px; font-weight:800; padding:7px 14px; border-radius:100px; border:2px solid var(--ink); background:#fff; cursor:pointer; }
+    .cs-msg-edit-act button.save { background:var(--pink); color:#fff; }
+    .chat-cond-act { display:flex; justify-content:flex-end; margin:2px 6px 0; }
+    .chat-cond-act button { background:none; border:none; padding:2px; font-family:inherit; font-size:12px; color:var(--pink-d); font-weight:800; cursor:pointer; text-decoration:underline; }
+    .chat-edit-ttl { font-size:15px; font-weight:900; margin:4px 0 6px; }
+    .chat-edit-note { font-size:12.5px; color:var(--g600); margin-bottom:8px; line-height:1.6; }
     @media (max-width:640px) { .chat-stream { max-height:62vh; } .col-hd-link { margin-left:8px; } }
     /* 必須未入力の項目を赤く示す */
     .cs-grp.err .cs-grp-ttl { color:#b91c1c; }
@@ -904,6 +924,11 @@ auth.onAuthStateChanged(async user => {
   // 施設詳細から戻ってきたら結果を復元。そうでなければ前回の検索条件を読み込む
   if (!restoreResultsIfReturning()) loadSavedConditions();
   updateSaveBtnState();
+  // 自動返信の文面（管理画面で変更できる）。病院ユーザーのチャットにだけ出す
+  if (role === 'hospital') await KaigoConsult.loadSettings(db);
+  // チャット管理ページの「条件を修正」から来たとき（?case=ID&edit=1）：その件を開いてから修正画面へ
+  const qp = new URLSearchParams(location.search);
+  if (qp.get('case')) PENDING_CASE = { id: qp.get('case'), edit: qp.get('edit') === '1' };
   watchConsultBadge();
   buildConsultForm();
   renderChat();
@@ -2160,6 +2185,7 @@ function updateConsultBtn() {
 // 自病院の相談を監視し、ヘッダーの未読数と右カラムの「最近のやり取り」を更新する（病院ユーザーのみ）。
 // 病院1件あたりの相談は少数なので、全件を1つの監視で受けて端末側で並べ替える
 let MY_CONSULTS = [];
+let PENDING_CASE = null;   // URL（?case=ID）で指定された、読み込み後に開く件
 function watchConsultBadge() {
   const box = document.getElementById('ci-recent');
   if (!currentUser || currentUser.role !== 'hospital' || !currentUser.hospitalId) { if (box) box.style.display = 'none'; return; }
@@ -2175,6 +2201,12 @@ function watchConsultBadge() {
       const bb = document.getElementById('b-unread');
       if (bb) { bb.style.display = unread ? 'inline-block' : 'none'; bb.textContent = `未読 ${unread}件`; }
       renderChat();
+      if (PENDING_CASE && MY_CONSULTS.some(c => c.id === PENDING_CASE.id)) {
+        const pc = PENDING_CASE; PENDING_CASE = null;
+        chatOpenCase(pc.id);
+        if (pc.edit) chatEditConditions();
+        setTimeout(() => document.getElementById('consult-inline')?.scrollIntoView({ behavior: 'smooth' }), 300);
+      }
     }, () => { /* 権限なし等は無視 */ });
 }
 function consultSummary(x) {
@@ -2202,6 +2234,9 @@ let CHAT_VIEW = { mode: 'wizard', caseId: null, inited: false };   // 表示中�
 let CHAT_MSGS = [];                                // 表示中の会話のメッセージ
 let CHAT_MSG_UNSUB = null;
 let CHAT_REPLY_DRAFT = '';
+let CHAT_EDIT = null;       // 相談条件を修正中の入力状態（CHAT と同じ形）
+let CHAT_EDIT_MSG = null;   // 直しているメッセージ { mid, text }
+function chatState() { return CHAT_VIEW.mode === 'edit' ? CHAT_EDIT : CHAT; }
 function chatReset() {
   CHAT = { a: { caseLabel: '', care: [], areas: [], areaOther: '', budget: [], needs: [], detail: '' }, err: {}, sending: false };
 }
@@ -2226,6 +2261,7 @@ function chatDateLabel(ts) {
 }
 function chatShowWizard() {
   CHAT_VIEW = { ...CHAT_VIEW, mode: 'wizard', caseId: null };
+  CHAT_EDIT = null; CHAT_EDIT_MSG = null;
   if (CHAT_MSG_UNSUB) { CHAT_MSG_UNSUB(); CHAT_MSG_UNSUB = null; }
   if (!CHAT) chatReset();
   renderChat();
@@ -2233,10 +2269,10 @@ function chatShowWizard() {
 }
 function chatOpenCase(id) {
   CHAT_VIEW = { ...CHAT_VIEW, mode: 'thread', caseId: id };
-  CHAT_MSGS = []; CHAT_REPLY_DRAFT = '';
+  CHAT_MSGS = []; CHAT_REPLY_DRAFT = ''; CHAT_EDIT = null; CHAT_EDIT_MSG = null;
   if (CHAT_MSG_UNSUB) CHAT_MSG_UNSUB();
   CHAT_MSG_UNSUB = db.collection('consultations').doc(id).collection('messages').orderBy('createdAt').onSnapshot(sn => {
-    CHAT_MSGS = sn.docs.map(d => d.data());
+    CHAT_MSGS = sn.docs.map(d => ({ id: d.id, ...d.data() }));
     renderChat();
   }, () => {});
   const x = MY_CONSULTS.find(c => c.id === id);
@@ -2261,46 +2297,42 @@ function renderChat() {
     html += `<div class="chat-thread-hd" style="--cc:${cc}"><span class="chat-case dot" style="background:${cc};color:#fff;border:none;padding:0 6px;height:26px;justify-content:center;font-size:11px;font-weight:900;display:inline-flex;align-items:center;border-radius:100px">${esc(KaigoConsult.caseMark(x))}</span>
       <div><div class="nm">${esc(NAMES[x.id])}</div><div class="sub">${KaigoConsult.fmtDate(x.createdAt)} に送信</div></div>
       <span class="st">${KaigoConsult.statusBadge(x.status)}</span><a href="kaigo-consult.html#${x.id}">チャット管理で開く</a></div>`;
-    html += `<div class="ci-bub me"><div class="ci-bub-meta">相談内容　${fmt(x.createdAt)}</div><div class="ci-bub-body">${esc(consultSummaryLines(x))}</div></div>`;
+    html += `<div class="ci-bub me"><div class="ci-bub-meta">相談内容　${fmt(x.createdAt)}</div><div class="ci-bub-body">${esc(consultSummaryLines(x))}</div>
+      <div class="chat-cond-act"><button type="button" onclick="chatEditConditions()">条件を修正</button></div></div>`;
+    // 自動返信（保存はせず画面上で常に出す。文面は管理画面で変更できる）
+    html += `<div class="ci-bub them bot auto"><div class="ci-bub-meta">Meets Medical（自動返信）　${fmt(x.createdAt)}</div><div class="ci-bub-body">${KaigoConsult.autoReplyHTML()}</div></div>`;
     let lastDay = chatDateLabel(x.createdAt);
-    CHAT_MSGS.slice(1).forEach(m => {
+    CHAT_MSGS.slice(1).forEach((m, i) => {
       const day = chatDateLabel(m.createdAt);
       if (day && day !== lastDay) { html += `<div class="chat-date"><span>${day}</span></div>`; lastDay = day; }
       const mine = m.by === 'hospital';
-      html += `<div class="ci-bub ${mine ? 'me' : 'them'}"><div class="ci-bub-meta">${mine ? esc(m.name || '自分') : 'Meets Medical'}　${fmt(m.createdAt)}</div><div class="ci-bub-body">${esc(m.text)}</div></div>`;
+      const editing = !!(CHAT_EDIT_MSG && CHAT_EDIT_MSG.mid === m.id);
+      const body = editing ? KaigoConsult.messageEditorHTML(m.id, CHAT_EDIT_MSG.text, 'chatMsg') : `<div class="ci-bub-body">${KaigoConsult.messageBodyHTML(m)}</div>`;
+      const act = (!editing && KaigoConsult.canEditMessage(m, 'hospital', i + 1)) ? KaigoConsult.messageActionsHTML(m.id, 'chatMsg') : '';
+      html += `<div class="ci-bub ${mine ? 'me' : 'them'}${m.deleted ? ' deleted' : ''}"><div class="ci-bub-meta">${mine ? esc(m.name || '自分') : 'Meets Medical'}　${fmt(m.createdAt)}${KaigoConsult.editedMark(m)}</div>${body}${act}</div>`;
     });
-    if (CHAT_MSGS.length <= 1) {
-      html += `<div class="ci-bub them bot fax"><div class="ci-bub-meta">Meets Medical</div><div class="ci-bub-body">送信ありがとうございます。担当者が確認して、ここに返信します。\nサマリーや診療情報提供書（診情）がある場合は、下記へFAXをお願いします。\nFAX <b>${KaigoConsult.FAX}</b></div></div>`;
-      html += '<div class="chat-sys">追加の情報や訂正があれば、下の欄からいつでも送れます</div>';
-    }
+    if (CHAT_MSGS.length <= 1) html += '<div class="chat-sys">追加の情報や訂正があれば、下の欄からいつでも送れます</div>';
     comp.style.display = 'flex';
     comp.innerHTML = `<textarea class="chat-ta" id="chat-reply" rows="2" placeholder="Meets Medical への返信・追記（名前などの個人情報は書かないでください）" oninput="CHAT_REPLY_DRAFT = this.value">${esc(CHAT_REPLY_DRAFT)}</textarea>
       <span class="chat-hint">この件（${esc(NAMES[x.id])}）への返信として送られます</span>
       <button class="chat-btn primary" id="chat-reply-btn" onclick="chatReply()">送信</button>`;
+  } else if (CHAT_VIEW.mode === 'edit') {
+    // ── 送信済みの相談の条件を直す（新規と同じフォームに今の条件を入れて出す） ──
+    const x = cases.find(c => c.id === CHAT_VIEW.caseId);
+    if (!x || !CHAT_EDIT) { CHAT_VIEW.mode = 'thread'; return renderChat(); }
+    html += '<button type="button" class="chat-back" onclick="chatCancelEdit()">← 会話に戻る</button>';
+    html += `<div class="chat-edit-ttl">相談条件を修正（${esc(NAMES[x.id])}）</div>`;
+    html += '<div class="chat-edit-note">チェックを付け直して「修正を保存」を押してください。修正後の内容が Meets Medical に届きます。</div>';
+    html += chatFormHTML(CHAT_EDIT, 'edit');
+    comp.style.display = 'none';
+    comp.innerHTML = '';
   } else {
     // ── 上：新しい相談（条件を全部いっぺんにチェック） ──
     const unread = cases.filter(x => x.unreadForHospital);
     if (unread.length) html += `<button type="button" class="chat-unread-bar" onclick="chatOpenCase('${unread[0].id}')">Meets Medical から返信が届いています（${unread.length}件）　→ 見る</button>`;
     html += '<div class="chat-sec-ttl">新しい相談を送る</div>';
     html += '<div class="ci-bub them bot"><div class="ci-bub-body">こんにちは。受け入れ先を Meets Medical が探します。当てはまるものにチェックして「送信する」を押してください（相談条件・希望エリア・費用は必須、ほかは任意）。</div></div>';
-    html += '<div class="chat-form">';
-    CHAT_GROUPS.forEach(g => {
-      const sel = CHAT.a[g.key];
-      html += `<div class="chat-grp ${CHAT.err[g.key] ? 'err' : ''}" id="chat-grp-${g.key}"><div class="chat-grp-ttl">${g.title} <span class="${g.req ? 'req' : 'opt'}">${g.req ? '必須' : '任意'}</span>${CHAT.err[g.key] ? `<span class="chat-grp-err">${esc(CHAT.err[g.key])}</span>` : ''}</div>
-        <div class="chat-qr">${g.opts().map(o => `<button type="button" class="chat-chip ${sel.includes(o) ? 'on' : ''}" data-k="${g.key}" data-v="${esc(o)}" onclick="chatToggle(this.dataset.k, this.dataset.v)">${esc(o)}</button>`).join('')}</div>
-        ${g.key === 'areas' && sel.includes(KaigoConsult.OTHER_AREA) ? `<input class="chat-inp" id="chat-other" placeholder="その他の希望エリア（市名など）" value="${esc(CHAT.a.areaOther)}" oninput="CHAT.a.areaOther = this.value">` : ''}
-      </div>`;
-    });
-    const n = CHAT_GROUPS.reduce((a, g) => a + CHAT.a[g.key].length, 0);
-    html += `<div class="chat-grp"><div class="chat-grp-ttl">補足 <span class="opt">任意</span></div>
-      <div class="chat-note">※名前などの個人情報は記載しないでください。</div>
-      <textarea class="chat-ta" id="chat-detail" rows="3" placeholder="例）退院予定日、医療的ケアの頻度、吹田駅近くなどの希望、ご家族の希望など" oninput="CHAT.a.detail = this.value">${esc(CHAT.a.detail)}</textarea>
-    </div>
-    <div class="chat-fax">サマリー・診療情報提供書（診情）がある場合は、送信後に <b>FAX ${KaigoConsult.FAX}</b> へお送りください</div>
-    <div class="chat-form-actions"><span class="chat-cnt">${n ? n + '項目を選択中' : '当てはまるものをタップしてください'}</span>
-      <button type="button" class="chat-btn" onclick="chatReset(); renderChat()">入力をクリア</button>
-      <button type="button" class="chat-btn primary" id="chat-send" onclick="chatSend()">送信する</button></div>
-    </div>`;
+    html += chatFormHTML(CHAT, 'new');
     // ── 下：送信済みの相談一覧 ──
     html += `<div class="chat-sec-ttl">送信済みの相談 <span class="chat-sec-cnt">${cases.length ? cases.length + '件' : ''}</span>${unread.length ? `<span class="cs-unread">未読 ${unread.length}件</span>` : ''}<a class="chat-sec-link" href="kaigo-consult.html">チャット管理で見る</a></div>`;
     if (!cases.length) html += '<div class="chat-sys">まだ送信した相談はありません。上のフォームから送ると、ここに並びます</div>';
@@ -2318,11 +2350,40 @@ function renderChat() {
     comp.innerHTML = '';
   }
   stream.innerHTML = html;
-  if (CHAT_VIEW.mode === 'thread') requestAnimationFrame(() => { stream.scrollTop = stream.scrollHeight; });
+  if (CHAT_VIEW.mode === 'thread' && !CHAT_EDIT_MSG) requestAnimationFrame(() => { stream.scrollTop = stream.scrollHeight; });
   const other = document.getElementById('chat-other');
   if (other && !other.value) other.focus();
 }
 window.addEventListener('resize', () => { const st = document.getElementById('chat-stream'); if (st && CHAT_VIEW.mode === 'thread') st.scrollTop = st.scrollHeight; });
+// 相談フォーム（新規送信と条件修正で共用）。S は入力状態（CHAT か CHAT_EDIT）
+function chatFormHTML(S, mode) {
+  const esc = KaigoConsult.esc;
+  let html = '<div class="chat-form">';
+  CHAT_GROUPS.forEach(g => {
+    const sel = S.a[g.key];
+    html += `<div class="chat-grp ${S.err[g.key] ? 'err' : ''}" id="chat-grp-${g.key}"><div class="chat-grp-ttl">${g.title} <span class="${g.req ? 'req' : 'opt'}">${g.req ? '必須' : '任意'}</span>${S.err[g.key] ? `<span class="chat-grp-err">${esc(S.err[g.key])}</span>` : ''}</div>
+      <div class="chat-qr">${g.opts().map(o => `<button type="button" class="chat-chip ${sel.includes(o) ? 'on' : ''}" data-k="${g.key}" data-v="${esc(o)}" onclick="chatToggle(this.dataset.k, this.dataset.v)">${esc(o)}</button>`).join('')}</div>
+      ${g.key === 'areas' && sel.includes(KaigoConsult.OTHER_AREA) ? `<input class="chat-inp" id="chat-other" placeholder="その他の希望エリア（市名など）" value="${esc(S.a.areaOther)}" oninput="chatState().a.areaOther = this.value">` : ''}
+    </div>`;
+  });
+  const n = CHAT_GROUPS.reduce((a, g) => a + S.a[g.key].length, 0);
+  html += `<div class="chat-grp"><div class="chat-grp-ttl">補足 <span class="opt">任意</span></div>
+    <div class="chat-note">※名前などの個人情報は記載しないでください。</div>
+    <textarea class="chat-ta" id="chat-detail" rows="3" placeholder="例）退院予定日、医療的ケアの頻度、吹田駅近くなどの希望、ご家族の希望など" oninput="chatState().a.detail = this.value">${esc(S.a.detail)}</textarea>
+  </div>
+  <div class="chat-fax">サマリー・診療情報提供書（診情）がある場合は、送信後に <b>FAX ${KaigoConsult.FAX}</b> へお送りください</div>`;
+  const cnt = `<span class="chat-cnt">${n ? n + '項目を選択中' : '当てはまるものをタップしてください'}</span>`;
+  if (mode === 'edit') {
+    html += `<div class="chat-form-actions">${cnt}
+      <button type="button" class="chat-btn" onclick="chatCancelEdit()">やめる</button>
+      <button type="button" class="chat-btn primary" id="chat-save-cond" onclick="chatSaveConditions()">修正を保存</button></div>`;
+  } else {
+    html += `<div class="chat-form-actions">${cnt}
+      <button type="button" class="chat-btn" onclick="chatReset(); renderChat()">入力をクリア</button>
+      <button type="button" class="chat-btn primary" id="chat-send" onclick="chatSend()">送信する</button></div>`;
+  }
+  return html + '</div>';
+}
 // トップページでは B（空室相談）の枠の高さを A（検索）に合わせる。Aが伸び縮みしたら追従する
 function syncColumnHeights() {
   const wrap = document.getElementById('body-wrap'), sb = document.querySelector('.sidebar'), ci = document.getElementById('consult-inline');
@@ -2337,28 +2398,35 @@ window.addEventListener('DOMContentLoaded', () => {
   syncColumnHeights();
 });
 function chatToggle(key, v) {
+  const S = chatState();
+  if (!S) return;
   const g = CHAT_GROUPS.find(x => x.key === key);
-  const cur = new Set(CHAT.a[key]);
+  const cur = new Set(S.a[key]);
   if (cur.has(v)) cur.delete(v); else cur.add(v);
-  CHAT.a[key] = g.opts().filter(o => cur.has(o));   // 選択肢の順に並べる
-  if (key === 'areas' && !cur.has(KaigoConsult.OTHER_AREA)) CHAT.a.areaOther = '';
-  delete CHAT.err[key];
+  S.a[key] = g.opts().filter(o => cur.has(o));   // 選択肢の順に並べる
+  if (key === 'areas' && !cur.has(KaigoConsult.OTHER_AREA)) S.a.areaOther = '';
+  delete S.err[key];
   // 部分描画（入力中の補足欄を消さないよう、該当グループだけ描き直す）
   const stream = document.getElementById('chat-stream');
   const scroll = stream ? stream.scrollTop : 0;
   renderChat();
   if (stream) stream.scrollTop = scroll;
 }
+// 必須チェック。項目ごとのエラーを S.err に入れ、メッセージの配列を返す
+function chatValidate(S) {
+  S.a.areaOther = (document.getElementById('chat-other')?.value || S.a.areaOther || '').trim();
+  S.a.detail = (document.getElementById('chat-detail')?.value || S.a.detail || '').trim();
+  const errs = KaigoConsult.validate(S.a);
+  S.err = {};
+  if (!S.a.care.length)   S.err.care = '1つ以上選んでください';
+  if (!S.a.areas.length)  S.err.areas = '1つ以上選んでください';
+  else if (S.a.areas.includes(KaigoConsult.OTHER_AREA) && !S.a.areaOther) S.err.areas = '「その他」の内容を入力してください';
+  if (!S.a.budget.length) S.err.budget = '1つ以上選んでください';
+  return errs;
+}
 async function chatSend() {
   if (CHAT.sending) return;
-  CHAT.a.areaOther = (document.getElementById('chat-other')?.value || CHAT.a.areaOther || '').trim();
-  CHAT.a.detail = (document.getElementById('chat-detail')?.value || CHAT.a.detail || '').trim();
-  const errs = KaigoConsult.validate(CHAT.a);
-  CHAT.err = {};
-  if (!CHAT.a.care.length)   CHAT.err.care = '1つ以上選んでください';
-  if (!CHAT.a.areas.length)  CHAT.err.areas = '1つ以上選んでください';
-  else if (CHAT.a.areas.includes(KaigoConsult.OTHER_AREA) && !CHAT.a.areaOther) CHAT.err.areas = '「その他」の内容を入力してください';
-  if (!CHAT.a.budget.length) CHAT.err.budget = '1つ以上選んでください';
+  const errs = chatValidate(CHAT);
   if (errs.length) {
     renderChat();
     const first = document.querySelector('.chat-grp.err');
@@ -2419,6 +2487,89 @@ async function chatReply() {
     console.error(e);
     showToast('送信に失敗しました: ' + (e && e.message ? e.message : e));
   } finally { if (b) b.disabled = false; }
+}
+// ── 送信済みの相談の条件を直す ──
+function chatEditConditions() {
+  const x = MY_CONSULTS.find(c => c.id === CHAT_VIEW.caseId);
+  if (!x) return;
+  const c = x.conditions || {};
+  CHAT_EDIT = { a: { caseLabel: '', care: [...(c.care || [])], areas: [...(c.areas || [])], areaOther: c.areaOther || '', budget: [...(c.budget || [])], needs: [...(c.needs || [])], detail: c.detail || '' }, err: {}, sending: false };
+  CHAT_EDIT_MSG = null;
+  CHAT_VIEW = { ...CHAT_VIEW, mode: 'edit' };
+  renderChat();
+  const st = document.getElementById('chat-stream'); if (st) st.scrollTop = 0;
+}
+function chatCancelEdit() {
+  CHAT_EDIT = null;
+  CHAT_VIEW = { ...CHAT_VIEW, mode: 'thread' };
+  renderChat();
+}
+async function chatSaveConditions() {
+  const S = CHAT_EDIT;
+  if (!S || S.sending) return;
+  const errs = chatValidate(S);
+  if (errs.length) {
+    renderChat();
+    const first = document.querySelector('.chat-grp.err');
+    if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    showToast(errs[0]);
+    return;
+  }
+  const x = MY_CONSULTS.find(c => c.id === CHAT_VIEW.caseId);
+  S.sending = true;
+  const b = document.getElementById('chat-save-cond');
+  if (b) { b.disabled = true; b.textContent = '保存中...'; }
+  try {
+    await KaigoConsult.updateConditions(db, CHAT_VIEW.caseId, currentUser, S.a, x ? x.facilities : []);
+    CHAT_EDIT = null;
+    CHAT_VIEW = { ...CHAT_VIEW, mode: 'thread' };
+    showToast('相談条件を修正しました。Meets Medical に届きます');
+  } catch (e) {
+    console.error(e);
+    S.sending = false;
+    showToast('保存に失敗しました: ' + (e && e.message ? e.message : e));
+    if (b) { b.disabled = false; b.textContent = '修正を保存'; }
+  }
+  renderChat();
+}
+// ── 自分のメッセージの編集・取り消し（吹き出しの「編集」「取り消し」から） ──
+function chatMsgEdit(mid) {
+  const m = CHAT_MSGS.find(x => x.id === mid);
+  if (!m) return;
+  CHAT_EDIT_MSG = { mid, text: m.text || '' };
+  renderChat();
+  const ta = document.getElementById('cs-edit-ta');
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); ta.scrollIntoView({ block: 'center' }); }
+}
+function chatMsgDraft(t) { if (CHAT_EDIT_MSG) CHAT_EDIT_MSG.text = t; }
+function chatMsgCancel() { CHAT_EDIT_MSG = null; renderChat(); }
+async function chatMsgSave(mid) {
+  if (!CHAT_EDIT_MSG || CHAT_EDIT_MSG.mid !== mid) return;
+  const text = (CHAT_EDIT_MSG.text || '').trim();
+  if (!text) { showToast('内容を入力してください（消したいときは「取り消し」）'); return; }
+  const orig = CHAT_MSGS.find(x => x.id === mid);
+  if (orig && (orig.text || '') === text) { CHAT_EDIT_MSG = null; renderChat(); return; }
+  try {
+    await KaigoConsult.editMessage(db, CHAT_VIEW.caseId, mid, 'hospital', text, KaigoConsult.isLastMessage(CHAT_MSGS, mid));
+    CHAT_EDIT_MSG = null;
+    showToast('メッセージを直しました');
+  } catch (e) {
+    console.error(e);
+    showToast('保存に失敗しました: ' + (e && e.message ? e.message : e));
+  }
+  renderChat();
+}
+async function chatMsgWithdraw(mid) {
+  if (!CHAT_MSGS.some(x => x.id === mid)) return;
+  if (!confirm('このメッセージを取り消しますか？\nMeets Medical の画面からも消えます（元に戻せません）')) return;
+  try {
+    await KaigoConsult.withdrawMessage(db, CHAT_VIEW.caseId, mid, 'hospital', KaigoConsult.isLastMessage(CHAT_MSGS, mid));
+    if (CHAT_EDIT_MSG && CHAT_EDIT_MSG.mid === mid) CHAT_EDIT_MSG = null;
+    showToast('メッセージを取り消しました');
+  } catch (e) {
+    console.error(e);
+    showToast('取り消しに失敗しました: ' + (e && e.message ? e.message : e));
+  }
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('consult-modal')?.style.display === 'flex') closeConsult();

@@ -234,10 +234,21 @@
           <option value="answered">回答済</option>
           <option value="closed">終了</option>
         </select>
+        <button type="button" onclick="toggleConsultSettings()" class="text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院が相談を送った直後に表示される自動返信の文面を変える">自動返信</button>
       </div>
       <div id="cs-list" class="flex-1 overflow-y-auto"><p class="text-sm text-slate-400 p-4">読み込み中...</p></div>
     </aside>
     <section class="flex-1 flex flex-col min-w-0">
+      <div id="cs-settings" class="hidden px-5 py-4 border-b border-slate-200 bg-amber-50">
+        <div class="text-sm font-bold text-slate-800">自動返信の文面</div>
+        <p class="text-xs text-slate-500 mt-1">病院が相談を送った直後に、Meets Medical からの自動返信として病院側の画面に出ます（保存するとすべての病院の画面に反映。FAX番号は自動で太字になります）</p>
+        <textarea id="cs-auto-reply" rows="4" class="w-full border border-slate-300 rounded-lg p-2 text-sm mt-2"></textarea>
+        <div class="flex items-center gap-3 mt-2">
+          <button type="button" onclick="resetConsultSettings()" class="text-xs text-slate-500 underline">既定の文面に戻す</button>
+          <button type="button" onclick="toggleConsultSettings()" class="ml-auto px-4 py-2 rounded-full border border-slate-300 text-sm font-bold text-slate-600 hover:bg-white">閉じる</button>
+          <button type="button" id="cs-settings-save" onclick="saveConsultSettings()" class="px-5 py-2 rounded-full bg-[#5fb0de] text-white text-sm font-bold hover:bg-[#2c7ba6]">保存する</button>
+        </div>
+      </div>
       <div id="cs-thread-hd" class="px-5 py-3 border-b border-slate-200 bg-white text-sm text-slate-500">左の一覧から相談を選ぶと内容が表示されます</div>
       <div id="cs-thread" class="flex-1 overflow-y-auto p-5 bg-slate-50"></div>
       <div id="cs-reply-box" class="p-4 border-t border-slate-200 bg-white hidden">
@@ -517,6 +528,7 @@ auth.onAuthStateChanged(async user => {
 });
 
 function startApp() {
+  KaigoConsult.loadSettings(db).then(() => { if (CS_CUR) renderConsultThread(); });   // 自動返信の文面
   startConsultWatch();
   if (location.hash === '#consult') switchTab('consult');
   db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
@@ -926,10 +938,13 @@ document.head.appendChild(Object.assign(document.createElement('style'), { textC
   .cs-item-date { margin-left:auto; font-size:11px; color:#94a3b8; }
   .cs-item-title { font-size:13px; font-weight:800; color:#1e293b; }
   .cs-item-sub { font-size:12px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cs-msg-edit-act button.save { background:#5fb0de; }
 ` }));
 let CONSULTS = [];
 let CS_CUR = null;
 let CS_UNSUB_MSGS = null;
+let CS_MSGS = [];         // 開いている相談のメッセージ（id 付き）
+let CS_EDIT_MSG = null;   // 直しているメッセージ { mid, text }
 let CS_PREV_UNREAD = null;
 const CS_BASE_TITLE = document.title;
 
@@ -944,7 +959,7 @@ function startConsultWatch() {
     if (CS_PREV_UNREAD !== null && unread > CS_PREV_UNREAD) showToast('新しい空室相談・返信が届きました');
     CS_PREV_UNREAD = unread;
     renderConsultList();
-    if (CS_CUR) renderConsultHead();
+    if (CS_CUR) { renderConsultHead(); if (!CS_EDIT_MSG) renderConsultThread(); }
   }, err => { console.error(err); });
 }
 
@@ -990,14 +1005,86 @@ function openConsultThread(id) {
   renderConsultHead();
   document.getElementById('cs-reply-box').classList.remove('hidden');
   const c = CONSULTS.find(x => x.id === id);
+  CS_MSGS = []; CS_EDIT_MSG = null;
   if (CS_UNSUB_MSGS) CS_UNSUB_MSGS();
   CS_UNSUB_MSGS = db.collection('consultations').doc(id).collection('messages').orderBy('createdAt').onSnapshot(s => {
-    const msgs = s.docs.map(d => d.data());
-    const body = document.getElementById('cs-thread');
-    body.innerHTML = KaigoConsult.conditionsHTML(c || {}) + KaigoConsult.messagesHTML(msgs, 'admin');
-    body.scrollTop = body.scrollHeight;
+    CS_MSGS = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderConsultThread();
   });
   if (c && c.unreadForAdmin) KaigoConsult.markRead(db, id, 'admin').catch(() => {});
+}
+
+function renderConsultThread() {
+  const body = document.getElementById('cs-thread');
+  if (!body || !CS_CUR) return;
+  const c = CONSULTS.find(x => x.id === CS_CUR);
+  body.innerHTML = KaigoConsult.conditionsHTML(c || {}) + KaigoConsult.messagesHTML(CS_MSGS, 'admin', {
+    fn: 'csMsg', editingId: CS_EDIT_MSG && CS_EDIT_MSG.mid, editingText: CS_EDIT_MSG && CS_EDIT_MSG.text, autoReply: KaigoConsult.settings.autoReply,
+  });
+  if (!CS_EDIT_MSG) body.scrollTop = body.scrollHeight;
+}
+
+// ── 自分（Meets Medical）の返信の編集・取り消し ──
+function csMsgEdit(mid) {
+  const m = CS_MSGS.find(x => x.id === mid);
+  if (!m) return;
+  CS_EDIT_MSG = { mid, text: m.text || '' };
+  renderConsultThread();
+  const ta = document.getElementById('cs-edit-ta');
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); ta.scrollIntoView({ block: 'center' }); }
+}
+function csMsgDraft(t) { if (CS_EDIT_MSG) CS_EDIT_MSG.text = t; }
+function csMsgCancel() { CS_EDIT_MSG = null; renderConsultThread(); }
+async function csMsgSave(mid) {
+  if (!CS_EDIT_MSG || CS_EDIT_MSG.mid !== mid) return;
+  const text = (CS_EDIT_MSG.text || '').trim();
+  if (!text) { showToast('内容を入力してください（消したいときは「取り消し」）'); return; }
+  const orig = CS_MSGS.find(x => x.id === mid);
+  if (orig && (orig.text || '') === text) { CS_EDIT_MSG = null; renderConsultThread(); return; }
+  try {
+    await KaigoConsult.editMessage(db, CS_CUR, mid, 'admin', text, KaigoConsult.isLastMessage(CS_MSGS, mid));
+    CS_EDIT_MSG = null;
+    showToast('返信を直しました（病院側に新着が付きます）');
+  } catch (e) {
+    console.error(e); showToast('保存に失敗しました: ' + (e.message || e));
+  }
+  renderConsultThread();
+}
+async function csMsgWithdraw(mid) {
+  if (!CS_MSGS.some(x => x.id === mid)) return;
+  if (!confirm('この返信を取り消しますか？\n病院側の画面からも消えます（元に戻せません）')) return;
+  try {
+    await KaigoConsult.withdrawMessage(db, CS_CUR, mid, 'admin', KaigoConsult.isLastMessage(CS_MSGS, mid));
+    if (CS_EDIT_MSG && CS_EDIT_MSG.mid === mid) CS_EDIT_MSG = null;
+    showToast('返信を取り消しました');
+  } catch (e) {
+    console.error(e); showToast('取り消しに失敗しました: ' + (e.message || e));
+  }
+}
+
+// ── 自動返信の文面（meta/consultSettings） ──
+function toggleConsultSettings() {
+  const box = document.getElementById('cs-settings');
+  const open = box.classList.contains('hidden');
+  box.classList.toggle('hidden', !open);
+  if (open) { document.getElementById('cs-auto-reply').value = KaigoConsult.settings.autoReply; document.getElementById('cs-auto-reply').focus(); }
+}
+function resetConsultSettings() { document.getElementById('cs-auto-reply').value = KaigoConsult.AUTO_REPLY_DEFAULT; }
+async function saveConsultSettings() {
+  const ta = document.getElementById('cs-auto-reply');
+  const btn = document.getElementById('cs-settings-save');
+  const text = ta.value.trim();
+  if (!text) { showToast('文面を入力してください（空にはできません）'); ta.focus(); return; }
+  if (text.length > 1000) { showToast('文面は1000文字以内にしてください'); return; }
+  btn.disabled = true;
+  try {
+    await KaigoConsult.saveSettings(db, { uid: auth.currentUser.uid }, { autoReply: text });
+    ta.value = KaigoConsult.settings.autoReply;
+    showToast('自動返信の文面を保存しました');
+    renderConsultThread();
+  } catch (e) {
+    console.error(e); showToast('保存に失敗しました: ' + (e.message || e));
+  } finally { btn.disabled = false; }
 }
 
 async function sendConsultReply() {
