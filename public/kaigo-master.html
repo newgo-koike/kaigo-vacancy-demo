@@ -145,6 +145,10 @@
     class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 -mb-px">
     📋 検索履歴
   </button>
+  <button onclick="switchTab('consult')" id="tab-consult"
+    class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 -mb-px">
+    空室相談 <span id="tab-consult-badge" class="cs-unread" style="display:none">0</span>
+  </button>
   <button onclick="switchTab('import')" id="tab-import"
     class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 -mb-px">
     📥 データ投入
@@ -214,6 +218,58 @@
 </div>
 
 </div><!-- /panel-facilities -->
+
+<!-- 空室相談タブ：病院からの相談一覧（左）とスレッド・返信（右） -->
+<div id="panel-consult" class="hidden flex-1 overflow-hidden">
+  <div class="flex w-full h-full">
+    <aside class="w-[380px] flex-shrink-0 border-r border-slate-200 bg-white flex flex-col">
+      <div class="p-3 border-b border-slate-200 flex items-center gap-2">
+        <span class="text-sm font-bold text-slate-800">相談一覧</span>
+        <span id="cs-list-count" class="text-xs text-slate-400"></span>
+        <select id="cs-filter" class="ml-auto text-xs border border-slate-300 rounded-md px-2 py-1" onchange="renderConsultList()">
+          <option value="">すべて</option>
+          <option value="unread">未読のみ</option>
+          <option value="open">新規</option>
+          <option value="working">対応中</option>
+          <option value="answered">回答済</option>
+          <option value="closed">終了</option>
+          <option value="withdrawn">取り下げ</option>
+        </select>
+        <button type="button" onclick="toggleConsultSettings()" class="text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院が相談を送った直後に表示される自動返信の文面を変える">自動返信</button>
+      </div>
+      <div id="cs-list" class="flex-1 overflow-y-auto"><p class="text-sm text-slate-400 p-4">読み込み中...</p></div>
+    </aside>
+    <section class="flex-1 flex flex-col min-w-0">
+      <div id="cs-settings" class="hidden px-5 py-4 border-b border-slate-200 bg-amber-50">
+        <div class="text-sm font-bold text-slate-800">自動返信の文面</div>
+        <p class="text-xs text-slate-500 mt-1">病院が相談を送った直後に、Meets Medical からの自動返信として病院側の画面に出ます（保存するとすべての病院の画面に反映。FAX番号は自動で太字になります）</p>
+        <textarea id="cs-auto-reply" rows="4" class="w-full border border-slate-300 rounded-lg p-2 text-sm mt-2"></textarea>
+        <div class="flex items-center gap-3 mt-2">
+          <button type="button" onclick="resetConsultSettings()" class="text-xs text-slate-500 underline">既定の文面に戻す</button>
+          <button type="button" onclick="toggleConsultSettings()" class="ml-auto px-4 py-2 rounded-full border border-slate-300 text-sm font-bold text-slate-600 hover:bg-white">閉じる</button>
+          <button type="button" id="cs-settings-save" onclick="saveConsultSettings()" class="px-5 py-2 rounded-full bg-[#5fb0de] text-white text-sm font-bold hover:bg-[#2c7ba6]">保存する</button>
+        </div>
+      </div>
+      <div id="cs-thread-hd" class="px-5 py-3 border-b border-slate-200 bg-white text-sm text-slate-500">左の一覧から相談を選ぶと内容が表示されます</div>
+      <div id="cs-thread" class="flex-1 overflow-y-auto p-5 bg-slate-50"></div>
+      <div id="cs-reply-box" class="p-4 border-t border-slate-200 bg-white hidden">
+        <textarea id="cs-reply" rows="3" class="w-full border border-slate-300 rounded-lg p-2 text-sm" placeholder="病院への返信（候補施設・確認したいこと・次の連絡予定など）"></textarea>
+        <div class="flex items-center gap-3 mt-2">
+          <label class="text-xs text-slate-500">ステータス</label>
+          <select id="cs-status" class="text-xs border border-slate-300 rounded-md px-2 py-1" onchange="changeConsultStatus(this.value)">
+            <option value="open">新規</option>
+            <option value="working">対応中</option>
+            <option value="answered">回答済</option>
+            <option value="closed">終了</option>
+            <option value="withdrawn">取り下げ</option>
+          </select>
+          <span class="text-xs text-slate-400">返信すると病院側に「新着」が付きます</span>
+          <button id="cs-send" onclick="sendConsultReply()" class="ml-auto px-5 py-2 rounded-full bg-[#5fb0de] text-white text-sm font-bold hover:bg-[#2c7ba6]">返信を送る</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div><!-- /panel-consult -->
 
 <!-- ユーザー管理タブ -->
 <div id="panel-users" class="hidden flex-1 overflow-y-auto p-6">
@@ -441,6 +497,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="kaigo-brochure.js"></script>
+<script src="kaigo-consult.js"></script>
 <script>
 const FIRE = {
   apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
@@ -473,6 +530,9 @@ auth.onAuthStateChanged(async user => {
 });
 
 function startApp() {
+  KaigoConsult.loadSettings(db).then(() => { if (CS_CUR) renderConsultThread(); });   // 自動返信の文面
+  startConsultWatch();
+  if (location.hash === '#consult') switchTab('consult');
   db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
     snap => {
       DATA = snap.docs.map(doc => {
@@ -868,10 +928,196 @@ function showToast(msg) {
 }
 
 // ── タブ切り替え ───────────────────────────────────────────────
+// ── 空室相談（病院からのチャット相談） ────────────────────────────
+// 常時 onSnapshot で監視し、未読数をタブのバッジとページタイトルに出す（＝システム内通知）。
+// 新しい相談・返信が増えたらトーストでも知らせる
+document.head.appendChild(Object.assign(document.createElement('style'), { textContent: KaigoConsult.CSS + `
+  .cs-item { padding:10px 12px; border-bottom:1px solid #e2e8f0; cursor:pointer; }
+  .cs-item:hover { background:#f8fafc; }
+  .cs-item.active { background:#e4f2fa; }
+  .cs-item.unread .cs-item-title { color:#0f172a; }
+  .cs-item-top { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+  .cs-item-date { margin-left:auto; font-size:11px; color:#94a3b8; }
+  .cs-item-title { font-size:13px; font-weight:800; color:#1e293b; }
+  .cs-item-sub { font-size:12px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cs-msg-edit-act button.save { background:#5fb0de; }
+` }));
+let CONSULTS = [];
+let CS_CUR = null;
+let CS_UNSUB_MSGS = null;
+let CS_MSGS = [];         // 開いている相談のメッセージ（id 付き）
+let CS_EDIT_MSG = null;   // 直しているメッセージ { mid, text }
+let CS_PREV_UNREAD = null;
+const CS_BASE_TITLE = document.title;
+
+function startConsultWatch() {
+  db.collection('consultations').orderBy('lastMessageAt', 'desc').limit(300).onSnapshot(s => {
+    CONSULTS = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    const unread = CONSULTS.filter(c => c.unreadForAdmin).length;
+    const badge = document.getElementById('tab-consult-badge');
+    badge.style.display = unread ? 'inline-block' : 'none';
+    badge.textContent = unread;
+    document.title = (unread ? `(${unread}) ` : '') + CS_BASE_TITLE;
+    if (CS_PREV_UNREAD !== null && unread > CS_PREV_UNREAD) showToast('新しい空室相談・返信が届きました');
+    CS_PREV_UNREAD = unread;
+    renderConsultList();
+    if (CS_CUR) { renderConsultHead(); if (!CS_EDIT_MSG) renderConsultThread(); }
+  }, err => { console.error(err); });
+}
+
+function renderConsultList() {
+  const el = document.getElementById('cs-list');
+  if (!el) return;
+  const f = document.getElementById('cs-filter').value;
+  const list = CONSULTS.filter(c => !f ? true : f === 'unread' ? c.unreadForAdmin : (c.status || 'open') === f);
+  // 同じ病院で同じ分に複数あるときだけ ②③… を付ける
+  const NAMES = {};
+  Object.values(CONSULTS.reduce((m, c) => ((m[c.hospitalId] = m[c.hospitalId] || []).push(c), m), {})).forEach(g => Object.assign(NAMES, KaigoConsult.uniqueCaseNames(g)));
+  window.CS_NAMES = NAMES;
+  document.getElementById('cs-list-count').textContent = `${list.length}件`;
+  if (!list.length) { el.innerHTML = '<p class="text-sm text-slate-400 p-4">該当する相談はありません</p>'; return; }
+  el.innerHTML = list.map(c => {
+    const facs = (c.facilities || []).map(x => x.name).join('、');
+    return `<div class="cs-item ${c.id === CS_CUR ? 'active' : ''} ${c.unreadForAdmin ? 'unread' : ''}" onclick="openConsultThread('${c.id}')">
+      <div class="cs-item-top">${KaigoConsult.statusBadge(c.status)}${c.unreadForAdmin ? '<span class="cs-unread">新着</span>' : ''}<span class="cs-item-date">${KaigoConsult.fmtShort(c.lastMessageAt)}</span></div>
+      <div class="cs-item-title"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${KaigoConsult.caseColor(c.id)};margin-right:6px;vertical-align:middle"></span>${esc(NAMES[c.id] || KaigoConsult.caseName(c))}<span class="text-xs text-slate-500 font-normal ml-2">${esc(c.hospitalName || '病院名未設定')}${c.createdByName ? '／' + esc(c.createdByName) : ''}</span></div>
+      <div class="cs-item-sub">${facs ? esc(KaigoConsult.shortText('施設: ' + facs, 40)) : esc(KaigoConsult.areasText(c.conditions || { areas: [] }))}</div>
+      <div class="cs-item-sub">${c.lastMessageBy === 'admin' ? '自分: ' : ''}${esc(c.lastMessageText || '')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderConsultHead() {
+  const c = CONSULTS.find(x => x.id === CS_CUR);
+  if (!c) return;
+  document.getElementById('cs-thread-hd').innerHTML = `
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex items-center gap-3"><span style="min-width:34px;height:34px;padding:0 8px;border-radius:100px;background:${KaigoConsult.caseColor(c.id)};color:#fff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;font-size:12px">${esc(KaigoConsult.caseMark(c))}</span>
+      <div><div class="text-base font-black text-slate-800">${esc((window.CS_NAMES || {})[c.id] || KaigoConsult.caseName(c))}<span class="text-sm text-slate-600 font-bold ml-2">${esc(c.hospitalName || '病院名未設定')}</span><span class="text-xs text-slate-500 font-normal ml-2">${esc(c.createdByName || '')}</span></div>
+      <div class="text-xs text-slate-400">${KaigoConsult.fmtDate(c.createdAt)} 受信　病院ID: ${esc(c.hospitalId || '')}</div></div></div>
+      <div class="ml-auto">${KaigoConsult.statusBadge(c.status)}</div>
+    </div>`;
+  const sel = document.getElementById('cs-status');
+  if (sel && document.activeElement !== sel) sel.value = c.status || 'open';
+}
+
+function openConsultThread(id) {
+  CS_CUR = id;
+  renderConsultList();
+  renderConsultHead();
+  document.getElementById('cs-reply-box').classList.remove('hidden');
+  const c = CONSULTS.find(x => x.id === id);
+  CS_MSGS = []; CS_EDIT_MSG = null;
+  if (CS_UNSUB_MSGS) CS_UNSUB_MSGS();
+  CS_UNSUB_MSGS = db.collection('consultations').doc(id).collection('messages').orderBy('createdAt').onSnapshot(s => {
+    CS_MSGS = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderConsultThread();
+  });
+  if (c && c.unreadForAdmin) KaigoConsult.markRead(db, id, 'admin').catch(() => {});
+}
+
+function renderConsultThread() {
+  const body = document.getElementById('cs-thread');
+  if (!body || !CS_CUR) return;
+  const c = CONSULTS.find(x => x.id === CS_CUR);
+  body.innerHTML = KaigoConsult.conditionsHTML(c || {}) + KaigoConsult.messagesHTML(CS_MSGS, 'admin', {
+    fn: 'csMsg', editingId: CS_EDIT_MSG && CS_EDIT_MSG.mid, editingText: CS_EDIT_MSG && CS_EDIT_MSG.text, autoReply: KaigoConsult.settings.autoReply,
+  });
+  if (!CS_EDIT_MSG) body.scrollTop = body.scrollHeight;
+}
+
+// ── 自分（Meets Medical）の返信の編集・取り消し ──
+function csMsgEdit(mid) {
+  const m = CS_MSGS.find(x => x.id === mid);
+  if (!m) return;
+  CS_EDIT_MSG = { mid, text: m.text || '' };
+  renderConsultThread();
+  const ta = document.getElementById('cs-edit-ta');
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); ta.scrollIntoView({ block: 'center' }); }
+}
+function csMsgDraft(t) { if (CS_EDIT_MSG) CS_EDIT_MSG.text = t; }
+function csMsgCancel() { CS_EDIT_MSG = null; renderConsultThread(); }
+async function csMsgSave(mid) {
+  if (!CS_EDIT_MSG || CS_EDIT_MSG.mid !== mid) return;
+  const text = (CS_EDIT_MSG.text || '').trim();
+  if (!text) { showToast('内容を入力してください（消したいときは「取り消し」）'); return; }
+  const orig = CS_MSGS.find(x => x.id === mid);
+  if (orig && (orig.text || '') === text) { CS_EDIT_MSG = null; renderConsultThread(); return; }
+  try {
+    await KaigoConsult.editMessage(db, CS_CUR, mid, 'admin', text, KaigoConsult.isLastMessage(CS_MSGS, mid));
+    CS_EDIT_MSG = null;
+    showToast('返信を直しました（病院側に新着が付きます）');
+  } catch (e) {
+    console.error(e); showToast('保存に失敗しました: ' + (e.message || e));
+  }
+  renderConsultThread();
+}
+async function csMsgWithdraw(mid) {
+  if (!CS_MSGS.some(x => x.id === mid)) return;
+  if (!confirm('この返信を取り消しますか？\n病院側の画面からも消えます（元に戻せません）')) return;
+  try {
+    await KaigoConsult.withdrawMessage(db, CS_CUR, mid, 'admin', KaigoConsult.isLastMessage(CS_MSGS, mid));
+    if (CS_EDIT_MSG && CS_EDIT_MSG.mid === mid) CS_EDIT_MSG = null;
+    showToast('返信を取り消しました');
+  } catch (e) {
+    console.error(e); showToast('取り消しに失敗しました: ' + (e.message || e));
+  }
+}
+
+// ── 自動返信の文面（meta/consultSettings） ──
+function toggleConsultSettings() {
+  const box = document.getElementById('cs-settings');
+  const open = box.classList.contains('hidden');
+  box.classList.toggle('hidden', !open);
+  if (open) { document.getElementById('cs-auto-reply').value = KaigoConsult.settings.autoReply; document.getElementById('cs-auto-reply').focus(); }
+}
+function resetConsultSettings() { document.getElementById('cs-auto-reply').value = KaigoConsult.AUTO_REPLY_DEFAULT; }
+async function saveConsultSettings() {
+  const ta = document.getElementById('cs-auto-reply');
+  const btn = document.getElementById('cs-settings-save');
+  const text = ta.value.trim();
+  if (!text) { showToast('文面を入力してください（空にはできません）'); ta.focus(); return; }
+  if (text.length > 1000) { showToast('文面は1000文字以内にしてください'); return; }
+  btn.disabled = true;
+  try {
+    await KaigoConsult.saveSettings(db, { uid: auth.currentUser.uid }, { autoReply: text });
+    ta.value = KaigoConsult.settings.autoReply;
+    showToast('自動返信の文面を保存しました');
+    renderConsultThread();
+  } catch (e) {
+    console.error(e); showToast('保存に失敗しました: ' + (e.message || e));
+  } finally { btn.disabled = false; }
+}
+
+async function sendConsultReply() {
+  const ta = document.getElementById('cs-reply');
+  const text = ta.value.trim();
+  if (!CS_CUR || !text) { showToast('返信内容を入力してください'); return; }
+  const btn = document.getElementById('cs-send');
+  btn.disabled = true;
+  try {
+    // 返信したら「新規」は自動で「回答済」に。それ以外はセレクトの値を保つ
+    const cur = document.getElementById('cs-status').value;
+    const status = cur === 'open' ? 'answered' : cur;
+    await KaigoConsult.send(db, CS_CUR, 'admin', { uid: auth.currentUser.uid, name: 'Meets Medical' }, text, { status });
+    ta.value = '';
+    showToast('返信を送りました');
+  } catch (e) {
+    console.error(e); showToast('返信に失敗しました: ' + (e.message || e));
+  } finally { btn.disabled = false; }
+}
+
+async function changeConsultStatus(status) {
+  if (!CS_CUR) return;
+  try { await KaigoConsult.setStatus(db, CS_CUR, status); showToast('ステータスを「' + KaigoConsult.STATUS[status] + '」にしました'); }
+  catch (e) { console.error(e); showToast('変更に失敗しました: ' + (e.message || e)); }
+}
+
 function switchTab(name) {
   if (name === 'users') { loadHospitals(); loadCorporations(); loadUsers(); loadApplications(); }
   if (name === 'history') { loadSearchLogs(); }
-  ['facilities','users','history','import'].forEach(t => {
+  if (name === 'consult') { renderConsultList(); }
+  ['facilities','users','history','consult','import'].forEach(t => {
     document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
     document.getElementById(`panel-${t}`).classList.toggle('flex', t === name && t !== 'import');
     const btn = document.getElementById(`tab-${t}`);
