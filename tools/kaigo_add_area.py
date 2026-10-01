@@ -9,6 +9,10 @@ update / delete のコードパス自体を持たない（追加専用）。対�
   python tools/kaigo_add_area.py dryrun tools/kaigo-import-data-XXXXXX.js
   python tools/kaigo_add_area.py apply  tools/kaigo-import-data-XXXXXX.js
   python tools/kaigo_add_area.py verify tools/kaigo-import-data-XXXXXX.js
+  末尾に --append を付けると「既存の市への追記」モード（2026-10-01 北摂追加分から）。
+  既定は新しい市を丸ごと追加するモードで、対象市に既存ドキュメントがあれば止まる。
+  どちらのモードでも、名前＋住所の一致に加えて、住所の表記ゆれ（全角・漢数字の丁目・番・号）を
+  吸収した上で「住所と種別が同じ」ものは重複として止める（ロ・スカーロあおまだにの二重登録の再発防止）。
 
 事前に: gcloud auth application-default login → set-quota-project kaigo-link-dev-59bc5
 実行環境: firebase-admin 入りの venv（無ければ python3 -m venv venv && venv/bin/pip install firebase-admin）
@@ -17,6 +21,7 @@ import json
 import os
 import re
 import sys
+import unicodedata
 
 # macOS で gRPC 標準の DNS 解決（c-ares）が Firestore への接続で無応答になることがある
 # （2026-09-11 に backup 段でハング）。native 解決にすると即応答する。grpc 読み込み前に設定が必要。
@@ -45,7 +50,7 @@ def backup_path(js_path):
     return f"facilities-backup-{tag}.json"
 
 
-def cmd_backup(js_path):
+def cmd_backup(js_path, append=False):
     docs = [{"id": d.id, "data": d.to_dict()} for d in db.collection("facilities").stream()]
     out = backup_path(js_path)
     json.dump(docs, open(out, "w", encoding="utf-8"), ensure_ascii=False, default=str)
@@ -57,7 +62,25 @@ def cmd_backup(js_path):
     print("府県別:", by_pref)
 
 
-def checks(src, cities, live):
+KANJI_NUM = {'一': '1', '二': '2', '三': '3', '四': '4', '五': '5', '六': '6', '七': '7', '八': '8', '九': '9', '十': '10'}
+
+
+def norm_addr(a):
+    """住所を比較用に揃える：全角→半角、「三丁目4番5号」→「3-4-5」、建物名・部屋番号は見ない。(町名, 番地列) を返す"""
+    s = unicodedata.normalize("NFKC", a or "")
+    s = re.sub(r"[\s　]", "", s)
+    s = re.sub(r"([一二三四五六七八九十])(?=丁目)", lambda m: KANJI_NUM[m.group(1)], s)
+    s = re.sub(r"(\d+)丁目", r"\1-", s)
+    s = re.sub(r"(\d+)番地?", r"\1-", s)
+    s = re.sub(r"(\d+)号", r"\1", s)
+    s = s.replace("の", "-")
+    m = re.match(r"^(.*?[^\d-])(\d+(?:-\d+)*)", s)
+    if not m:
+        return s, ""
+    return m.group(1), "-".join([x for x in m.group(2).split("-") if x][:3])
+
+
+def checks(src, cities, live, append=False):
     errs = []
     for f in src:
         for k in ("name", "address", "type", "city", "prefecture", "rent", "mealFee", "managementFee", "feeNotes"):
@@ -75,9 +98,17 @@ def checks(src, cities, live):
                if f["name"] in live_names and (f["name"], norm(f.get("address"))) not in live_keys]
     if homonym:
         print(f"INFO: 同名だが住所が異なる施設（別施設として追加）: {homonym}")
+    # 表記ゆれを吸収した重複（住所と種別が同じ）。名前が少し違っても同じ施設
+    live_norm = {(norm_addr(d["data"].get("address")), d["data"].get("type")) for d in live}
+    near = [f["name"] for f in src
+            if (f["name"], norm(f.get("address"))) not in live_keys and (norm_addr(f.get("address")), f.get("type")) in live_norm]
+    if near:
+        errs.append(f"既存施設と住所（表記ゆれ込み）・種別が一致（二重取り込み）: {near}")
     exists = [d for d in live if d["data"].get("city") in cities]
-    if exists:
-        errs.append(f"対象市のドキュメントが既に存在（二重取り込みの疑い）: {len(exists)}件")
+    if exists and not append:
+        errs.append(f"対象市のドキュメントが既に存在（二重取り込みの疑い）: {len(exists)}件。既存の市に足すなら --append を付ける")
+    if append:
+        print(f"INFO: 追記モード（対象市の既存 {len(exists)}件はそのまま。重複は名前＋住所と、表記ゆれ込みの住所＋種別で判定）")
     return errs
 
 
@@ -88,13 +119,13 @@ def plan_summary(src, cities):
     print(f"取り込み予定: {len(src)}件 / 市別: {by_city} / 対象市: {sorted(cities)}")
 
 
-def cmd_dryrun(js_path):
+def cmd_dryrun(js_path, append=False):
     src, pref, cities = load_src(js_path)
     live = json.load(open(backup_path(js_path), encoding="utf-8"))
     print(f"既存: {len(live)}件（バックアップ基準）/ 府県: {pref}")
     plan_summary(src, cities)
     print(f"計画: 追加 {len(src)} / 更新 0 / 削除 0（このスクリプトに更新・削除のコードは存在しない）")
-    errs = checks(src, cities, live)
+    errs = checks(src, cities, live, append)
     if errs:
         for e in errs:
             print("NG:", e)
@@ -102,10 +133,10 @@ def cmd_dryrun(js_path):
     print("OK: 全チェック合格。apply に進めます")
 
 
-def cmd_apply(js_path):
+def cmd_apply(js_path, append=False):
     src, pref, cities = load_src(js_path)
     live = json.load(open(backup_path(js_path), encoding="utf-8"))
-    errs = checks(src, cities, live)
+    errs = checks(src, cities, live, append)
     if errs:
         for e in errs:
             print("NG:", e)
@@ -124,11 +155,13 @@ def cmd_apply(js_path):
     print(f"完了: {len(src)}件を追加しました（更新0・削除0）")
 
 
-def cmd_verify(js_path):
+def cmd_verify(js_path, append=False):
     src, pref, cities = load_src(js_path)
     live_before = json.load(open(backup_path(js_path), encoding="utf-8"))
     live = [{"id": d.id, "data": d.to_dict()} for d in db.collection("facilities").stream()]
-    added = [d for d in live if d["data"].get("city") in cities]
+    # 追加分＝バックアップに無いID（既存の市に足す追記モードでも同じ判定で済む）
+    before_ids = {b["id"] for b in live_before}
+    added = [d for d in live if d["id"] not in before_ids]
     by_city = {}
     for d in added:
         c = d["data"].get("city", "?")
@@ -176,7 +209,8 @@ def cmd_verify(js_path):
 
 if __name__ == "__main__":
     cmds = {"backup": cmd_backup, "dryrun": cmd_dryrun, "apply": cmd_apply, "verify": cmd_verify}
-    if len(sys.argv) != 3 or sys.argv[1] not in cmds:
+    args = [a for a in sys.argv[1:] if a != "--append"]
+    if len(args) != 2 or args[0] not in cmds:
         print(__doc__)
         sys.exit(1)
-    cmds[sys.argv[1]](sys.argv[2])
+    cmds[args[0]](args[1], append="--append" in sys.argv)

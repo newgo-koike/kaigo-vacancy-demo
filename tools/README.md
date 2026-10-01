@@ -133,6 +133,18 @@ venv/bin/python tools/kaigo_add_area.py verify tools/kaigo-import-data-XXXXXX.js
 ②名前衝突チェック ③`kaigo-search.html` の SHOWN_PREFS / CITY_MAP ④`build_geo_data.py` 再実行
 ⑤（近畿外なら）`build_eki_data.py` の QUERY 拡張 ⑥スタブ検証 ⑦kaigo_add_area.py の4段 ⑧デプロイ
 
+**既存の市に施設を足すとき（2026-10-01〜）**は各段の末尾に `--append` を付ける（`tools/run_add_area.sh FILE --append`）。
+付けないと「対象市に既存ドキュメントあり」で止まる。どちらのモードでも、住所の表記ゆれ（全角・漢数字の丁目・番・号）を
+吸収した「住所＋種別」の一致を重複として止める。Excel が複数市・複数府県混在のときは `build_import_data_261001.py` のように
+住所から市・府県を決め、府県ごとにファイルを分ける（ツールは1ファイル1府県）。
+
+## 261001 — 北摂エリア追加施設 55件 → 17件（2026-10-01、兵頭さん提供 Excel・複数市混在）
+
+変換: `tools/venv/bin/python tools/build_import_data_261001.py` → `kaigo-import-data-261001.js`（大阪府）＋ `261001b.js`（兵庫県）。
+照合: `tools/venv/bin/python tools/dedupe_import_261001.py` が本番と表記ゆれ込みで照合し、既存と同じ38件を除外して
+ファイルを書き直す（除外理由は `tools/dedupe-report-261001.md`）。55件中38件は住所の全角・丁目表記や名前の空白が違うだけの既存施設だった。
+取り込み: `tools/run_add_area.sh tools/kaigo-import-data-261001.js --append` → 同 `261001b.js --append`。
+
 ## 260911b — 大阪5エリア（西淀川区・摂津市・高槻市・東淀川区・淀川区）322件（2026-09-11）
 
 変換: `python3 tools/build_import_data_260911b.py` → `kaigo-import-data-260911b.js`（`window.NEW_FACILITIES_260911b`）。
