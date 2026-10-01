@@ -26,7 +26,7 @@ const LINE_CHANNEL_TOKEN = defineSecret('LINE_CHANNEL_TOKEN');
 const LINE_CHANNEL_SECRET = defineSecret('LINE_CHANNEL_SECRET');
 
 const ADMIN_URL = 'https://kaigo.meetsmedical.com/kaigo-master.html#consult';
-const DEFAULTS = { enabled: true, lineUserIds: [], cooldownSec: 180 };
+const DEFAULTS = { enabled: true, lineUserIds: [], cooldownSec: 60 };
 
 async function loadSettings() {
   const s = await db.doc('meta/notifySettings').get();

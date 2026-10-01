@@ -5,7 +5,7 @@
 
 | 関数 | 役割 |
 |---|---|
-| `notifyOnHospitalMessage` | `consultations/{cid}/messages/{mid}` の作成を監視。`by=hospital` のときだけ LINE。同じ件への連投は3分間まとめる（`consultations.notify.lastAt`） |
+| `notifyOnHospitalMessage` | `consultations/{cid}/messages/{mid}` の作成を監視。`by=hospital` のときだけ LINE。同じ件への連投は1分間まとめる（`consultations.notify.lastAt`） |
 | `lineWebhook` | LINE 公式アカウントの Webhook。友だち追加・「登録」メッセージ・グループ招待を受けて `meta/lineUsers` に名前と ID を登録（管理画面の「通知先」に並ぶ） |
 
 ## 初回セットアップ（小池さんの操作が要るところ）
