@@ -320,6 +320,8 @@
     .sb-clear { font-size:12px; color:var(--blue-d); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; font-weight:700; opacity:.85; }
     .sb-clear:hover { opacity:1; }
     .sb-clear-grp { display:flex; gap:10px; }
+    .sb-reset-btn { width:100%; padding:8px; background:transparent; border:1.5px solid var(--g200); border-radius:9px; font-size:13px; font-weight:600; color:var(--g500); cursor:pointer; font-family:inherit; }
+    .sb-reset-btn:hover { border-color:#c9302c; color:#c9302c; }
     .sb-clear.off { color:var(--g500); }
 
     /* フォームコントロール */
@@ -798,6 +800,7 @@
     <!-- 検索・保存ボタン（フォームの下） -->
     <div class="sb-action-area">
       <button class="sb-search-btn" id="search-btn" onclick="doSearch()">🔍 この条件で検索</button>
+      <button type="button" class="sb-reset-btn" onclick="clearAllFilters(); showToast('検索条件をすべて解除しました')">検索条件をすべて解除</button>
       <button onclick="saveConditions()" style="width:100%;padding:8px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;font-family:inherit;transition:all .12s;" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--g200)';this.style.color='var(--g500)'">💾 この条件を保存</button>
       <button id="clear-cond-btn" onclick="clearSavedConditions()" style="display:none;width:100%;padding:8px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;font-family:inherit;transition:all .12s;" onmouseover="this.style.borderColor='#e0707f';this.style.color='#e0707f'" onmouseout="this.style.borderColor='var(--g200)';this.style.color='var(--g500)'">🗑 保存した条件を解除</button>
     </div>
@@ -836,16 +839,15 @@
     <!-- ソートバー（検索後のみ表示） -->
     <div class="sort-bar" id="sort-bar" style="display:none">
       <span class="result-count" id="count-bar"></span>
-      <button id="clear-sel-btn" class="clear-sel-btn" style="display:none" onclick="clearSelected()">選択をすべて解除（<span id="clear-sel-cnt">0</span>件）</button>
+      <button id="clear-sel-btn" class="clear-sel-btn" style="display:none" onclick="clearSelected()">施設のチェックをすべて解除（<span id="clear-sel-cnt">0</span>件）</button>
       <span class="sort-label">並べ替え</span>
       <select class="sort-sel" id="sort-sel" onchange="applySort()">
         <option value="updated">更新が新しい順</option>
         <option value="fee_asc">月額が安い順</option>
         <option value="fee_desc">月額が高い順</option>
         <option value="eki">最寄駅から近い順（駅名で検索したとき）</option>
-        <option value="doc">パンフレットがある順</option>
       </select>
-      <button type="button" class="doc-only-btn" id="doc-only-btn" onclick="setDocOnly(activeDoc === 'yes' ? 'all' : 'yes')">パンフレットありのみ</button>
+      <button type="button" class="doc-only-btn" id="doc-only-btn" onclick="setDocOnly(activeDoc === 'yes' ? 'all' : 'yes')">パンフレットがある施設のみ表示</button>
     </div>
 
     <!-- アクティブフィルターチップ -->
@@ -1299,8 +1301,6 @@ function applySort() {
   SORTED = [...DATA];
   if (sort === 'fee_asc')  SORTED.sort((a, b) => (a.feeKey ?? 999) - (b.feeKey ?? 999));
   if (sort === 'fee_desc') SORTED.sort((a, b) => (b.feeKey ?? 0) - (a.feeKey ?? 0));
-  // パンフレットがある施設を先に、同じ中では更新が新しい順
-  if (sort === 'doc') SORTED.sort((a, b) => (hasBrochure(b) - hasBrochure(a)) || (a.daysAgo - b.daysAgo));
   // 「最寄駅から近い順」は駅名検索中だけ意味を持つ。駅名が無いときは更新順で表示する
   if (sort === 'updated' || sort === 'eki') SORTED.sort((a, b) => a.daysAgo - b.daysAgo);
   liveFilter();
@@ -1864,7 +1864,7 @@ function hasBrochure(f) { return (f.brochures && f.brochures.length) ? 1 : 0; }
 function setDocOnly(v, refilter = true) {
   activeDoc = v === 'yes' ? 'yes' : 'all';
   const b = document.getElementById('doc-only-btn');
-  if (b) { b.classList.toggle('on', activeDoc === 'yes'); const n = DATA.filter(hasBrochure).length; b.textContent = n && DATA.length ? `パンフレットありのみ（${n}件）` : 'パンフレットありのみ'; }
+  if (b) { b.classList.toggle('on', activeDoc === 'yes'); const n = DATA.filter(hasBrochure).length; b.textContent = n && DATA.length ? `パンフレットがある施設のみ表示（${n}件）` : 'パンフレットがある施設のみ表示'; }
   if (refilter) liveFilter();
 }
 function setVac(v, btn) {
@@ -2069,7 +2069,7 @@ function renderFilterChips() {
   });
 
   const bar = document.getElementById('chips-bar');
-  if (!chips.length) { bar.style.display='none'; return; }
+  if (!chips.length) { bar.style.display='none'; bar.innerHTML=''; return; }
 
   chips.forEach(c => _chipClears.push(c.clear));
   bar.style.display = 'flex';
@@ -2077,8 +2077,7 @@ function renderFilterChips() {
     `<span style="font-size:12px;color:var(--g400);font-weight:600;white-space:nowrap">絞り込み:</span>` +
     chips.map((c, i) =>
       `<button class="filter-chip" onclick="_chipClears[${i}]()">${c.label}<span class="chip-x">✕</span></button>`
-    ).join('') +
-    `<button onclick="clearAllFilters()" style="margin-left:4px;font-size:12px;color:var(--g400);background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 6px;" onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--g400)'">すべてクリア</button>`;
+    ).join('');   // 条件の全解除は検索条件側の「検索条件をすべて解除」から（結果側の解除ボタンは施設のチェック専用。2026-10-01 小池さん指示）
 }
 
 function clearAllFilters() {
