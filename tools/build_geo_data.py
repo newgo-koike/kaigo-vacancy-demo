@@ -36,6 +36,14 @@ def main():
         part = json.loads(m.group(1))
         print(f"入力: {src_file} / {len(part)}件")
         data.extend(part)
+    # 管理画面で直した住所は取り込みデータに無いので、配信中の一覧（本番 Firestore から生成）も入力に加える
+    # （2026-10-01〜。例：吹田の特養4件の住所を町名までから番地ありに修正）
+    try:
+        lst = json.load(io.open("public/kaigo-facilities.json", encoding="utf-8"))
+        data.extend(lst.get("facilities", []))
+        print(f"入力: public/kaigo-facilities.json / {lst.get('count')}件")
+    except Exception as e:
+        print(f"（一覧ファイルは読めず: {e}）")
     print(f"統合: {len(data)}件")
 
     # 既に座標化済みの住所は前回の出力から再利用する（毎回全件をGSIに問い合わせると
