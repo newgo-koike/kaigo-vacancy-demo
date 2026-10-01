@@ -147,7 +147,7 @@
   </button>
   <button onclick="switchTab('consult')" id="tab-consult"
     class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 -mb-px">
-    空室相談 <span id="tab-consult-badge" class="cs-unread" style="display:none">0</span>
+    チャット（空室相談） <span id="tab-consult-badge" class="cs-unread" style="display:none">0</span>
   </button>
   <button onclick="switchTab('import')" id="tab-import"
     class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 -mb-px">
@@ -958,7 +958,7 @@ function startConsultWatch() {
     badge.style.display = unread ? 'inline-block' : 'none';
     badge.textContent = unread;
     document.title = (unread ? `(${unread}) ` : '') + CS_BASE_TITLE;
-    if (CS_PREV_UNREAD !== null && unread > CS_PREV_UNREAD) showToast('新しい空室相談・返信が届きました');
+    if (CS_PREV_UNREAD !== null && unread > CS_PREV_UNREAD) showToast('チャットに新しい相談・返信が届きました');
     CS_PREV_UNREAD = unread;
     renderConsultList();
     if (CS_CUR) { renderConsultHead(); if (!CS_EDIT_MSG) renderConsultThread(); }
