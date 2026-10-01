@@ -181,6 +181,7 @@
     .chat-form .chat-inp { width:100%; margin:6px 0 0; }
     .chat-form .chat-ta { width:100%; flex:none; margin-top:2px; }
     .chat-note { font-size:12px; color:#b91c1c; font-weight:700; margin-bottom:4px; }
+    .chat-grp-sub { font-size:12px; color:var(--g600); line-height:1.6; }
     .chat-form-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:4px 0 6px; border-top:1px dashed var(--g200); margin-top:4px; }
     .chat-fax, .cs-fax { font-size:12.5px; color:var(--g700); background:var(--pink-l); border:1.5px solid var(--pink); border-radius:10px; padding:8px 12px; margin:4px 0 10px; line-height:1.6; }
     .chat-fax b, .cs-fax b { color:var(--pink-d); font-size:14px; letter-spacing:.03em; white-space:nowrap; }
@@ -318,6 +319,10 @@
     }
     .sb-clear { font-size:12px; color:var(--blue-d); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; font-weight:700; opacity:.85; }
     .sb-clear:hover { opacity:1; }
+    .sb-clear-grp { display:flex; gap:10px; }
+    .sb-reset-btn { width:100%; padding:8px; background:transparent; border:1.5px solid var(--g200); border-radius:9px; font-size:13px; font-weight:600; color:var(--g500); cursor:pointer; font-family:inherit; }
+    .sb-reset-btn:hover { border-color:#c9302c; color:#c9302c; }
+    .sb-clear.off { color:var(--g500); }
 
     /* フォームコントロール */
     .f-grp { margin-bottom:13px; }
@@ -392,7 +397,7 @@
     /* ソートバー → 結果バー */
     .sort-bar {
       flex-shrink:0; background:var(--paper); border-bottom:1px solid var(--hair);
-      padding:18px 22px; display:flex; align-items:center; gap:12px;
+      padding:18px 22px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; row-gap:8px;   /* 横幅が足りないときは折り返す（パンフレット切り替えを追加したため） */
     }
     .result-count { font-size:14px; color:#8c8c8c; font-weight:700; }
     .result-count strong { color:var(--ink); font-weight:900; font-size:22px; margin-right:1px; }
@@ -406,6 +411,9 @@
       background:#fff; cursor:pointer; transition:border-color .15s;
     }
     .sort-sel:focus { border-color:var(--blue); }
+    /* 並べ替えの横の「パンフレットありのみ」切り替え（押すと青） */
+    .doc-only-btn { height:38px; padding:0 14px; border:2px solid var(--hair); border-radius:100px; background:#fff; font-family:inherit; font-size:13px; font-weight:700; color:#8c8c8c; cursor:pointer; white-space:nowrap; }
+    .doc-only-btn.on { background:var(--blue-l); border-color:var(--blue-d); color:var(--blue-d); }
 
     /* カードリスト */
     .cards-area { flex:1; padding:18px 22px 34px; }
@@ -583,6 +591,7 @@
     .cs-inp, .cs-ta { width:100%; margin-top:8px; padding:9px 12px; border:1.5px solid var(--g300); border-radius:10px; font-family:inherit; font-size:13px; background:#fff; }
     .cs-ta { margin-top:4px; resize:vertical; }
     .cs-note { font-size:12px; color:#b91c1c; font-weight:700; margin-bottom:4px; }
+    .cs-grp-sub { font-size:12px; color:var(--g600); line-height:1.6; }
     .cs-hint { font-size:11.5px; color:var(--g500); margin-top:5px; }
     .cs-err { color:#b91c1c; font-size:13px; font-weight:700; white-space:pre-line; }
     .cs-err:empty { display:none; }
@@ -682,14 +691,14 @@
       <div class="f-grp">
         <div class="f-lbl-row">
           <label class="f-lbl">都道府県</label>
-          <button class="sb-clear" onclick="toggleAllLoc('pref')">全選択</button>
+          <span class="sb-clear-grp"><button class="sb-clear" onclick="toggleAllLoc('pref')">全選択</button><button class="sb-clear off" onclick="toggleAllLoc('pref', false)">全解除</button></span>
         </div>
         <div id="pref-list"></div>
       </div>
       <div class="f-grp">
         <div class="f-lbl-row">
           <label class="f-lbl">市区町村</label>
-          <button class="sb-clear" onclick="toggleAllLoc('city')">全選択</button>
+          <span class="sb-clear-grp"><button class="sb-clear" onclick="toggleAllLoc('city')">全選択</button><button class="sb-clear off" onclick="toggleAllLoc('city', false)">全解除</button></span>
         </div>
         <div id="city-list" class="cb-scroll"></div>
       </div>
@@ -751,7 +760,7 @@
     <div class="sb-sec sb-sec-type">
       <div class="sb-sec-hd">
         <span class="sb-sec-title">施設種別</span>
-        <button class="sb-clear" onclick="toggleAll('type',true)">全選択</button>
+        <span class="sb-clear-grp"><button class="sb-clear" onclick="toggleAll('type',true)">全選択</button><button class="sb-clear off" onclick="toggleAll('type',false)">全解除</button></span>
       </div>
       <div id="type-list"></div>
     </div>
@@ -791,6 +800,7 @@
     <!-- 検索・保存ボタン（フォームの下） -->
     <div class="sb-action-area">
       <button class="sb-search-btn" id="search-btn" onclick="doSearch()">🔍 この条件で検索</button>
+      <button type="button" class="sb-reset-btn" onclick="clearAllFilters(); showToast('検索条件をすべて解除しました')">検索条件をすべて解除</button>
       <button onclick="saveConditions()" style="width:100%;padding:8px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;font-family:inherit;transition:all .12s;" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--g200)';this.style.color='var(--g500)'">💾 この条件を保存</button>
       <button id="clear-cond-btn" onclick="clearSavedConditions()" style="display:none;width:100%;padding:8px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;font-family:inherit;transition:all .12s;" onmouseover="this.style.borderColor='#e0707f';this.style.color='#e0707f'" onmouseout="this.style.borderColor='var(--g200)';this.style.color='var(--g500)'">🗑 保存した条件を解除</button>
     </div>
@@ -808,6 +818,7 @@
     <div id="cs-inline-host" hidden>
       <div id="cs-form">
       <div id="cs-facilities" class="cs-sel-fac"></div>
+      <div class="cs-grp"><div class="cs-grp-ttl">目印 <span class="opt">任意</span></div><div class="cs-grp-sub">どなたの相談か分かるように、イニシャルか苗字だけ（例：T.K、田中）。フルネームは書かないでください</div><input id="cs-label" class="cs-inp" maxlength="10" placeholder="例：T.K"></div>
       <div class="cs-grp"><div class="cs-grp-ttl">相談条件 <span class="req">必須</span></div><div class="cs-chips" id="cs-care"></div></div>
       <div class="cs-grp"><div class="cs-grp-ttl">希望エリア <span class="req">必須</span></div><div class="cs-chips" id="cs-areas"></div><input id="cs-area-other" class="cs-inp" placeholder="その他の希望エリア（市名など）" style="display:none"></div>
       <div class="cs-grp"><div class="cs-grp-ttl">費用 <span class="req">必須</span></div><div class="cs-chips" id="cs-budget"></div></div>
@@ -828,7 +839,7 @@
     <!-- ソートバー（検索後のみ表示） -->
     <div class="sort-bar" id="sort-bar" style="display:none">
       <span class="result-count" id="count-bar"></span>
-      <button id="clear-sel-btn" class="clear-sel-btn" style="display:none" onclick="clearSelected()">選択をすべて解除（<span id="clear-sel-cnt">0</span>件）</button>
+      <button id="clear-sel-btn" class="clear-sel-btn" style="display:none" onclick="clearSelected()">施設のチェックをすべて解除（<span id="clear-sel-cnt">0</span>件）</button>
       <span class="sort-label">並べ替え</span>
       <select class="sort-sel" id="sort-sel" onchange="applySort()">
         <option value="updated">更新が新しい順</option>
@@ -836,6 +847,7 @@
         <option value="fee_desc">月額が高い順</option>
         <option value="eki">最寄駅から近い順（駅名で検索したとき）</option>
       </select>
+      <button type="button" class="doc-only-btn" id="doc-only-btn" onclick="setDocOnly(activeDoc === 'yes' ? 'all' : 'yes')">パンフレットがある施設のみ表示</button>
     </div>
 
     <!-- アクティブフィルターチップ -->
@@ -982,6 +994,7 @@ let DATA_AT = 0;                        // 最後にサーバーと同期した�
 const DATA_TTL_MS = 5 * 60 * 1000;      // B: この時間内の再検索は取り直さない（絞り込みは全て端末側）
 let SORTED = [];
 let activeVac = 'all';
+let activeDoc = 'all';   // 'yes' ならパンフレット登録済みの施設だけ（並べ替えの横の切り替え）
 const selectedTags = new Set();
 const selectedFacilities = new Set();
 
@@ -1045,9 +1058,9 @@ function renderCityList(preserve = true) {
 
 function onPrefChange() { renderCityList(); liveFilter(); }
 
-// 「全選択」ボタン
-function toggleAllLoc(name) {
-  document.querySelectorAll(`input[name="${name}"]`).forEach(cb => cb.checked = true);
+// 「全選択」「全解除」ボタン（checked=false で全解除。2026-10-01 小池さん指示でワンタッチ全解除を追加）
+function toggleAllLoc(name, checked = true) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(cb => cb.checked = checked);
   if (name === 'pref') renderCityList();
   liveFilter();
 }
@@ -1257,6 +1270,7 @@ async function saveSearchLog() {
       seikatsuHogo: seikatsu, mimonHosho: mimon, kaigoNintei: kaigo,
       tags: [...selectedTags],
       vacancyFilter: activeVac,
+      brochureOnly: activeDoc === 'yes',
     },
     resultCount,
   });
@@ -1277,6 +1291,7 @@ async function refreshBrochureIndex() {
     });
     if (changed && LAST_LIST.length) renderCards(LAST_LIST);
   } catch (e) { /* 索引なし・権限なしは一覧ファイルの内容で表示 */ }
+  setDocOnly(activeDoc, false);   // ボタンの件数表示を更新
 }
 
 // ── ソート ──────────────────────────────────────────────────
@@ -1408,6 +1423,7 @@ function liveFilter() {
     if (initFee === 'no'  &&  f.hasInitialCost) return false;
     if (types.length && !types.includes(f.type)) return false;
     if (!VACANCY_INQUIRY && activeVac === 'ok' && f.vacancy === 0) return false;
+    if (activeDoc === 'yes' && !hasBrochure(f)) return false;
     if (selectedTags.size && ![...selectedTags].every(t => f.features.includes(t))) return false;
     if (seikatsu && f.seikatsuHogo !== seikatsu) return false;
     if (mimon    && f.mimonHosho   !== mimon)    return false;
@@ -1843,6 +1859,14 @@ function toggleAll(name, checked) {
   liveFilter();
 }
 
+function hasBrochure(f) { return (f.brochures && f.brochures.length) ? 1 : 0; }
+// 並べ替えの横の「パンフレットありのみ」。liveFilter を呼ぶかは第2引数（条件の復元時は呼ばない）
+function setDocOnly(v, refilter = true) {
+  activeDoc = v === 'yes' ? 'yes' : 'all';
+  const b = document.getElementById('doc-only-btn');
+  if (b) { b.classList.toggle('on', activeDoc === 'yes'); const n = DATA.filter(hasBrochure).length; b.textContent = n && DATA.length ? `パンフレットがある施設のみ表示（${n}件）` : 'パンフレットがある施設のみ表示'; }
+  if (refilter) liveFilter();
+}
 function setVac(v, btn) {
   activeVac = v;
   document.querySelectorAll('.vac-tab').forEach(t => t.classList.remove('on'));
@@ -1862,6 +1886,7 @@ function saveConditions() {
     priceMin  : document.getElementById('q-price-min').value,
     priceMax  : document.getElementById('q-price-max').value,
     vac       : activeVac,
+    doc       : activeDoc,
     types     : getChecked('type'),
     seikatsu  : document.getElementById('cond-seikatsu').value,
     mimon     : document.getElementById('cond-mimon').value,
@@ -1901,6 +1926,7 @@ function loadSavedConditions() {
     if (c.mimon)     document.getElementById('cond-mimon').value = c.mimon;
     if (c.kaigo)     document.getElementById('cond-kaigo').value = c.kaigo;
     if (c.vac)       { activeVac = c.vac; document.querySelectorAll('.vac-tab').forEach(t => t.classList.toggle('on', t.textContent.trim() === (c.vac === 'ok' ? '空きあり' : 'すべて'))); }
+    if (c.doc)       setDocOnly(c.doc, false);
     if (c.initFee) {
       const r = document.querySelector(`input[name="init-fee"][value="${c.initFee}"]`);
       if (r) { r.checked = true; syncRadioChip(r); }
@@ -1938,6 +1964,7 @@ function goToFacility(id) {
       priceMin : document.getElementById('q-price-min').value,
       priceMax : document.getElementById('q-price-max').value,
       vac      : activeVac,
+      doc      : activeDoc,
       types    : getChecked('type'),
       seikatsu : document.getElementById('cond-seikatsu').value,
       mimon    : document.getElementById('cond-mimon').value,
@@ -1968,6 +1995,7 @@ function restoreResultsIfReturning() {
   if (c.mimon)    document.getElementById('cond-mimon').value = c.mimon;
   if (c.kaigo)    document.getElementById('cond-kaigo').value = c.kaigo;
   if (c.vac)      { activeVac = c.vac; document.querySelectorAll('.vac-tab').forEach(t => t.classList.toggle('on', t.textContent.trim() === (c.vac === 'ok' ? '空きあり' : 'すべて'))); }
+  if (c.doc)      setDocOnly(c.doc, false);
   if (c.initFee)  { const r = document.querySelector(`input[name="init-fee"][value="${c.initFee}"]`); if (r) { r.checked = true; syncRadioChip(r); } }
   if (c.types)    document.querySelectorAll('input[name="type"]').forEach(cb => { cb.checked = c.types.includes(cb.value); });
   if (c.sort && document.getElementById('sort-sel')) document.getElementById('sort-sel').value = c.sort;
@@ -2023,6 +2051,7 @@ function renderFilterChips() {
   if (activeVac === 'ok') chips.push({ label: '空きあり', clear: () => {
     setVac('all', document.querySelector('.vac-tab'));
   }});
+  if (activeDoc === 'yes') chips.push({ label: 'パンフレットあり', clear: () => setDocOnly('all') });
 
   const seikatsu = document.getElementById('cond-seikatsu').value;
   if (seikatsu) chips.push({ label: `生活保護:${seikatsu}`, clear: () => { document.getElementById('cond-seikatsu').value=''; liveFilter(); }});
@@ -2040,7 +2069,7 @@ function renderFilterChips() {
   });
 
   const bar = document.getElementById('chips-bar');
-  if (!chips.length) { bar.style.display='none'; return; }
+  if (!chips.length) { bar.style.display='none'; bar.innerHTML=''; return; }
 
   chips.forEach(c => _chipClears.push(c.clear));
   bar.style.display = 'flex';
@@ -2048,8 +2077,7 @@ function renderFilterChips() {
     `<span style="font-size:12px;color:var(--g400);font-weight:600;white-space:nowrap">絞り込み:</span>` +
     chips.map((c, i) =>
       `<button class="filter-chip" onclick="_chipClears[${i}]()">${c.label}<span class="chip-x">✕</span></button>`
-    ).join('') +
-    `<button onclick="clearAllFilters()" style="margin-left:4px;font-size:12px;color:var(--g400);background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 6px;" onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--g400)'">すべてクリア</button>`;
+    ).join('');   // 条件の全解除は検索条件側の「検索条件をすべて解除」から（結果側の解除ボタンは施設のチェック専用。2026-10-01 小池さん指示）
 }
 
 function clearAllFilters() {
@@ -2064,6 +2092,7 @@ function clearAllFilters() {
   const r = document.querySelector('input[name="init-fee"][value="all"]');
   if (r) { r.checked=true; syncRadioChip(r); }
   setVac('all', document.querySelector('.vac-tab'));
+  setDocOnly('all', false);
   toggleAll('type', true);
 }
 
@@ -2124,10 +2153,12 @@ function resetConsultForm() {
   document.querySelectorAll('#cs-form input[type=checkbox]').forEach(i => { i.checked = false; });   // フォームはトップページ／モーダルのどちらにもあり得る
   const other = document.getElementById('cs-area-other'); other.value = ''; other.style.display = 'none';
   document.getElementById('cs-detail').value = '';
+  document.getElementById('cs-label').value = '';
   document.querySelectorAll('#cs-form .cs-grp.err').forEach(g => g.classList.remove('err'));
 }
 async function submitConsult(mode) {
   const c = {
+    caseLabel: document.getElementById('cs-label').value,
     care: consultChecked('cs-care'), areas: consultChecked('cs-areas'),
     areaOther: document.getElementById('cs-area-other').value.trim(),
     budget: consultChecked('cs-budget'), needs: consultChecked('cs-needs'),
@@ -2363,6 +2394,9 @@ window.addEventListener('resize', () => { const st = document.getElementById('ch
 function chatFormHTML(S, mode) {
   const esc = KaigoConsult.esc;
   let html = '<div class="chat-form">';
+  html += `<div class="chat-grp ${S.err.caseLabel ? 'err' : ''}" id="chat-grp-label"><div class="chat-grp-ttl">目印 <span class="opt">任意</span>${S.err.caseLabel ? `<span class="chat-grp-err">${esc(S.err.caseLabel)}</span>` : ''}</div>
+    <div class="chat-grp-sub">${esc(KaigoConsult.LABEL_HINT)}</div>
+    <input class="chat-inp" id="chat-label" maxlength="${KaigoConsult.LABEL_MAX}" placeholder="例：T.K" value="${esc(S.a.caseLabel || '')}" oninput="chatState().a.caseLabel = this.value"></div>`;
   CHAT_GROUPS.forEach(g => {
     const sel = S.a[g.key];
     html += `<div class="chat-grp ${S.err[g.key] ? 'err' : ''}" id="chat-grp-${g.key}"><div class="chat-grp-ttl">${g.title} <span class="${g.req ? 'req' : 'opt'}">${g.req ? '必須' : '任意'}</span>${S.err[g.key] ? `<span class="chat-grp-err">${esc(S.err[g.key])}</span>` : ''}</div>
@@ -2418,6 +2452,8 @@ function chatToggle(key, v) {
 }
 // 必須チェック。項目ごとのエラーを S.err に入れ、メッセージの配列を返す
 function chatValidate(S) {
+  const lab = document.getElementById('chat-label');
+  S.a.caseLabel = KaigoConsult.cleanLabel(lab ? lab.value : S.a.caseLabel);
   S.a.areaOther = (document.getElementById('chat-other')?.value || S.a.areaOther || '').trim();
   S.a.detail = (document.getElementById('chat-detail')?.value || S.a.detail || '').trim();
   const errs = KaigoConsult.validate(S.a);
@@ -2426,6 +2462,7 @@ function chatValidate(S) {
   if (!S.a.areas.length)  S.err.areas = '1つ以上選んでください';
   else if (S.a.areas.includes(KaigoConsult.OTHER_AREA) && !S.a.areaOther) S.err.areas = '「その他」の内容を入力してください';
   if (!S.a.budget.length) S.err.budget = '1つ以上選んでください';
+  if (S.a.caseLabel.length > KaigoConsult.LABEL_MAX) S.err.caseLabel = `${KaigoConsult.LABEL_MAX}文字以内にしてください`;
   return errs;
 }
 async function chatSend() {
@@ -2497,7 +2534,7 @@ function chatEditConditions() {
   const x = MY_CONSULTS.find(c => c.id === CHAT_VIEW.caseId);
   if (!x) return;
   const c = x.conditions || {};
-  CHAT_EDIT = { a: { caseLabel: '', care: [...(c.care || [])], areas: [...(c.areas || [])], areaOther: c.areaOther || '', budget: [...(c.budget || [])], needs: [...(c.needs || [])], detail: c.detail || '' }, err: {}, sending: false };
+  CHAT_EDIT = { a: { caseLabel: x.caseLabel || '', care: [...(c.care || [])], areas: [...(c.areas || [])], areaOther: c.areaOther || '', budget: [...(c.budget || [])], needs: [...(c.needs || [])], detail: c.detail || '' }, err: {}, sending: false };
   CHAT_EDIT_MSG = null;
   CHAT_VIEW = { ...CHAT_VIEW, mode: 'edit' };
   renderChat();
