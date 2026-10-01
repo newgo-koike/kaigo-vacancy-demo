@@ -18,3 +18,5 @@ tools/venv/
 # パンフレットPDF（Hosting直置き分。容量が大きいのでGitHubには入れない。正本はDropbox内のこのフォルダ）
 public/brochures/
 tools/testharness/dist/
+functions/node_modules/
+functions/*.log

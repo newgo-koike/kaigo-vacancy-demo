@@ -236,6 +236,7 @@
           <option value="withdrawn">取り下げ</option>
         </select>
         <button type="button" onclick="toggleConsultSettings()" class="text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院が相談を送った直後に表示される自動返信の文面を変える">自動返信</button>
+        <button type="button" onclick="toggleNotifySettings()" class="text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院から相談・返信が来たときのメール・LINE の送り先">通知先</button>
       </div>
       <div id="cs-list" class="flex-1 overflow-y-auto"><p class="text-sm text-slate-400 p-4">読み込み中...</p></div>
     </aside>
@@ -248,6 +249,27 @@
           <button type="button" onclick="resetConsultSettings()" class="text-xs text-slate-500 underline">既定の文面に戻す</button>
           <button type="button" onclick="toggleConsultSettings()" class="ml-auto px-4 py-2 rounded-full border border-slate-300 text-sm font-bold text-slate-600 hover:bg-white">閉じる</button>
           <button type="button" id="cs-settings-save" onclick="saveConsultSettings()" class="px-5 py-2 rounded-full bg-[#5fb0de] text-white text-sm font-bold hover:bg-[#2c7ba6]">保存する</button>
+        </div>
+      </div>
+      <div id="cs-notify" class="hidden px-5 py-4 border-b border-slate-200 bg-sky-50">
+        <div class="text-sm font-bold text-slate-800">通知先（病院から相談・返信が来たとき）</div>
+        <p class="text-xs text-slate-500 mt-1">病院が相談・返信・条件修正・取り下げを送った瞬間に、ここで選んだ宛先へメールと LINE を送ります。同じ件への連投は3分間まとめます。Meets 側の返信は通知しません（病院側は画面のバッジ）。</p>
+        <label class="flex items-center gap-2 mt-3 text-sm font-bold text-slate-700"><input type="checkbox" id="nt-enabled" class="w-4 h-4"> 通知を送る</label>
+        <div class="grid md:grid-cols-2 gap-4 mt-3">
+          <div>
+            <div class="text-xs font-bold text-slate-600">メール（1行に1件）</div>
+            <textarea id="nt-emails" rows="4" class="w-full border border-slate-300 rounded-lg p-2 text-sm mt-1" placeholder="hyodo@meetsmedical.com"></textarea>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-slate-600">LINE（登録済みの中から選ぶ）</div>
+            <div id="nt-line-list" class="mt-1 border border-slate-200 rounded-lg bg-white p-2 text-sm max-h-40 overflow-y-auto"><span class="text-slate-400 text-xs">読み込み中...</span></div>
+            <p class="text-xs text-slate-500 mt-1">受け取りたい人が通知用の LINE 公式アカウントを友だち追加して「登録」と送ると、ここに名前が出ます。グループに招待しても使えます。</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 mt-3">
+          <span id="nt-note" class="text-xs text-slate-400"></span>
+          <button type="button" onclick="toggleNotifySettings()" class="ml-auto px-4 py-2 rounded-full border border-slate-300 text-sm font-bold text-slate-600 hover:bg-white">閉じる</button>
+          <button type="button" id="nt-save" onclick="saveNotifySettings()" class="px-5 py-2 rounded-full bg-[#5fb0de] text-white text-sm font-bold hover:bg-[#2c7ba6]">保存する</button>
         </div>
       </div>
       <div id="cs-thread-hd" class="px-5 py-3 border-b border-slate-200 bg-white text-sm text-slate-500">左の一覧から相談を選ぶと内容が表示されます</div>
@@ -1064,12 +1086,56 @@ async function csMsgWithdraw(mid) {
   }
 }
 
+// ── 通知先（meta/notifySettings。送信そのものは Cloud Functions が行う） ──
+let NT_UNSUB_LINE = null;
+async function toggleNotifySettings() {
+  const box = document.getElementById('cs-notify');
+  const open = box.classList.contains('hidden');
+  box.classList.toggle('hidden', !open);
+  document.getElementById('cs-settings').classList.add('hidden');   // 自動返信パネルと同時に開かない
+  if (!open) { if (NT_UNSUB_LINE) { NT_UNSUB_LINE(); NT_UNSUB_LINE = null; } return; }
+  try {
+    const s = (await db.collection('meta').doc('notifySettings').get()).data() || {};
+    document.getElementById('nt-enabled').checked = s.enabled !== false;
+    document.getElementById('nt-emails').value = (Array.isArray(s.emails) ? s.emails : ['hyodo@meetsmedical.com']).join('\n');
+    window.NT_LINE_SELECTED = new Set(Array.isArray(s.lineUserIds) ? s.lineUserIds : []);
+    document.getElementById('nt-note').textContent = s.updatedAt && s.updatedAt.toDate ? '最終保存 ' + KaigoConsult.fmtDate(s.updatedAt) : '未保存（初期値：hyodo@meetsmedical.com）';
+  } catch (e) { showToast('通知先の読み込みに失敗しました: ' + (e.message || e)); }
+  // LINE の登録者は Webhook が随時追加するので、開いている間は監視する
+  NT_UNSUB_LINE = db.collection('meta').doc('lineUsers').onSnapshot(sn => renderLineUsers(sn.data() || {}), () => renderLineUsers({}));
+}
+function renderLineUsers(users) {
+  const el = document.getElementById('nt-line-list');
+  const sel = window.NT_LINE_SELECTED || new Set();
+  const ids = Object.keys(users).sort((a, b) => ((users[b].at && users[b].at.toMillis) ? users[b].at.toMillis() : 0) - ((users[a].at && users[a].at.toMillis) ? users[a].at.toMillis() : 0));
+  if (!ids.length) { el.innerHTML = '<span class="text-slate-400 text-xs">まだ登録がありません（友だち追加して「登録」と送ってください）</span>'; return; }
+  el.innerHTML = ids.map(id => `<label class="flex items-center gap-2 py-1"><input type="checkbox" class="nt-line w-4 h-4" value="${esc(id)}" ${sel.has(id) ? 'checked' : ''}><span>${esc(users[id].displayName || '(名前なし)')}</span><span class="text-xs text-slate-400">${users[id].type === 'group' ? 'グループ' : users[id].type === 'room' ? 'トークルーム' : ''}${users[id].at && users[id].at.toDate ? '　' + KaigoConsult.fmtShort(users[id].at) : ''}</span></label>`).join('');
+}
+async function saveNotifySettings() {
+  const btn = document.getElementById('nt-save');
+  const emails = document.getElementById('nt-emails').value.split(/[\n,、]/).map(x => x.trim()).filter(Boolean);
+  const bad = emails.filter(x => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
+  if (bad.length) { showToast('メールの形式が違います: ' + bad.join(', ')); return; }
+  const lineUserIds = [...document.querySelectorAll('.nt-line:checked')].map(i => i.value);
+  window.NT_LINE_SELECTED = new Set(lineUserIds);
+  btn.disabled = true;
+  try {
+    await db.collection('meta').doc('notifySettings').set({
+      enabled: document.getElementById('nt-enabled').checked, emails, lineUserIds,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: auth.currentUser.uid,
+    }, { merge: true });
+    document.getElementById('nt-note').textContent = '保存しました';
+    showToast(`通知先を保存しました（メール ${emails.length}件・LINE ${lineUserIds.length}件）`);
+  } catch (e) { console.error(e); showToast('保存に失敗しました: ' + (e.message || e)); }
+  finally { btn.disabled = false; }
+}
+
 // ── 自動返信の文面（meta/consultSettings） ──
 function toggleConsultSettings() {
   const box = document.getElementById('cs-settings');
   const open = box.classList.contains('hidden');
   box.classList.toggle('hidden', !open);
-  if (open) { document.getElementById('cs-auto-reply').value = KaigoConsult.settings.autoReply; document.getElementById('cs-auto-reply').focus(); }
+  if (open) { document.getElementById('cs-notify').classList.add('hidden'); document.getElementById('cs-auto-reply').value = KaigoConsult.settings.autoReply; document.getElementById('cs-auto-reply').focus(); }
 }
 function resetConsultSettings() { document.getElementById('cs-auto-reply').value = KaigoConsult.AUTO_REPLY_DEFAULT; }
 async function saveConsultSettings() {
