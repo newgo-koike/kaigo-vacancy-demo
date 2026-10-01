@@ -26,8 +26,9 @@
   const STATUS = { open: '新規', working: '対応中', answered: '回答済', closed: '終了', withdrawn: '取り下げ' };
   const STATUS_ORDER = ['open', 'working', 'answered', 'closed', 'withdrawn'];
   const DETAIL_NOTE = '※名前などの個人情報は記載しないでください。';
-  // 件名の目印（任意・2026-10-01 小池さん指示で復活）：イニシャルか苗字だけ。入れなくても送れる
-  const LABEL_HINT  = 'どなたの相談か分かるように、イニシャルか苗字だけ（例：T.K、田中）。フルネームは書かないでください';
+  // 件名の「名前」（任意・2026-10-01 小池さん指示で復活、文言は兵頭さん 2026-10-02）：苗字かイニシャル。入れなくても送れる
+  const LABEL_HINT  = '苗字もしくはイニシャルでお願いします。（例：T.K、田中）';
+  const LABEL_NOTE  = '※記載なしでも次に進めます。';   // 赤字で添える
   // 送信後の案内（兵頭さん 2026-09-27）：サマリー・診療情報提供書は FAX で
   const FAX = '06-7635-8813';
   const SENT_NOTE = 'サマリーや診療情報提供書（診情）がある場合は、FAX ' + FAX + ' へお送りください。';
@@ -84,7 +85,7 @@
   function cleanLabel(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
   function validate(c) {
     const errs = [];
-    if (cleanLabel(c.caseLabel).length > LABEL_MAX) errs.push(`目印は${LABEL_MAX}文字以内にしてください`);
+    if (cleanLabel(c.caseLabel).length > LABEL_MAX) errs.push(`名前は${LABEL_MAX}文字以内にしてください`);
     if (!c.care.length)   errs.push('相談条件を1つ以上選んでください');
     if (!c.areas.length)  errs.push('希望エリアを1つ以上選んでください');
     if (c.areas.includes(OTHER_AREA) && !String(c.areaOther || '').trim()) errs.push('希望エリア「その他」の内容を入力してください');
@@ -105,7 +106,7 @@
       facilities.forEach(f => lines.push(`　・${f.name}`));
       lines.push('');
     }
-    if (cleanLabel(c.caseLabel)) lines.push('■ 目印：' + cleanLabel(c.caseLabel));
+    if (cleanLabel(c.caseLabel)) lines.push('■ 名前：' + cleanLabel(c.caseLabel));
     lines.push('■ 相談条件：' + c.care.join('、'));
     lines.push('■ 希望エリア：' + areasText(c));
     lines.push('■ 費用：' + c.budget.join('、'));
@@ -296,7 +297,7 @@
     const areas = (c.areas || []).map(a => a === OTHER_AREA && c.areaOther ? `その他（${c.areaOther}）` : a);
     const facs = (d.facilities || []);
     return `<div class="cs-cond">
-      ${cleanLabel(d.caseLabel) ? row('目印', [cleanLabel(d.caseLabel)]) : ''}
+      ${cleanLabel(d.caseLabel) ? row('名前', [cleanLabel(d.caseLabel)]) : ''}
       ${facs.length ? `<div class="cs-row"><div class="cs-row-lbl">情報を知りたい施設</div><div class="cs-row-val">${facs.map(f => `<a class="cs-chip-ro cs-chip-link" href="kaigo-facility-view.html?id=${esc(f.id)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join('')}</div></div>` : ''}
       ${row('相談条件', c.care || [])}
       ${row('希望エリア', areas)}
@@ -392,7 +393,7 @@
     return `<span class="cs-status ${s}">${STATUS[s]}</span>`;
   }
 
-  global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_MAX, FAX, SENT_NOTE, DELETED_TEXT, WITHDRAWN_TEXT, AUTO_REPLY_DEFAULT, CSS, settings,
+  global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_NOTE, LABEL_MAX, FAX, SENT_NOTE, DELETED_TEXT, WITHDRAWN_TEXT, AUTO_REPLY_DEFAULT, CSS, settings,
     esc, areaOptions, validate, cleanLabel, firstMessageText, areasText, fmtDate, fmtShort, fmtShortDT, shortText, caseName, uniqueCaseNames, caseMark, caseColor, normalizeInitials,
     create, send, markRead, setStatus, loadSettings, saveSettings, editMessage, withdrawMessage, updateConditions, withdrawConsultation, isLastMessage, canEditMessage,
     conditionsHTML, messagesHTML, messageBodyHTML, autoReplyHTML, editedMark, messageActionsHTML, messageEditorHTML, statusBadge };
