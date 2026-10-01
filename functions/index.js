@@ -1,14 +1,14 @@
 'use strict';
 // 空室相談（チャット）の通知（2026-10-01 小池さん指示）。
-// 病院がメッセージを書き込んだ瞬間に、Meets Medical（兵頭さん）へメールと LINE で知らせる。
+// 病院がメッセージを書き込んだ瞬間に、Meets Medical（兵頭さん）へ LINE で知らせる。
+// メールはやめて LINE だけにした（小池さん 2026-10-01。送信元アカウントの管理を増やさないため）
 //
 //   notifyOnHospitalMessage … consultations/{cid}/messages/{mid} の作成を監視（by=hospital のときだけ送る）
 //   lineWebhook             … LINE 公式アカウントの Webhook。友だち追加・メッセージ・グループ招待を受けて
 //                             送り先候補（meta/lineUsers）に登録する。管理画面「通知先」で選ぶ
 //
-// 設定（Firestore meta/notifySettings、管理画面から編集）: { enabled, emails:[], lineUserIds:[], cooldownSec }
-// 秘密情報（Secret Manager）: SMTP_USER / SMTP_PASS（送信元メールとアプリパスワード）、
-//                            LINE_CHANNEL_TOKEN / LINE_CHANNEL_SECRET（LINE 公式アカウントの Messaging API）
+// 設定（Firestore meta/notifySettings、管理画面から編集）: { enabled, lineUserIds:[], cooldownSec }
+// 秘密情報（Secret Manager）: LINE_CHANNEL_TOKEN / LINE_CHANNEL_SECRET（LINE 公式アカウントの Messaging API）
 const { setGlobalOptions } = require('firebase-functions/v2');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { onRequest } = require('firebase-functions/v2/https');
@@ -16,27 +16,23 @@ const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 initializeApp();
 setGlobalOptions({ region: 'asia-northeast1', maxInstances: 5 });
 const db = getFirestore();
 
-const SMTP_USER = defineSecret('SMTP_USER');
-const SMTP_PASS = defineSecret('SMTP_PASS');
 const LINE_CHANNEL_TOKEN = defineSecret('LINE_CHANNEL_TOKEN');
 const LINE_CHANNEL_SECRET = defineSecret('LINE_CHANNEL_SECRET');
 
 const ADMIN_URL = 'https://kaigo.meetsmedical.com/kaigo-master.html#consult';
-const DEFAULTS = { enabled: true, emails: ['hyodo@meetsmedical.com'], lineUserIds: [], cooldownSec: 180 };
+const DEFAULTS = { enabled: true, lineUserIds: [], cooldownSec: 180 };
 
 async function loadSettings() {
   const s = await db.doc('meta/notifySettings').get();
   const d = (s.exists && s.data()) || {};
   return {
     enabled: d.enabled !== false,
-    emails: Array.isArray(d.emails) ? d.emails.filter(Boolean) : DEFAULTS.emails,
     lineUserIds: Array.isArray(d.lineUserIds) ? d.lineUserIds.filter(Boolean) : [],
     cooldownSec: Number.isFinite(d.cooldownSec) ? d.cooldownSec : DEFAULTS.cooldownSec,
   };
@@ -64,17 +60,6 @@ function kindLabel(m, c) {
 }
 const short = (s, n) => { const t = String(s || '').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
 
-async function sendMail(settings, subject, text) {
-  if (!settings.emails.length) return 'メール送り先なし';
-  const user = SMTP_USER.value(), pass = SMTP_PASS.value();
-  if (!user || !pass) return 'SMTP 未設定';
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com', port: Number(process.env.SMTP_PORT || 465), secure: true,
-    auth: { user, pass },
-  });
-  await transporter.sendMail({ from: `介護施設検索システム <${user}>`, to: settings.emails.join(', '), subject, text });
-  return `メール ${settings.emails.length}件`;
-}
 async function sendLine(settings, text) {
   if (!settings.lineUserIds.length) return 'LINE 送り先なし';
   const token = LINE_CHANNEL_TOKEN.value();
@@ -89,7 +74,7 @@ async function sendLine(settings, text) {
 }
 
 exports.notifyOnHospitalMessage = onDocumentCreated(
-  { document: 'consultations/{cid}/messages/{mid}', secrets: [SMTP_USER, SMTP_PASS, LINE_CHANNEL_TOKEN] },
+  { document: 'consultations/{cid}/messages/{mid}', secrets: [LINE_CHANNEL_TOKEN] },
   async (event) => {
     const m = event.data && event.data.data();
     if (!m || m.by !== 'hospital') return;   // Meets 側の返信は通知しない（病院側はアプリ内のバッジ）
@@ -111,16 +96,12 @@ exports.notifyOnHospitalMessage = onDocumentCreated(
 
     const kind = kindLabel(m, c);
     const hosp = c.hospitalName || c.hospitalId || '病院';
-    const title = `【空室相談】${kind}：${hosp}　${caseName(c)}`;
-    const bodyText = short(m.text, 600);
-    const mail = `${hosp} から${kind}が届きました。\n\n件名：${caseName(c)}\n担当：${c.createdByName || '（担当者名なし）'}\n\n${bodyText}\n\n管理画面で返信する：${ADMIN_URL}\n（このメールは自動送信です）`;
     const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}\n\n${short(m.text, 300)}\n\n管理画面：${ADMIN_URL}`;
 
     const results = {};
-    try { results.mail = await sendMail(settings, title, mail); } catch (e) { results.mail = 'エラー: ' + (e.message || e); logger.error('mail', e); }
     try { results.line = await sendLine(settings, line); } catch (e) { results.line = 'エラー: ' + (e.message || e); logger.error('line', e); }
     logger.info('notified', { cid, kind, ...results });
-    await cref.update({ notify: { lastAt: Timestamp.now(), last: `${results.mail} / ${results.line}` } });
+    await cref.update({ notify: { lastAt: Timestamp.now(), last: results.line } });
   });
 
 // LINE 公式アカウントの Webhook：友だち追加・メッセージ・グループ参加を受けて送り先候補を登録する
