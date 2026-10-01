@@ -56,7 +56,7 @@ service cloud.firestore {
       allow update: if isAdmin()
                     || (isHospital() && resource.data.hospitalId == myHospital()
                         && request.resource.data.diff(resource.data).affectedKeys()
-                             .hasOnly(['lastMessageAt','lastMessageBy','lastMessageText','unreadForAdmin','unreadForHospital','updatedAt','messageCount','conditions','status'])
+                             .hasOnly(['lastMessageAt','lastMessageBy','lastMessageText','unreadForAdmin','unreadForHospital','updatedAt','messageCount','conditions','caseLabel','status'])
                         && (request.resource.data.status == resource.data.status || request.resource.data.status == 'withdrawn'));
       allow delete: if isAdmin();
 

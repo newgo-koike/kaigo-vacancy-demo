@@ -26,7 +26,8 @@
   const STATUS = { open: '新規', working: '対応中', answered: '回答済', closed: '終了', withdrawn: '取り下げ' };
   const STATUS_ORDER = ['open', 'working', 'answered', 'closed', 'withdrawn'];
   const DETAIL_NOTE = '※名前などの個人情報は記載しないでください。';
-  const LABEL_HINT  = 'イニシャル（例：T.K）。本名は書かないでください';
+  // 件名の目印（任意・2026-10-01 小池さん指示で復活）：イニシャルか苗字だけ。入れなくても送れる
+  const LABEL_HINT  = 'どなたの相談か分かるように、イニシャルか苗字だけ（例：T.K、田中）。フルネームは書かないでください';
   // 送信後の案内（兵頭さん 2026-09-27）：サマリー・診療情報提供書は FAX で
   const FAX = '06-7635-8813';
   const SENT_NOTE = 'サマリーや診療情報提供書（診情）がある場合は、FAX ' + FAX + ' へお送りください。';
@@ -37,7 +38,7 @@
   const AUTO_REPLY_DEFAULT = '受け付けました。担当者が確認して、ここに返信します。\nサマリーや診療情報提供書（診情）がある場合は、FAX ' + FAX + ' へお送りください。';
   const SETTINGS_DOC = 'consultSettings';
   const settings = { autoReply: AUTO_REPLY_DEFAULT, loaded: false };
-  const LABEL_MAX   = 6;
+  const LABEL_MAX   = 10;
   // イニシャルの表記ゆれを揃える：全角→半角、空白除去、大文字化、「・」「，」→「.」
   function normalizeInitials(s) {
     return String(s || '')
@@ -80,8 +81,10 @@
   }
 
   // 入力チェック。必須：相談条件・希望エリア・費用。こだわり・医療体制と詳細は任意（兵頭さん 2026-09-26）
+  function cleanLabel(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
   function validate(c) {
     const errs = [];
+    if (cleanLabel(c.caseLabel).length > LABEL_MAX) errs.push(`目印は${LABEL_MAX}文字以内にしてください`);
     if (!c.care.length)   errs.push('相談条件を1つ以上選んでください');
     if (!c.areas.length)  errs.push('希望エリアを1つ以上選んでください');
     if (c.areas.includes(OTHER_AREA) && !String(c.areaOther || '').trim()) errs.push('希望エリア「その他」の内容を入力してください');
@@ -102,6 +105,7 @@
       facilities.forEach(f => lines.push(`　・${f.name}`));
       lines.push('');
     }
+    if (cleanLabel(c.caseLabel)) lines.push('■ 目印：' + cleanLabel(c.caseLabel));
     lines.push('■ 相談条件：' + c.care.join('、'));
     lines.push('■ 希望エリア：' + areasText(c));
     lines.push('■ 費用：' + c.budget.join('、'));
@@ -129,7 +133,7 @@
       createdByName: user.name || '',
       createdAt: now, updatedAt: now,
       status: 'open',
-      caseLabel: '',
+      caseLabel: cleanLabel(c.caseLabel),
       conditions: { care: c.care, areas: c.areas, areaOther: c.areaOther || '', budget: c.budget, needs: c.needs, detail: (c.detail || '').trim() },
       facilities: (facilities || []).map(f => ({ id: f.id, name: f.name })),
       lastMessageAt: now, lastMessageBy: 'hospital', lastMessageText: shortText(text, 80), messageCount: 1,
@@ -216,11 +220,11 @@
     const now = fb.firestore.FieldValue.serverTimestamp();
     const ref = db.collection('consultations').doc(cid);
     const cond = { care: c.care, areas: c.areas, areaOther: c.areaOther || '', budget: c.budget, needs: c.needs, detail: (c.detail || '').trim() };
-    const text = '相談条件を修正しました。\n' + firstMessageText(cond, facilities || []);
+    const text = '相談条件を修正しました。\n' + firstMessageText({ ...cond, caseLabel: c.caseLabel }, facilities || []);
     const batch = db.batch();
     batch.set(ref.collection('messages').doc(), { by: 'hospital', uid: user.uid, name: user.name || user.hospitalName || '', text, kind: 'conditions', createdAt: now });
     batch.update(ref, {
-      conditions: cond, updatedAt: now,
+      conditions: cond, caseLabel: cleanLabel(c.caseLabel), updatedAt: now,
       lastMessageAt: now, lastMessageBy: 'hospital', lastMessageText: shortText(text, 80),
       messageCount: fb.firestore.FieldValue.increment(1), unreadForAdmin: true, unreadForHospital: false,
     });
@@ -251,8 +255,10 @@
     const p = n => String(n).padStart(2, '0');
     return `${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
   }
+  // 目印（イニシャルか苗字）があれば「田中（9/26 13:35）」、無ければ「9/26 13:35 の相談」
   function caseName(d) {
-    const t = fmtShortDT(d.createdAt);
+    const t = fmtShortDT(d.createdAt), l = cleanLabel(d.caseLabel);
+    if (l) return `${l}（${t || '送信中'}）`;
     return t ? t + ' の相談' : '送信中の相談';
   }
   // 同じ分に複数送られた場合だけ ②③… を付けて区別する（id → 表示名）
@@ -268,8 +274,10 @@
     Object.entries(byName).forEach(([n, ids]) => ids.forEach((id, i) => { out[id] = ids.length > 1 ? `${n} ${circ[i + 1] || '(' + (i + 1) + ')'}` : n; }));
     return out;
   }
-  // 丸いアイコンに入れる短い印（月/日）
+  // 丸いアイコンに入れる短い印：目印があればその先頭（3文字まで）、無ければ月/日
   function caseMark(d) {
+    const l = cleanLabel(d.caseLabel);
+    if (l) return l.length <= 3 ? l : l.slice(0, 2);
     const x = toDate(d.createdAt);
     return x ? `${x.getMonth() + 1}/${x.getDate()}` : '…';
   }
@@ -288,6 +296,7 @@
     const areas = (c.areas || []).map(a => a === OTHER_AREA && c.areaOther ? `その他（${c.areaOther}）` : a);
     const facs = (d.facilities || []);
     return `<div class="cs-cond">
+      ${cleanLabel(d.caseLabel) ? row('目印', [cleanLabel(d.caseLabel)]) : ''}
       ${facs.length ? `<div class="cs-row"><div class="cs-row-lbl">情報を知りたい施設</div><div class="cs-row-val">${facs.map(f => `<a class="cs-chip-ro cs-chip-link" href="kaigo-facility-view.html?id=${esc(f.id)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join('')}</div></div>` : ''}
       ${row('相談条件', c.care || [])}
       ${row('希望エリア', areas)}
@@ -384,7 +393,7 @@
   }
 
   global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_MAX, FAX, SENT_NOTE, DELETED_TEXT, WITHDRAWN_TEXT, AUTO_REPLY_DEFAULT, CSS, settings,
-    esc, areaOptions, validate, firstMessageText, areasText, fmtDate, fmtShort, fmtShortDT, shortText, caseName, uniqueCaseNames, caseMark, caseColor, normalizeInitials,
+    esc, areaOptions, validate, cleanLabel, firstMessageText, areasText, fmtDate, fmtShort, fmtShortDT, shortText, caseName, uniqueCaseNames, caseMark, caseColor, normalizeInitials,
     create, send, markRead, setStatus, loadSettings, saveSettings, editMessage, withdrawMessage, updateConditions, withdrawConsultation, isLastMessage, canEditMessage,
     conditionsHTML, messagesHTML, messageBodyHTML, autoReplyHTML, editedMark, messageActionsHTML, messageEditorHTML, statusBadge };
 })(window);
