@@ -2368,7 +2368,7 @@ function renderChat() {
     const unread = cases.filter(x => x.unreadForHospital);
     if (unread.length) html += `<button type="button" class="chat-unread-bar" onclick="chatOpenCase('${unread[0].id}')">Meets Medical から返信が届いています（${unread.length}件）　→ 見る</button>`;
     // 見出しだけにして案内の吹き出しは出さない（兵頭さん 2026-10-02）
-    html += '<div class="chat-sec-ttl">新しい相談を送る<span class="chat-sec-sub">（パンフレットのみ欲しいなど気軽にご要望ください。）</span></div>';
+    html += '<div class="chat-sec-ttl">新しい相談を送る<span class="chat-sec-sub">（パンフレットのみ欲しいなど気軽にご相談ください。）</span></div>';
     html += chatFormHTML(CHAT, 'new');
     // ── 下：送信済みの相談一覧 ──
     html += `<div class="chat-sec-ttl">送信済みの相談 <span class="chat-sec-cnt">${cases.length ? cases.length + '件' : ''}</span>${unread.length ? `<span class="cs-unread">未読 ${unread.length}件</span>` : ''}<a class="chat-sec-link" href="kaigo-consult.html">チャット管理で見る</a></div>`;
