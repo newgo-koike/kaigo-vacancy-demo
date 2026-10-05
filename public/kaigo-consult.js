@@ -26,9 +26,9 @@
   const STATUS = { open: '新規', working: '対応中', answered: '回答済', closed: '終了', withdrawn: '取り下げ' };
   const STATUS_ORDER = ['open', 'working', 'answered', 'closed', 'withdrawn'];
   const DETAIL_NOTE = '※名前などの個人情報は記載しないでください。';
-  // 件名の「名前」（任意・2026-10-01 小池さん指示で復活、文言は兵頭さん 2026-10-02）：苗字かイニシャル。入れなくても送れる
-  const LABEL_HINT  = '苗字もしくはイニシャルでお願いします。（例：T.K、田中）';
-  const LABEL_NOTE  = '※記載なしでも次に進めます。';   // 赤字で添える
+  // 「名前」欄は 2026-10-06 に廃止（兵頭さん：個人情報の入口をなくす）。件は Cloud Functions が付ける相談番号 caseNo で区別する
+  const LABEL_HINT  = '';
+  const LABEL_NOTE  = '';
   // 送信後の案内（兵頭さん 2026-09-27）：サマリー・診療情報提供書は FAX で
   const FAX = '06-7635-8813';
   const SENT_NOTE = 'サマリーや診療情報提供書（診情）がある場合は、FAX ' + FAX + ' へお送りください。';
@@ -85,7 +85,6 @@
   function cleanLabel(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
   function validate(c) {
     const errs = [];
-    if (cleanLabel(c.caseLabel).length > LABEL_MAX) errs.push(`名前は${LABEL_MAX}文字以内にしてください`);
     if (!c.care.length)   errs.push('相談条件を1つ以上選んでください');
     if (!c.areas.length)  errs.push('希望エリアを1つ以上選んでください');
     if (c.areas.includes(OTHER_AREA) && !String(c.areaOther || '').trim()) errs.push('希望エリア「その他」の内容を入力してください');
@@ -106,7 +105,6 @@
       facilities.forEach(f => lines.push(`　・${f.name}`));
       lines.push('');
     }
-    if (cleanLabel(c.caseLabel)) lines.push('■ 名前：' + cleanLabel(c.caseLabel));
     lines.push('■ 相談条件：' + c.care.join('、'));
     lines.push('■ 希望エリア：' + areasText(c));
     lines.push('■ 費用：' + c.budget.join('、'));
@@ -134,7 +132,6 @@
       createdByName: user.name || '',
       createdAt: now, updatedAt: now,
       status: 'open',
-      caseLabel: cleanLabel(c.caseLabel),
       conditions: { care: c.care, areas: c.areas, areaOther: c.areaOther || '', budget: c.budget, needs: c.needs, detail: (c.detail || '').trim() },
       facilities: (facilities || []).map(f => ({ id: f.id, name: f.name })),
       lastMessageAt: now, lastMessageBy: 'hospital', lastMessageText: shortText(text, 80), messageCount: 1,
@@ -221,11 +218,11 @@
     const now = fb.firestore.FieldValue.serverTimestamp();
     const ref = db.collection('consultations').doc(cid);
     const cond = { care: c.care, areas: c.areas, areaOther: c.areaOther || '', budget: c.budget, needs: c.needs, detail: (c.detail || '').trim() };
-    const text = '相談条件を修正しました。\n' + firstMessageText({ ...cond, caseLabel: c.caseLabel }, facilities || []);
+    const text = '相談条件を修正しました。\n' + firstMessageText(cond, facilities || []);
     const batch = db.batch();
     batch.set(ref.collection('messages').doc(), { by: 'hospital', uid: user.uid, name: user.name || user.hospitalName || '', text, kind: 'conditions', createdAt: now });
     batch.update(ref, {
-      conditions: cond, caseLabel: cleanLabel(c.caseLabel), updatedAt: now,
+      conditions: cond, updatedAt: now,
       lastMessageAt: now, lastMessageBy: 'hospital', lastMessageText: shortText(text, 80),
       messageCount: fb.firestore.FieldValue.increment(1), unreadForAdmin: true, unreadForHospital: false,
     });
@@ -256,10 +253,10 @@
     const p = n => String(n).padStart(2, '0');
     return `${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
   }
-  // 目印（イニシャルか苗字）があれば「田中（9/26 13:35）」、無ければ「9/26 13:35 の相談」
+  // 相談番号（Cloud Functions が採番）があれば「No.12（9/26 13:35）」、採番前・旧データは「9/26 13:35 の相談」
   function caseName(d) {
-    const t = fmtShortDT(d.createdAt), l = cleanLabel(d.caseLabel);
-    if (l) return `${l}（${t || '送信中'}）`;
+    const t = fmtShortDT(d.createdAt);
+    if (d.caseNo) return `No.${d.caseNo}（${t || '送信中'}）`;
     return t ? t + ' の相談' : '送信中の相談';
   }
   // 同じ分に複数送られた場合だけ ②③… を付けて区別する（id → 表示名）
@@ -275,10 +272,9 @@
     Object.entries(byName).forEach(([n, ids]) => ids.forEach((id, i) => { out[id] = ids.length > 1 ? `${n} ${circ[i + 1] || '(' + (i + 1) + ')'}` : n; }));
     return out;
   }
-  // 丸いアイコンに入れる短い印：目印があればその先頭（3文字まで）、無ければ月/日
+  // 丸いアイコンに入れる短い印：相談番号があれば「No.12」、無ければ月/日
   function caseMark(d) {
-    const l = cleanLabel(d.caseLabel);
-    if (l) return l.length <= 3 ? l : l.slice(0, 2);
+    if (d.caseNo) return `No.${d.caseNo}`;
     const x = toDate(d.createdAt);
     return x ? `${x.getMonth() + 1}/${x.getDate()}` : '…';
   }
@@ -297,7 +293,6 @@
     const areas = (c.areas || []).map(a => a === OTHER_AREA && c.areaOther ? `その他（${c.areaOther}）` : a);
     const facs = (d.facilities || []);
     return `<div class="cs-cond">
-      ${cleanLabel(d.caseLabel) ? row('名前', [cleanLabel(d.caseLabel)]) : ''}
       ${facs.length ? `<div class="cs-row"><div class="cs-row-lbl">情報を知りたい施設</div><div class="cs-row-val">${facs.map(f => `<a class="cs-chip-ro cs-chip-link" href="kaigo-facility-view.html?id=${esc(f.id)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join('')}</div></div>` : ''}
       ${row('相談条件', c.care || [])}
       ${row('希望エリア', areas)}
@@ -305,6 +300,77 @@
       ${row('こだわり・医療体制', c.needs || [])}
       ${(c.detail || '').trim() ? `<div class="cs-row"><div class="cs-row-lbl">詳細</div><div class="cs-row-val cs-detail">${esc(c.detail)}</div></div>` : ''}
     </div>`;
+  }
+
+  // ── 個人情報らしき記述の検知（送信前の確認。2026-10-06 兵頭さん要望） ──
+  // 止めるのではなく「修正する／このまま送る」を選ばせる。名前は敬称付き（田中様・田中さん）だけ拾う
+  const PII_SAFE_NAMES = ['患者','利用者','本人','家族','奥','旦那','客','皆','看護師','先生','職員','担当者','相談員','ケアマネ','息子','娘','母','父','兄','姉','弟','妹','孫','嫁','婿','祖母','祖父','医師','病院','施設','業者','入居者','お母','お父','皆様','各位','関係者'];
+  function detectPII(text) {
+    const raw = String(text || '');
+    if (!raw.trim()) return [];
+    const t = raw.normalize('NFKC');
+    const hits = [];
+    const add = (label, m) => { const v = String(m).trim(); if (v && !hits.some(h => h.text === v)) hits.push({ label, text: v }); };
+    for (const m of t.matchAll(/(?<![\d-])(0\d{1,4}[-\s]?\d{1,4}[-\s]?\d{3,4})(?![\d-])/g)) add('電話番号', m[1]);
+    for (const m of t.matchAll(/[\w.+-]+@[\w-]+\.[\w.-]+/g)) add('メールアドレス', m[0]);
+    for (const m of t.matchAll(/〒\s?\d{3}-?\d{4}|(?<![\d-])\d{3}-\d{4}(?![\d-])/g)) add('郵便番号', m[0]);
+    for (const m of t.matchAll(/(?:生年月日|誕生日|生まれ)[^\n。]{0,12}/g)) add('生年月日', m[0]);
+    for (const m of t.matchAll(/(?:昭和|平成|S|H)\s?\d{1,2}\s?[年/.-]\s?\d{1,2}\s?[月/.-]\s?\d{1,2}\s?日?/g)) add('生年月日らしき日付', m[0]);
+    for (const m of t.matchAll(/(?<!\d)19\d{2}\s?[年/.-]\s?\d{1,2}\s?[月/.-]\s?\d{1,2}\s?日?/g)) add('生年月日らしき日付', m[0]);
+    for (const m of t.matchAll(/(?<!\d)\d{8,}(?!\d)/g)) add('番号（8桁以上）', m[0]);
+    for (const m of t.matchAll(/(?:氏名|お名前|名前)\s*[:：]\s*\S{1,12}/g)) add('氏名の記載', m[0]);
+    // 「様子」「様式」「氏名」のように敬称の後ろに漢字が続くものは除く。「田中様の件」のように助詞が続くのは拾う
+    for (const m of t.matchAll(/([一-龥々〆]{1,4}|[ァ-ヶー]{2,8})\s?(様|さま|氏|さん)(?![一-龥])/g)) {
+      const name = m[1];
+      if (PII_SAFE_NAMES.some(w => name === w || name.endsWith(w))) continue;
+      add('名前（敬称付き）', m[0]);
+    }
+    return hits;
+  }
+  function ensurePiiStyle() {
+    if (document.getElementById('cs-pii-style')) return;
+    const st = document.createElement('style');
+    st.id = 'cs-pii-style';
+    st.textContent = `
+      .cs-pii-bg { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px; }
+      .cs-pii-box { background:#fff; border:2px solid #2b2b2b; border-radius:16px; padding:22px 22px 18px; max-width:460px; width:100%; box-shadow:6px 6px 0 #2b2b2b; font-family:inherit; }
+      .cs-pii-ttl { font-size:17px; font-weight:900; color:#b91c1c; margin-bottom:8px; }
+      .cs-pii-msg { font-size:14px; line-height:1.7; color:#454541; }
+      .cs-pii-list { margin:10px 0 12px; padding:10px 12px; background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; font-size:14px; line-height:1.8; }
+      .cs-pii-list b { color:#b91c1c; }
+      .cs-pii-act { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+      .cs-pii-act button { font-family:inherit; font-size:14px; font-weight:800; padding:10px 18px; border-radius:100px; border:2px solid #2b2b2b; background:#fff; cursor:pointer; }
+      .cs-pii-act button.fix { background:#2b2b2b; color:#fff; }
+    `;
+    document.head.appendChild(st);
+  }
+  // 検知結果を見せて選ばせる。true＝このまま送る、false＝修正する
+  function confirmPII(hits) {
+    ensurePiiStyle();
+    return new Promise(resolve => {
+      const bg = document.createElement('div');
+      bg.className = 'cs-pii-bg';
+      bg.innerHTML = `<div class="cs-pii-box" role="dialog" aria-label="個人情報の確認">
+        <div class="cs-pii-ttl">個人情報が含まれていませんか？</div>
+        <div class="cs-pii-msg">次の記載が、名前や連絡先などの個人情報にあたる可能性があります。</div>
+        <div class="cs-pii-list">${hits.map(h => `<div><b>${esc(h.label)}</b>：${esc(h.text)}</div>`).join('')}</div>
+        <div class="cs-pii-msg">このチャットには名前・電話番号・生年月日などを書かず、必要な場合は電話や FAX でお伝えください。</div>
+        <div class="cs-pii-act" style="margin-top:14px"><button type="button" class="send">このまま送る</button><button type="button" class="fix">修正する</button></div>
+      </div>`;
+      const done = v => { bg.remove(); document.removeEventListener('keydown', onKey); resolve(v); };
+      const onKey = e => { if (e.key === 'Escape') done(false); };
+      bg.querySelector('.fix').onclick = () => done(false);
+      bg.querySelector('.send').onclick = () => done(true);
+      bg.addEventListener('click', e => { if (e.target === bg) done(false); });
+      document.addEventListener('keydown', onKey);
+      document.body.appendChild(bg);
+      bg.querySelector('.fix').focus();
+    });
+  }
+  // 送る前の確認。何も検知しなければ true
+  async function checkPII(text) {
+    const hits = detectPII(text);
+    return hits.length ? confirmPII(hits) : true;
   }
 
   // 吹き出しの本文（取り消し済みなら印だけ）
@@ -396,5 +462,6 @@
   global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_NOTE, LABEL_MAX, FAX, SENT_NOTE, DELETED_TEXT, WITHDRAWN_TEXT, AUTO_REPLY_DEFAULT, CSS, settings,
     esc, areaOptions, validate, cleanLabel, firstMessageText, areasText, fmtDate, fmtShort, fmtShortDT, shortText, caseName, uniqueCaseNames, caseMark, caseColor, normalizeInitials,
     create, send, markRead, setStatus, loadSettings, saveSettings, editMessage, withdrawMessage, updateConditions, withdrawConsultation, isLastMessage, canEditMessage,
+    detectPII, confirmPII, checkPII,
     conditionsHTML, messagesHTML, messageBodyHTML, autoReplyHTML, editedMark, messageActionsHTML, messageEditorHTML, statusBadge };
 })(window);
