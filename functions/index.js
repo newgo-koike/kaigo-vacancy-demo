@@ -35,6 +35,7 @@ async function loadSettings() {
     enabled: d.enabled !== false,
     lineUserIds: Array.isArray(d.lineUserIds) ? d.lineUserIds.filter(Boolean) : [],
     cooldownSec: Number.isFinite(d.cooldownSec) ? d.cooldownSec : DEFAULTS.cooldownSec,
+    includeBody: d.includeBody === true,   // 本文の冒頭を通知に入れるか（個人情報が LINE 側にも残るため既定はオフ。管理画面「通知先」で変更）
   };
 }
 
@@ -46,12 +47,13 @@ function fmtJst(ts) {
   const g = t => (p.find(x => x.type === t) || {}).value || '';
   return `${g('month')}/${g('day')} ${g('hour')}:${g('minute')}`;
 }
-// 件名の表示は画面側（kaigo-consult.js の caseName）と同じ形
+// 件名の表示は画面側（kaigo-consult.js の caseName）と同じ形：相談番号があれば「No.12（10/6 09:30）」
 function caseName(c) {
-  const t = fmtJst(c.createdAt), l = String(c.caseLabel || '').trim();
-  if (l) return `${l}（${t || '送信中'}）`;
+  const t = fmtJst(c.createdAt);
+  if (c.caseNo) return `No.${c.caseNo}（${t || '送信中'}）`;
   return t ? `${t} の相談` : '相談';
 }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 function kindLabel(m, c) {
   if (m.kind === 'conditions') return '相談条件の修正';
   if (m.kind === 'withdrawn') return '取り下げ';
@@ -82,7 +84,11 @@ exports.notifyOnHospitalMessage = onDocumentCreated(
     const cref = db.doc(`consultations/${cid}`);
     const csnap = await cref.get();
     if (!csnap.exists) return;
-    const c = csnap.data();
+    let c = csnap.data();
+    for (let i = 0; i < 8 && !c.caseNo && (c.messageCount || 0) <= 1; i++) {   // 採番（assignCaseNo）を最大4秒待つ
+      await sleep(500);
+      c = (await cref.get()).data() || c;
+    }
     const settings = await loadSettings();
     if (!settings.enabled) { logger.info('notify disabled'); return; }
 
@@ -96,13 +102,29 @@ exports.notifyOnHospitalMessage = onDocumentCreated(
 
     const kind = kindLabel(m, c);
     const hosp = c.hospitalName || c.hospitalId || '病院';
-    const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}\n\n${short(m.text, 300)}\n\n管理画面：${ADMIN_URL}`;
+    const body = settings.includeBody ? `\n\n${short(m.text, 100)}` : '';
+    const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}${body}\n\n管理画面で確認・返信：${ADMIN_URL}`;
 
     const results = {};
     try { results.line = await sendLine(settings, line); } catch (e) { results.line = 'エラー: ' + (e.message || e); logger.error('line', e); }
     logger.info('notified', { cid, kind, ...results });
     await cref.update({ notify: { lastAt: Timestamp.now(), last: results.line } });
   });
+
+// 相談番号の採番（2026-10-06 兵頭さん要望：名前欄をやめて自動番号で区別する）。
+// 全病院を通した連番を meta/counters.consultNo でトランザクション採番し、相談に caseNo を付ける。病院側からは書き換えられない（rules）
+exports.assignCaseNo = onDocumentCreated({ document: 'consultations/{cid}' }, async (event) => {
+  const cref = db.doc(`consultations/${event.params.cid}`);
+  const counter = db.doc('meta/counters');
+  await db.runTransaction(async (tx) => {
+    const [cs, ks] = await Promise.all([tx.get(cref), tx.get(counter)]);
+    if (!cs.exists || cs.data().caseNo) return;
+    const next = ((ks.exists && ks.data().consultNo) || 0) + 1;
+    tx.set(counter, { consultNo: next, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    tx.update(cref, { caseNo: next });
+  });
+  logger.info('caseNo assigned', { cid: event.params.cid });
+});
 
 // LINE 公式アカウントの Webhook：友だち追加・メッセージ・グループ参加を受けて送り先候補を登録する
 exports.lineWebhook = onRequest({ secrets: [LINE_CHANNEL_SECRET, LINE_CHANNEL_TOKEN], cors: false }, async (req, res) => {

@@ -310,6 +310,7 @@ async function roomMsgSave(mid) {
   if (!text) { showToast('内容を入力してください（消したいときは「取り消し」）'); return; }
   const orig = MSGS.find(x => x.id === mid);
   if (orig && (orig.text || '') === text) { EDIT_MSG = null; renderRoom(); return; }
+  if (!(await KaigoConsult.checkPII(text))) return;
   try {
     await KaigoConsult.editMessage(db, CUR, mid, 'hospital', text, KaigoConsult.isLastMessage(MSGS, mid));
     EDIT_MSG = null;
@@ -340,6 +341,7 @@ async function sendReply() {
   const text = ta.value.trim();
   if (!CUR) return;
   if (!text) { showToast('メッセージを入力してください'); ta.focus(); return; }
+  if (!(await KaigoConsult.checkPII(text))) { ta.focus(); return; }   // 個人情報らしき記載の確認（2026-10-06）
   const btn = document.getElementById('send-btn');
   btn.disabled = true;
   try {

@@ -33,6 +33,7 @@
   .msg.show{display:block;}
   .msg.err{background:var(--err-bg);border:1px solid #fecaca;color:var(--err);}
   .msg.ok{background:var(--ok-bg);border:1px solid #d3ebf7;color:var(--ok);}
+  .msg.warn{background:var(--warn-bg);color:var(--warn);border:1px solid #fcd34d;}
   .msg .cred{font-family:ui-monospace,monospace;font-weight:700;font-size:15px;color:var(--ink);}
   .spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
   @keyframes spin{to{transform:rotate(360deg);}}
@@ -64,8 +65,9 @@
     <p class="note" id="preview"></p>
   </div>
 
-  <div class="card">
+  <div class="card" id="pw">
     <h2>自分のパスワードを変更</h2>
+    <div class="msg warn" id="pw-initial">初期パスワード（ログインIDと同じ）のままです。相談の内容を他の人に見られないよう、ここで新しいパスワードに変更してください。「現在のパスワード」にはログインIDを入れます。</div>
     <label class="f-lbl">現在のパスワード</label>
     <input class="f-inp" id="cur-pw" type="password" autocomplete="current-password" placeholder="現在のパスワード">
     <label class="f-lbl" style="margin-top:12px;">新しいパスワード（6文字以上）</label>
@@ -185,6 +187,11 @@ async function addMember(){
 }
 
 $('nm').addEventListener('keydown',e=>{ if(e.key==='Enter') addMember(); });
+// ログイン直後に初期パスワードのままだと判定された場合（?initial=1）：案内を出してパスワード欄へ
+if (new URLSearchParams(location.search).get('initial') === '1' || (function(){ try { return sessionStorage.getItem('kaigo_initial_pw') === '1'; } catch (e) { return false; } })()) {
+  $('pw-initial').classList.add('show');
+  setTimeout(() => { const el = document.getElementById('pw'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); const c = $('cur-pw'); if (c) c.focus(); }, 300);
+}
 
 // ── 自分のパスワード変更 ───────────────────────────────────────
 function pwErr(m){ $('pw-err').textContent=m; $('pw-err').classList.add('show'); }
@@ -207,6 +214,8 @@ async function changeMyPassword(){
     await user.updatePassword(np);
     $('pw-ok').textContent='✅ パスワードを変更しました。次回から新しいパスワードでログインしてください。';
     $('pw-ok').classList.add('show');
+    $('pw-initial').classList.remove('show');
+    try { sessionStorage.removeItem('kaigo_initial_pw'); } catch (e) {}   // 初期パスワードの案内を終える
     $('cur-pw').value=''; $('new-pw').value=''; $('new-pw2').value='';
   }catch(e){
     let m='変更に失敗しました';
