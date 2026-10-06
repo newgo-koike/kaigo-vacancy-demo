@@ -32,6 +32,14 @@
     .hdr-logo { width:38px; height:38px; background:transparent; border-radius:0; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .hdr-title { font-size:15px; font-weight:900; color:var(--ink); letter-spacing:.03em; }
     .hdr-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+    /* 電話で直接相談（兵頭さん 2026-10-07：全画面の上部に、できるだけ大きく） */
+    .hdr-tel { margin-left:auto; display:inline-flex; align-items:center; gap:8px; padding:5px 14px; border:2px solid #e0707f; border-radius:100px; background:#fff; color:#e0707f; text-decoration:none; white-space:nowrap; line-height:1.1; }
+    .hdr-tel ~ .hdr-right { margin-left:12px; }
+    .hdr-tel:hover { background:#fbe7ea; }
+    .hdr-tel-lbl { font-size:12px; font-weight:800; }
+    .hdr-tel-num { font-size:21px; font-weight:900; letter-spacing:.02em; font-variant-numeric:tabular-nums; }
+    @media (max-width:640px) { .hdr { flex-wrap:wrap; height:auto; padding-top:8px; padding-bottom:8px; } .hdr-tel { order:10; flex:1 1 100%; justify-content:center; margin:6px 0 0; padding:6px 12px; } .hdr-tel ~ .hdr-right { margin-left:auto; } .hdr-tel-num { font-size:22px; } }
+    @media print { .hdr-tel { display:none; } }
     .btn-back { font-size:13px; font-weight:700; color:var(--g600); text-decoration:none; padding:7px 15px; border:2px solid var(--hair); border-radius:100px; transition:all .15s; }
     .btn-back:hover { color:var(--ink); border-color:var(--ink); }
     .btn-print { font-size:17px; font-weight:900; color:white; background:var(--pink); border:2px solid var(--ink); padding:12px 30px; border-radius:100px; cursor:pointer; font-family:inherit; transition:background .15s; box-shadow:2px 2px 0 var(--ink); }
@@ -260,6 +268,7 @@
 <header class="hdr">
   <div class="hdr-logo"><img src="logo.png" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,.3))"></div>
   <div class="hdr-title">介護施設検索</div>
+  <a class="hdr-tel" href="tel:0677776252" title="Meets Medical に電話で相談"><span class="hdr-tel-lbl">電話で直接相談</span><span class="hdr-tel-num">06-7777-6252</span></a>
   <div class="hdr-right">
     <a href="kaigo-search.html" class="btn-back">← 検索に戻る</a>
     <button class="btn-print" onclick="printSheet()">🖨 印刷・PDF</button>

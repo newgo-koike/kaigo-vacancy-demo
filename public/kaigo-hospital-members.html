@@ -14,6 +14,11 @@
   .hd{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
   .hd .box{width:36px;height:36px;background:white;border:2px solid var(--ink);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
   .hd .ttl{font-size:18px;font-weight:900;}
+  /* 電話で直接相談（兵頭さん 2026-10-07：全画面の上部に、できるだけ大きく） */
+  .hdr-tel{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border:2px solid var(--pink-d);border-radius:100px;background:#fff;color:var(--pink-d);text-decoration:none;white-space:nowrap;line-height:1.1;}
+  .hdr-tel-lbl{font-size:12px;font-weight:800;}
+  .hdr-tel-num{font-size:21px;font-weight:900;letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+  @media (max-width:640px){.hdr-tel{padding:4px 10px;gap:5px;}.hdr-tel-lbl{display:none;}.hdr-tel-num{font-size:16px;}}
   .sub{font-size:13px;color:var(--g500);margin:2px 0 22px 46px;}
   .card{background:white;border:2px solid var(--ink);border-radius:16px;padding:20px;margin-bottom:16px;}
   .card h2{font-size:14px;font-weight:800;margin-bottom:14px;}
@@ -47,6 +52,7 @@
   <div class="hd">
     <div class="box">👥</div>
     <div class="ttl">担当者管理</div>
+    <a class="hdr-tel" href="tel:0677776252" title="Meets Medical に電話で相談"><span class="hdr-tel-lbl">電話で直接相談</span><span class="hdr-tel-num">06-7777-6252</span></a>
   </div>
   <div class="sub" id="hosp">読み込み中...</div>
 
