@@ -408,7 +408,7 @@
         <div class="cs-pii-ttl">個人情報が含まれていませんか？</div>
         <div class="cs-pii-msg">次の記載が、名前や連絡先などの個人情報にあたる可能性があります。</div>
         <div class="cs-pii-list">${hits.map(h => `<div><b>${esc(h.label)}</b>：${esc(h.text)}</div>`).join('')}</div>
-        <div class="cs-pii-msg">このチャットには名前・電話番号・生年月日などを書かず、必要な場合は電話や FAX でお伝えください。</div>
+        <div class="cs-pii-msg">このチャットには名前（フルネーム）・電話番号・生年月日などを書かず、必要な場合は電話や FAX でお伝えください。</div>
         <div class="cs-pii-act" style="margin-top:14px"><button type="button" class="send">このまま送る</button><button type="button" class="fix">修正する</button></div>
       </div>`;
       const done = v => { bg.remove(); document.removeEventListener('keydown', onKey); resolve(v); };
