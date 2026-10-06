@@ -27,8 +27,6 @@
   const STATUS_ORDER = ['open', 'working', 'answered', 'closed', 'withdrawn'];
   const DETAIL_NOTE = '※名前などの個人情報は記載しないでください。';
   // 「名前」欄は 2026-10-06 に廃止（兵頭さん：個人情報の入口をなくす）。件は Cloud Functions が付ける相談番号 caseNo で区別する
-  const LABEL_HINT  = '';
-  const LABEL_NOTE  = '';
   // 送信後の案内（兵頭さん 2026-09-27）：サマリー・診療情報提供書は FAX で
   const FAX = '06-7635-8813';
   const SENT_NOTE = 'サマリーや診療情報提供書（診情）がある場合は、FAX ' + FAX + ' へお送りください。';
@@ -312,7 +310,8 @@
   const PII_STOP_FULL = ['たくさん','みなさん','みんなさん','皆さん','皆様','皆さま','お母さん','お父さん','お母様','お父様','お母さま','お父さま','患者さん','患者様','ご家族様','ご家族さん','家族さん','ケアマネさん','看護師さん','お客さん','お客様','業者さん','職員さん','娘さん','息子さん','奥さん','奥様','奥さま','旦那さん','旦那様','お兄さん','お姉さん','おじいさん','おばあさん','お孫さん','お嫁さん','お医者さん','ご本人様','本人さん','利用者さん','利用者様','入居者さん','入居者様','関係者様','相談員さん','担当者さん','担当さん','ご主人様','ご主人さん','赤ちゃん','お子さん','お子様','子供さん','よろしくさん'];
   // 日本でよくある苗字（2文字以上。1文字の苗字は地名・一般語と区別できないので敬称付きのときだけ拾う）
   const PII_SURNAMES = '佐藤 鈴木 高橋 田中 伊藤 渡辺 山本 中村 小林 加藤 吉田 山田 佐々木 山口 松本 井上 木村 斎藤 清水 山崎 池田 橋本 阿部 石川 山下 中島 石井 小川 前田 岡田 長谷川 藤田 後藤 近藤 村上 遠藤 青木 坂本 斉藤 福田 太田 西村 藤井 金子 岡本 藤原 中野 三浦 原田 中川 松田 竹内 小野 田村 中山 和田 石田 上田 森田 柴田 酒井 工藤 横山 宮崎 宮本 内田 高木 安藤 島田 谷口 大野 高田 丸山 今井 河野 藤本 村田 武田 上野 杉山 増田 小島 平野 大塚 千葉 久保 松井 岩崎 桜井 野口 松尾 野村 木下 菊地 佐野 大西 杉本 新井 浜田 菅原 市川 水野 小松 島崎 古川 小山 高野 渡部 菊池 荒木 服部 佐久間 熊谷 永井 松岡 川口 川崎 大久保 岩田 平田 吉川 片山 本田 早川 横田 三宅 松下 飯田 内藤 栗原 川上 西田 北村 望月 星野 安田 五十嵐 石原 篠原 小池 奥村 大石 松村 坂口 秋山 吉岡 川村 中西 伊東 松浦 田口 黒田 樋口 高山 福島 岩本 荒井 大橋 長田 須藤 平井 岡崎 落合 堀内 山内 前川 榎本 小田 根本 森本 西川 松原 大島 片岡 宮田 野田 畠山 大谷 松山 江口 田辺 本間 塚本 上原 北川 石橋 山中 川島 小泉 大沢 坂井 福井 広瀬 岸本 田島 中田 村山 山岸 西山 大森 堀田 尾崎 森下 吉村 神田 高石 鶴田 寺田 戸田 沢田 高瀬 牧野 土屋 田代 角田 岡部 小西 柳沢 平山 安部 竹田 成田 大山 福本 長島 宮下 西岡 今村 小森 白石 日高 浅野 関口 細川 小泉 水谷 土井 窪田 鈴村 井口 金井 岩井 大内 荻野 久保田 江藤 相馬 石塚 三好 吉野 石黒 米田 宇野 岩瀬 黒木 高島 入江 藤野 井田 中原 向井 奥田 大平 河村 兵頭 岡村 藤沢 北野 大村 西野 今野 真田 栗田 筒井 日野 南 東 北 西'.split(' ').filter(w => w.length >= 2);
-  const PII_SURNAME_RE = new RegExp('(?<![一-龥々])(' + PII_SURNAMES.join('|') + ')(?:([ぁ-ん]{2,4})|([一-龥]{1,3}))?(?=[がはをにでともへのやか、。・（）「」:：\\s]|$)', 'g');
+  // 後読み（?<!）は iOS 16.3 以前の Safari で正規表現ごと読み込みに失敗するため使わない。直前の1文字を捕捉して判定する
+  const PII_SURNAME_RE = new RegExp('(^|[^一-龥々])(' + PII_SURNAMES.join('|') + ')(?:([ぁ-ん]{2,4})|([一-龥]{1,3}))?(?=[がはをにでともへのやか、。・（）「」:：\\s]|$)', 'g');
   const PII_PLACE_SUFFIX = /(市|区|町|村|郡|駅|県|府|院|会|社|店|荘|苑|園|館|寮|校|局|署|線|橋|山|川|池|丘|台|野|原|島|崎|浜|港|口|前|東|西|南|北|中央|通|丁目|番地)$/;
   function piiNamePart(token) {
     // 敬称の直前の「漢字かカタカナの連なり＋続くひらがな」を名前とみなす（「件で田中はじめ」→「田中はじめ」、「ケアマネの木村」→「木村」）。
@@ -328,14 +327,16 @@
     if (!raw.trim()) return [];
     const t = raw.normalize('NFKC');
     const hits = [];
-    const add = (label, m) => { const v = String(m).trim(); if (v && !hits.some(h => h.text === v)) hits.push({ label, text: v }); };
-    for (const m of t.matchAll(/(?<![\d-])(0\d{1,4}[-\s]?\d{1,4}[-\s]?\d{3,4})(?![\d-])/g)) add('電話番号', m[1]);
+    // 同じ箇所を二重に出さない（「〒564-0001」と「564-0001」、「生年月日 昭和20年5月1日」と「昭和20年5月1日」）
+    const add = (label, m) => { const v = String(m).trim(); if (v && !hits.some(h => h.text.includes(v))) hits.push({ label, text: v }); };
+    for (const m of t.matchAll(/(^|[^\d-])(0\d{1,4}[-\s]?\d{1,4}[-\s]?\d{3,4})(?![\d-])/g)) add('電話番号', m[2]);
     for (const m of t.matchAll(/[\w.+-]+@[\w-]+\.[\w.-]+/g)) add('メールアドレス', m[0]);
-    for (const m of t.matchAll(/〒\s?\d{3}-?\d{4}|(?<![\d-])\d{3}-\d{4}(?![\d-])/g)) add('郵便番号', m[0]);
+    for (const m of t.matchAll(/〒\s?\d{3}-?\d{4}/g)) add('郵便番号', m[0]);
+    for (const m of t.matchAll(/(^|[^\d-])(\d{3}-\d{4})(?![\d-])/g)) add('郵便番号', m[2]);
     for (const m of t.matchAll(/(?:生年月日|誕生日|生まれ)[^\n。]{0,12}/g)) add('生年月日', m[0]);
     for (const m of t.matchAll(/(?:昭和|平成|S|H)\s?\d{1,2}\s?[年/.-]\s?\d{1,2}\s?[月/.-]\s?\d{1,2}\s?日?/g)) add('生年月日らしき日付', m[0]);
-    for (const m of t.matchAll(/(?<!\d)19\d{2}\s?[年/.-]\s?\d{1,2}\s?[月/.-]\s?\d{1,2}\s?日?/g)) add('生年月日らしき日付', m[0]);
-    for (const m of t.matchAll(/(?<!\d)\d{8,}(?!\d)/g)) add('番号（8桁以上）', m[0]);
+    for (const m of t.matchAll(/(^|\D)(19\d{2}\s?[年/.-]\s?\d{1,2}\s?[月/.-]\s?\d{1,2}\s?日?)/g)) add('生年月日らしき日付', m[2]);
+    for (const m of t.matchAll(/(^|\D)(\d{8,})(?!\d)/g)) add('番号（8桁以上）', m[2]);
     for (const m of t.matchAll(/(?:氏名|お名前|名前)\s*[:：]\s*\S{1,12}/g)) add('氏名の記載', m[0]);
     // (a) 敬称付き。名前部分は漢字・カタカナ・ひらがなの混在を許す。くん・君・ちゃんは漢字かカタカナを含むときだけ
     for (const m of t.matchAll(/([一-龥々〆ァ-ヶーぁ-ん]{2,14})\s?(様|さま|氏|さん|殿|くん|君|ちゃん)(?![一-龥])/g)) {
@@ -352,7 +353,7 @@
     }
     // (b)(c) よくある苗字＋名前、苗字だけ＋助詞
     for (const m of t.matchAll(PII_SURNAME_RE)) {
-      const sur = m[1], hira = m[2] || '', kan = m[3] || '';
+      const sur = m[2], hira = m[3] || '', kan = m[4] || '';
       const after = t[m.index + m[0].length] || '';
       if (hits.some(h => h.text.includes(sur + hira + kan) || (h.label === '名前（敬称付き）' && h.text.startsWith(sur)))) continue;   // 敬称付きで拾った分と重複させない
       if (kan && PII_PLACE_SUFFIX.test(kan)) continue;                // 池田市・山田南・鈴木病院
@@ -498,7 +499,7 @@
     return `<span class="cs-status ${s}">${STATUS[s]}</span>`;
   }
 
-  global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_HINT, LABEL_NOTE, LABEL_MAX, FAX, SENT_NOTE, DELETED_TEXT, WITHDRAWN_TEXT, AUTO_REPLY_DEFAULT, CSS, settings,
+  global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_MAX, FAX, SENT_NOTE, DELETED_TEXT, WITHDRAWN_TEXT, AUTO_REPLY_DEFAULT, CSS, settings,
     esc, areaOptions, validate, cleanLabel, firstMessageText, areasText, fmtDate, fmtShort, fmtShortDT, shortText, caseName, uniqueCaseNames, caseMark, caseColor, normalizeInitials,
     create, send, markRead, setStatus, loadSettings, saveSettings, editMessage, withdrawMessage, updateConditions, withdrawConsultation, isLastMessage, canEditMessage,
     detectPII, confirmPII, checkPII,

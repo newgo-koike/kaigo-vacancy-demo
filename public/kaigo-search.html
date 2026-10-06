@@ -2182,7 +2182,7 @@ async function submitConsult(mode) {
     return;
   }
   errEl.textContent = '';
-  if (!(await KaigoConsult.checkPII(c.detail))) { document.getElementById('cs-detail').focus(); return; }   // 個人情報らしき記載の確認
+  if (!(await KaigoConsult.checkPII(c.detail + '\n' + c.areaOther))) { document.getElementById('cs-detail').focus(); return; }   // 個人情報らしき記載の確認（補足と「その他」欄）
   const btn = document.getElementById(mode === 'inline' ? 'cs-inline-submit' : 'cs-submit');
   const label = btn.textContent;
   btn.disabled = true; btn.textContent = '送信中...';
@@ -2469,7 +2469,7 @@ async function chatSend() {
     showToast(errs[0]);
     return;
   }
-  if (!(await KaigoConsult.checkPII(CHAT.a.detail))) { document.getElementById('chat-detail')?.focus(); return; }   // 個人情報らしき記載の確認
+  if (!(await KaigoConsult.checkPII(CHAT.a.detail + '\n' + CHAT.a.areaOther))) { document.getElementById('chat-detail')?.focus(); return; }   // 個人情報らしき記載の確認（補足と「その他」欄）
   CHAT.sending = true;
   const b = document.getElementById('chat-send');
   if (b) { b.disabled = true; b.textContent = '送信中...'; }
@@ -2552,7 +2552,7 @@ async function chatSaveConditions() {
     showToast(errs[0]);
     return;
   }
-  if (!(await KaigoConsult.checkPII(S.a.detail))) { document.getElementById('chat-detail')?.focus(); return; }
+  if (!(await KaigoConsult.checkPII(S.a.detail + '\n' + S.a.areaOther))) { document.getElementById('chat-detail')?.focus(); return; }
   const x = MY_CONSULTS.find(c => c.id === CHAT_VIEW.caseId);
   S.sending = true;
   const b = document.getElementById('chat-save-cond');
