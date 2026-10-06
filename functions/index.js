@@ -35,6 +35,7 @@ async function loadSettings() {
     enabled: d.enabled !== false,
     lineUserIds: Array.isArray(d.lineUserIds) ? d.lineUserIds.filter(Boolean) : [],
     cooldownSec: Number.isFinite(d.cooldownSec) ? d.cooldownSec : DEFAULTS.cooldownSec,
+    includeBody: d.includeBody === true,   // 本文の冒頭を通知に入れるか（個人情報が LINE 側にも残るため既定はオフ。管理画面「通知先」で変更）
   };
 }
 
@@ -101,7 +102,8 @@ exports.notifyOnHospitalMessage = onDocumentCreated(
 
     const kind = kindLabel(m, c);
     const hosp = c.hospitalName || c.hospitalId || '病院';
-    const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}\n\n${short(m.text, 300)}\n\n管理画面：${ADMIN_URL}`;
+    const body = settings.includeBody ? `\n\n${short(m.text, 100)}` : '';
+    const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}${body}\n\n管理画面で確認・返信：${ADMIN_URL}`;
 
     const results = {};
     try { results.line = await sendLine(settings, line); } catch (e) { results.line = 'エラー: ' + (e.message || e); logger.error('line', e); }

@@ -4,13 +4,15 @@
 // ログインユーザー: ?as=hospital で病院担当者（H001 山田）、既定は管理者。
 (function () {
   'use strict';
-  const AS = new URLSearchParams(location.search).get('as');
+  // ?as=hospital / ?as=admin / ?as=none（未ログインから始め、ログイン画面でサインインする）。一度サインインしたら sessionStorage に覚える
+  const AS = new URLSearchParams(location.search).get('as') || (function () { try { return sessionStorage.getItem('FAKE_AS'); } catch (e) { return null; } })();
+  try { if (new URLSearchParams(location.search).get('as')) sessionStorage.setItem('FAKE_AS', AS); } catch (e) {}
   const USERS = {
     admin1: { role: 'admin', name: '小池雄悟', email: 'y-koike@yumematch.com' },
     hosp1:  { role: 'hospital', name: '山田', hospitalId: 'H001', hospitalName: 'テスト総合病院', loginId: 'H001-01', email: 'h001-01@meets-medical.jp' },
     hosp2:  { role: 'hospital', name: '', hospitalId: 'H002', hospitalName: '第二テスト病院', loginId: 'H002-01', email: 'h002-01@meets-medical.jp' },
   };
-  const ME = AS === 'hospital' ? 'hosp1' : 'admin1';
+  const ME = AS === 'hospital' ? 'hosp1' : AS === 'none' ? null : 'admin1';
   const ARRAY_UNION = Symbol('arrayUnion'), SERVER_TS = Symbol('serverTimestamp'), INC = Symbol('increment'), DEL = Symbol('delete');
   let clock = Date.now();
   const ts = d => ({ toDate: () => d, toMillis: () => d.getTime(), seconds: Math.floor(d.getTime() / 1000), nanoseconds: 0 });
@@ -36,6 +38,11 @@
       else if (v && v[INC] != null) next[k] = (cur[k] || 0) + v[INC];
       else if (v === SERVER_TS) next[k] = ts(new Date(clock += 1000));
       else if (v === DEL) delete next[k];
+      else if (k.includes('.')) {   // 'conditions.detail' のようなドット区切りは入れ子の項目を更新する（本物の Firestore と同じ）
+        const parts = k.split('.'); let o = next;
+        for (let i = 0; i < parts.length - 1; i++) { o[parts[i]] = (o[parts[i]] && typeof o[parts[i]] === 'object') ? { ...o[parts[i]] } : {}; o = o[parts[i]]; }
+        o[parts[parts.length - 1]] = v;
+      }
       else next[k] = v;
     }
     docsOf(collPath)[id] = next;
@@ -110,12 +117,26 @@
     delete: async () => { window.FAKE.deleted.push(path); },
   }) });
 
-  const me = { uid: ME, email: USERS[ME].email, getIdToken: async () => 'fake-token' };
-  const auth = () => ({
-    currentUser: me,
-    onAuthStateChanged: cb => { setTimeout(() => cb(me), 0); return () => {}; },
-    signOut: async () => { console.log('[fake] signOut'); },
-    signInWithEmailAndPassword: async () => ({ user: me }),
-  });
+  const mkUser = id => ({ uid: id, email: USERS[id].email, getIdToken: async () => 'fake-token',
+    reauthenticateWithCredential: async () => ({}), updatePassword: async (pw) => { window.FAKE.passwordChangedTo = pw; } });
+  let me = ME ? mkUser(ME) : null;
+  const authListeners = [];
+  // ログイン検証用：サインインしたら病院担当者（hosp1）として扱う（管理者メールなら admin1）。パスワードは何でも通る
+  const authObj = {
+    get currentUser() { return me; },
+    onAuthStateChanged: cb => { authListeners.push(cb); setTimeout(() => cb(me), 0); return () => {}; },
+    signOut: async () => { me = null; try { sessionStorage.setItem('FAKE_AS', 'none'); } catch (e) {} authListeners.forEach(cb => cb(null)); },
+    signInWithEmailAndPassword: async (email, pw) => {
+      const id = /@meets-medical\.jp$/.test(email) ? 'hosp1' : 'admin1';
+      me = mkUser(id); window.FAKE.signIn = { email, pw }; window.FAKE.me = id;
+      try { sessionStorage.setItem('FAKE_AS', id === 'hosp1' ? 'hospital' : 'admin'); } catch (e) {}
+      return { user: me };
+    },
+    setPersistence: async (p) => { window.FAKE.persistence = p; },
+  };
+  const auth = () => authObj;
+  auth.Persistence = { LOCAL: 'local', SESSION: 'session', NONE: 'none' };
+  auth.Auth = { Persistence: auth.Persistence };   // 本物は firebase.auth.Auth.Persistence.LOCAL の形
+  auth.EmailAuthProvider = { credential: (e, p) => ({ e, p }) };
   window.firebase = { initializeApp: () => ({}), firestore, auth, storage, apps: [{}] };
 })();

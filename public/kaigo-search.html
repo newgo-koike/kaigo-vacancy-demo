@@ -182,6 +182,9 @@
     .chat-form .chat-ta { width:100%; flex:none; margin-top:2px; }
     .chat-note { font-size:12px; color:#b91c1c; font-weight:700; margin-bottom:4px; }
     .chat-grp-sub { font-size:12px; color:var(--g600); line-height:1.6; }
+    /* 初期パスワードのままログインしたときの帯（パスワードを変えると消える） */
+    .pw-banner { display:none; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 20px; background:#fef2f2; border-bottom:2px solid #fca5a5; color:#b91c1c; font-size:13.5px; font-weight:700; }
+    .pw-banner a { margin-left:auto; padding:7px 16px; border-radius:100px; background:#b91c1c; color:#fff; text-decoration:none; font-weight:900; white-space:nowrap; }
     .chat-sec-sub { font-size:12.5px; font-weight:700; color:var(--g600); margin-left:4px; }
     .chat-grp-sub .red, .cs-grp-sub .red { color:#b91c1c; font-weight:700; margin-left:4px; }
     .chat-form-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:4px 0 6px; border-top:1px dashed var(--g200); margin-top:4px; }
@@ -671,6 +674,7 @@
     <button class="hdr-logout" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
 </header>
+<div class="pw-banner" id="pw-banner">初期パスワード（ログインIDと同じ）のままです。相談の内容を他の人に見られないよう、新しいパスワードに変更してください。<a href="kaigo-hospital-members.html?initial=1#pw">変更する</a></div>
 
 <!-- BODY -->
 <div class="body-wrap search-only" id="body-wrap">
@@ -935,6 +939,8 @@ auth.onAuthStateChanged(async user => {
   const label = person ? (/(様|さま|さん|先生)$/.test(person) ? person : person + ' さん') : hospName;
   if (label) document.getElementById('hdr-user').textContent = label;
   document.body.style.visibility = 'visible';
+  // ログイン時に初期パスワードのままと判定されていれば、変更するまで帯を出す（判定はログインページ、解除は担当者管理ページ）
+  try { if (role === 'hospital' && sessionStorage.getItem('kaigo_initial_pw') === '1') document.getElementById('pw-banner').style.display = 'flex'; } catch (e) {}
   initSidebar();
   // 施設詳細から戻ってきたら結果を復元。そうでなければ前回の検索条件を読み込む
   if (!restoreResultsIfReturning()) loadSavedConditions();

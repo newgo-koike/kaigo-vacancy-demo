@@ -5,7 +5,7 @@
 
 | 関数 | 役割 |
 |---|---|
-| `notifyOnHospitalMessage` | `consultations/{cid}/messages/{mid}` の作成を監視。`by=hospital` のときだけ LINE。同じ件への連投は1分間まとめる（`consultations.notify.lastAt`） |
+| `notifyOnHospitalMessage` | `consultations/{cid}/messages/{mid}` の作成を監視。本文は既定で含めない（`meta/notifySettings.includeBody` がオンのときだけ冒頭100字）。`by=hospital` のときだけ LINE。同じ件への連投は1分間まとめる（`consultations.notify.lastAt`） |
 | `assignCaseNo` | `consultations/{cid}` の作成を監視し、全病院通しの相談番号 `caseNo` を付ける（`meta/counters.consultNo` をトランザクション採番）。件名「No.12（10/6 09:30）」の元。2026-10-06〜 |
 | `lineWebhook` | LINE 公式アカウントの Webhook。友だち追加・「登録」メッセージ・グループ招待を受けて `meta/lineUsers` に名前と ID を登録（管理画面の「通知先」に並ぶ） |
 

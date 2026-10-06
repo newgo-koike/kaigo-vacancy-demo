@@ -240,6 +240,20 @@
     });
     await batch.commit();
   }
+  // 管理者が相手（病院）のメッセージも含めて本文を消す（個人情報が書かれてしまったとき）。最初の相談内容なら補足欄も消す。
+  // 未読フラグは触らない（相手に「新着」を付ける用途ではない）
+  async function purgeMessage(db, cid, mid, isFirst, isLast) {
+    const fb = global.firebase;
+    const now = fb.firestore.FieldValue.serverTimestamp();
+    const ref = db.collection('consultations').doc(cid);
+    const upd = { updatedAt: now };
+    if (isLast) upd.lastMessageText = DELETED_TEXT;
+    if (isFirst) upd['conditions.detail'] = '';
+    const batch = db.batch();
+    batch.update(ref.collection('messages').doc(mid), { text: '', deleted: true, deletedAt: now, purged: true });
+    batch.update(ref, upd);
+    await batch.commit();
+  }
   function isLastMessage(msgs, mid) { return !!msgs.length && msgs[msgs.length - 1].id === mid; }
   // 編集・取り消しができるメッセージか：自分側の通常メッセージだけ（最初の相談内容と、条件修正・取り下げの記録は対象外）
   function canEditMessage(m, mySide, index) { return !!m && m.by === mySide && !m.deleted && !m.kind && index > 0; }
@@ -444,7 +458,9 @@
       const body = editing
         ? messageEditorHTML(m.id, opts.editingText != null ? opts.editingText : m.text, opts.fn)
         : `<div class="cs-msg-body">${messageBodyHTML(m)}</div>`;
-      const act = (!editing && opts.fn && canEditMessage(m, mySide, i)) ? messageActionsHTML(m.id, opts.fn) : '';
+      let act = (!editing && opts.fn && canEditMessage(m, mySide, i)) ? messageActionsHTML(m.id, opts.fn) : '';
+      // 管理者向け：相手のメッセージ（最初の相談内容・条件修正の記録を含む）に「個人情報を消す」
+      if (!act && opts.purge && !m.deleted && m.by !== mySide) act = `<div class="cs-msg-act"><button type="button" onclick="${opts.purge}('${esc(m.id)}')">個人情報を消す</button></div>`;
       const auto = (i === 0 && opts.autoReply)
         ? `<div class="cs-msg ${mySide === 'admin' ? 'mine' : 'theirs'} auto"><div class="cs-msg-meta">Meets Medical（自動返信）　${fmtDate(m.createdAt)}</div><div class="cs-msg-body">${autoReplyHTML(opts.autoReply)}</div></div>`
         : '';
@@ -502,6 +518,6 @@
   global.KaigoConsult = { CARE, BUDGET, NEEDS, OTHER_AREA, STATUS, STATUS_ORDER, DETAIL_NOTE, LABEL_MAX, FAX, SENT_NOTE, DELETED_TEXT, WITHDRAWN_TEXT, AUTO_REPLY_DEFAULT, CSS, settings,
     esc, areaOptions, validate, cleanLabel, firstMessageText, areasText, fmtDate, fmtShort, fmtShortDT, shortText, caseName, uniqueCaseNames, caseMark, caseColor, normalizeInitials,
     create, send, markRead, setStatus, loadSettings, saveSettings, editMessage, withdrawMessage, updateConditions, withdrawConsultation, isLastMessage, canEditMessage,
-    detectPII, confirmPII, checkPII,
+    detectPII, confirmPII, checkPII, purgeMessage,
     conditionsHTML, messagesHTML, messageBodyHTML, autoReplyHTML, editedMark, messageActionsHTML, messageEditorHTML, statusBadge };
 })(window);
