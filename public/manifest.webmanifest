@@ -1,0 +1,15 @@
+{
+  "name": "介護施設検索（Meets Medical）",
+  "short_name": "介護施設検索",
+  "description": "介護施設の空室検索と空室相談（チャット）",
+  "start_url": "kaigo-login.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdfdfb",
+  "theme_color": "#5fb0de",
+  "lang": "ja",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
