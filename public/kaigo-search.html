@@ -2209,9 +2209,9 @@ async function submitConsult(mode) {
   const label = btn.textContent;
   btn.disabled = true; btn.textContent = '送信中...';
   try {
-    await KaigoConsult.create(db, currentUser, c, consultFacilities());
+    const newId = await KaigoConsult.create(db, currentUser, c, consultFacilities());
     resetConsultForm();
-    showSentNotice();
+    showSentNotice(newId);
     if (mode === 'inline' && document.getElementById('cs-inline-done')) {
       // トップページ：その場に完了表示を出し、続けて次の相談を送れるようにする
       const done = document.getElementById('cs-inline-done');
@@ -2499,7 +2499,7 @@ async function chatSend() {
     const id = await KaigoConsult.create(db, currentUser, CHAT.a, []);
     chatReset();
     chatOpenCase(id);   // 送った件の会話をそのまま開く（返信がここに届く）
-    showSentNotice();
+    showSentNotice(id);
     return;
   } catch (e) {
     console.error(e);
@@ -2511,7 +2511,14 @@ async function chatSend() {
   renderChat();
 }
 // 送信完了の案内。サマリー・診療情報提供書のFAX先を大きく出す（兵頭さん 2026-09-27）
-function showSentNotice() {
+// 送付状の目印は病院名ではなく相談番号（兵頭さん 2026-10-09）。番号は裏側で1〜2秒後に付くので、付いたら文面を差し替える
+let SENT_NOTE_TIMER = null;
+function sentNoteText(caseId) {
+  const x = caseId && MY_CONSULTS.find(c => c.id === caseId);
+  const no = x && x.caseNo ? `相談番号No.${x.caseNo}` : '相談番号No.（この相談の件名に出る番号）';
+  return `送付状に「空室相談・${no}」と書いていただけると、担当がすぐ紐づけられます`;
+}
+function showSentNotice(caseId) {
   let el = document.getElementById('sent-notice');
   if (!el) {
     el = document.createElement('div');
@@ -2521,11 +2528,21 @@ function showSentNotice() {
       <div class="sent-msg">Meets Medical が内容を確認して返信します。<br>返信はこの画面のチャットと、上の「チャット管理」に届きます。</div>
       <div class="sent-fax-lbl">サマリー・診療情報提供書（診情）がある場合はこちらへFAX</div>
       <div class="sent-fax">FAX ${KaigoConsult.FAX}</div>
-      <div class="sent-note">送付状に「空室相談・${KaigoConsult.esc(currentUser?.hospitalName || '')}」と書いていただけると、担当がすぐ紐づけられます</div>
+      <div class="sent-note" id="sent-note"></div>
       <button class="sent-close" onclick="document.getElementById('sent-notice').style.display='none'">閉じる</button>
     </div>`;
     el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });
     document.body.appendChild(el);
+  }
+  const note = document.getElementById('sent-note');
+  note.textContent = sentNoteText(caseId);
+  if (SENT_NOTE_TIMER) clearInterval(SENT_NOTE_TIMER);
+  if (caseId && !/No\.\d/.test(note.textContent)) {
+    let tries = 0;
+    SENT_NOTE_TIMER = setInterval(() => {   // 採番を最大10秒待って差し替える
+      note.textContent = sentNoteText(caseId);
+      if (/No\.\d/.test(note.textContent) || ++tries > 20) { clearInterval(SENT_NOTE_TIMER); SENT_NOTE_TIMER = null; }
+    }, 500);
   }
   el.style.display = 'flex';
   el.querySelector('.sent-close').focus();
