@@ -106,11 +106,22 @@
     .hdr-sub,.hdr-btn.ghost-mobile{display:none;}
     .hdr-btn{padding:7px 12px;font-size:12px;}
     .talks{width:100%;border-right:none;}
-    .room{position:fixed;inset:0;z-index:20;display:none;}
+    .room{position:fixed;left:0;right:0;top:0;height:100vh;height:100dvh;z-index:20;display:none;}
     .app.show-room .room{display:flex;}
     .room-back{display:inline-block;}
     .room-hd .room-st{display:none;}
     .msg{max-width:88%;}
+    .room-hd{padding:8px 10px;gap:10px;}
+    .room-back{white-space:nowrap;flex-shrink:0;padding:8px 12px;}
+    .room-hd .avatar{display:none;}
+    .room-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .room-name{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .room-hd > div:not(.avatar){min-width:0;}
+    .room-body{padding:12px 10px 8px;overscroll-behavior:contain;}
+    .room-composer{padding:8px 10px calc(10px + env(safe-area-inset-bottom));}
+    .composer-note{display:none;}
+    .send{width:72px;}
+    .toast{bottom:calc(110px + env(safe-area-inset-bottom));max-width:calc(100% - 24px);text-align:center;}
   }
 </style>
 <!-- アプリとして入れられるようにする＋更新のお知らせ（2026-10-07） -->
@@ -146,7 +157,7 @@
     <div class="room-body" id="room-body"><div class="room-empty">相談を選ぶと、やり取りがここに表示されます。<br>新しい相談は右上の「＋ 新しい相談」から送れます。</div></div>
     <div class="room-composer" id="composer" style="display:none">
       <div class="composer-row">
-        <textarea id="reply-text" rows="2" placeholder="Meets Medical へのメッセージ（名前などの個人情報は書かないでください）" oninput="autoGrow(this)"></textarea>
+        <textarea id="reply-text" rows="2" placeholder="Meets Medical へのメッセージ（名前などの個人情報は書かないでください）" data-sp-placeholder="メッセージを入力" oninput="autoGrow(this)" onkeydown="replyKey(event)"></textarea>
         <button class="send" id="send-btn" onclick="sendReply()">送信</button>
       </div>
       <div class="composer-note" id="composer-note">送信すると Meets Medical に届きます</div>
@@ -178,10 +189,14 @@ let CUR = null;
 let unsubMsgs = null;
 let MSGS = [];          // 開いている相談のメッセージ（id 付き）
 let EDIT_MSG = null;    // 直しているメッセージ { mid, text }
+const DRAFTS = {};      // 書きかけを相談ごとに持つ（別の相談に切り替えても混ざらないように）
 const esc = KaigoConsult.esc;
 
 auth.onAuthStateChanged(async user => {
-  if (!user) { location.href = 'kaigo-login.html'; return; }
+  if (!user) {
+    try { sessionStorage.setItem('kaigo_return', 'kaigo-consult.html' + location.hash); } catch (e) {}
+    location.href = 'kaigo-login.html'; return;
+  }
   const u = (await db.collection('users').doc(user.uid).get()).data() || {};
   if (u.role === 'admin') { location.href = 'kaigo-master.html#consult'; return; }
   if (u.role !== 'hospital') { await auth.signOut(); location.href = 'kaigo-login.html'; return; }
@@ -200,6 +215,8 @@ function watchList() {
     ITEMS.sort((a, b) => t(b) - t(a));
     renderList();
     if (CUR) renderRoomHead();
+    const cur = CUR && ITEMS.find(x => x.id === CUR);
+    if (cur && cur.unreadForHospital && roomVisible() && document.visibilityState === 'visible') KaigoConsult.markRead(db, CUR, 'hospital').catch(() => {});
     const hash = location.hash.replace('#', '');
     if (!CUR) {
       if (hash && ITEMS.some(x => x.id === hash)) openThread(hash, true);
@@ -209,6 +226,7 @@ function watchList() {
 }
 
 function isMobile() { return matchMedia('(max-width:760px)').matches; }
+function roomVisible() { return !!CUR && (!isMobile() || document.getElementById('app').classList.contains('show-room')); }
 function initial(x) { return esc(KaigoConsult.caseMark(x)); }
 
 let NAMES = {};
@@ -253,11 +271,18 @@ function dayLabel(ts) {
 }
 
 function openThread(id, front) {
+  const ta = document.getElementById('reply-text');
+  if (CUR && CUR !== id) DRAFTS[CUR] = ta.value;
+  if (CUR !== id) { ta.value = DRAFTS[id] || ''; autoGrow(ta); }
   CUR = id;
-  history.replaceState(null, '', '#' + id);
+  if (front && isMobile()) {
+    // スマホの「戻る」（画面端のスワイプ・戻るボタン）で一覧に戻れるよう、履歴を1つ積む
+    if (history.state && history.state.room) history.replaceState({ room: id }, '', '#' + id);
+    else { history.replaceState(null, '', location.pathname + location.search); history.pushState({ room: id }, '', '#' + id); }
+  } else history.replaceState(history.state, '', '#' + id);
   renderList();
   renderRoomHead();
-  if (front) document.getElementById('app').classList.add('show-room');
+  if (front) { document.getElementById('app').classList.add('show-room'); fitViewport(); }
   const x = ITEMS.find(i => i.id === id);
   MSGS = []; EDIT_MSG = null;
   if (unsubMsgs) unsubMsgs();
@@ -347,7 +372,47 @@ async function roomMsgWithdraw(mid) {
   }
 }
 
-function showList() { document.getElementById('app').classList.remove('show-room'); }
+function showList() {
+  if (history.state && history.state.room) { history.back(); return; }   // 端末の「戻る」と同じ動きにする（popstate で閉じる）
+  closeRoom();
+}
+function closeRoom() {
+  document.getElementById('app').classList.remove('show-room');
+  document.getElementById('reply-text').blur();
+  fitViewport();
+}
+window.addEventListener('popstate', () => {
+  const st = history.state;
+  if (st && st.room) { if (ITEMS.some(x => x.id === st.room)) openThread(st.room, true); return; }
+  if (document.getElementById('app').classList.contains('show-room')) closeRoom();
+});
+// iPhone はキーボードが出ても画面の高さが変わらず、入力欄がキーボードの裏に隠れる。見えている範囲（visualViewport）に合わせる
+function fitViewport() {
+  const room = document.querySelector('.room');
+  const vv = window.visualViewport;
+  if (!vv || !isMobile() || !document.getElementById('app').classList.contains('show-room')) { room.style.height = ''; room.style.top = ''; return; }
+  const body = document.getElementById('room-body');
+  const atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 60;
+  room.style.height = vv.height + 'px';
+  room.style.top = vv.offsetTop + 'px';
+  if (atBottom) body.scrollTop = body.scrollHeight;
+}
+if (window.visualViewport) { visualViewport.addEventListener('resize', fitViewport); visualViewport.addEventListener('scroll', fitViewport); }
+document.addEventListener('visibilitychange', () => {
+  const cur = CUR && ITEMS.find(x => x.id === CUR);
+  if (cur && cur.unreadForHospital && roomVisible() && document.visibilityState === 'visible') KaigoConsult.markRead(db, CUR, 'hospital').catch(() => {});
+});
+// 入力欄の案内文：スマホでは1行に収まる短い文にする
+function syncPlaceholder() {
+  const ta = document.getElementById('reply-text');
+  if (!ta.dataset.pcPlaceholder) ta.dataset.pcPlaceholder = ta.placeholder;
+  ta.placeholder = isMobile() ? ta.dataset.spPlaceholder : ta.dataset.pcPlaceholder;
+}
+syncPlaceholder();
+window.addEventListener('resize', syncPlaceholder);
+function replyKey(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.isComposing) { e.preventDefault(); sendReply(); }
+}
 
 function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(160, ta.scrollHeight) + 'px'; }
 
@@ -361,7 +426,7 @@ async function sendReply() {
   btn.disabled = true;
   try {
     await KaigoConsult.send(db, CUR, 'hospital', ME, text);
-    ta.value = ''; autoGrow(ta);
+    ta.value = ''; delete DRAFTS[CUR]; autoGrow(ta);
     showToast('送信しました');
     ta.focus();
   } catch (e) {

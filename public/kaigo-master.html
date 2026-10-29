@@ -132,14 +132,14 @@
     <div class="hdr-sub">管理者ダッシュボード</div>
   </div>
   <div class="hdr-actions">
-    <a class="hdr-btn hdr-btn-ghost" href="kaigo-search.html" target="_blank">検索画面を確認</a>
-    <a class="hdr-btn" href="kaigo-register.html">＋ 施設を登録</a>
+    <a class="hdr-btn hdr-btn-ghost" href="kaigo-search.html" target="_blank"><span class="only-pc">検索画面を確認</span><span class="only-sp">検索</span></a>
+    <a class="hdr-btn" href="kaigo-register.html"><span class="only-pc">＋ 施設を登録</span><span class="only-sp">＋施設</span></a>
     <button class="hdr-btn hdr-btn-ghost" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
 </header>
 
 <!-- タブナビゲーション -->
-<div class="flex border-b border-slate-200 bg-white flex-shrink-0 px-5">
+<div id="tabbar" class="tabbar flex border-b border-slate-200 bg-white flex-shrink-0 px-5">
   <button onclick="switchTab('facilities')" id="tab-facilities"
     class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-[#5fb0de] text-[#2c7ba6] -mb-px">
     🏥 施設管理
@@ -228,12 +228,11 @@
 
 <!-- 空室相談タブ：病院からの相談一覧（左）とスレッド・返信（右） -->
 <div id="panel-consult" class="hidden flex-1 overflow-hidden">
-  <div class="flex w-full h-full">
-    <aside class="w-[380px] flex-shrink-0 border-r border-slate-200 bg-white flex flex-col">
-      <div class="p-3 border-b border-slate-200 flex items-center gap-2">
-        <span class="text-sm font-bold text-slate-800">相談一覧</span>
-        <span id="cs-list-count" class="text-xs text-slate-400"></span>
-        <select id="cs-filter" class="ml-auto text-xs border border-slate-300 rounded-md px-2 py-1" onchange="renderConsultList()">
+  <div id="cs-app" class="cs-app flex w-full h-full">
+    <aside class="cs-list-pane w-[380px] flex-shrink-0 border-r border-slate-200 bg-white flex flex-col">
+      <div class="cs-list-hd p-3 border-b border-slate-200 flex items-center gap-2">
+        <span class="cs-list-ttl"><span class="text-sm font-bold text-slate-800">相談一覧</span> <span id="cs-list-count" class="text-xs text-slate-400"></span></span>
+        <select id="cs-filter" class="cs-filter ml-auto text-xs border border-slate-300 rounded-md px-2 py-1" onchange="renderConsultList()">
           <option value="">すべて</option>
           <option value="unread">未読のみ</option>
           <option value="open">新規</option>
@@ -242,23 +241,27 @@
           <option value="closed">終了</option>
           <option value="withdrawn">取り下げ</option>
         </select>
-        <button type="button" onclick="toggleConsultSettings()" class="text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院が相談を送った直後に表示される自動返信の文面を変える">自動返信</button>
-        <button type="button" onclick="toggleNotifySettings()" class="text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院から相談・返信が来たときの LINE の送り先">通知先</button>
+        <button type="button" onclick="toggleConsultSettings()" class="cs-hd-btn text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院が相談を送った直後の自動返信と、返信の定型文を変える">自動返信・定型文</button>
+        <button type="button" onclick="toggleNotifySettings()" class="cs-hd-btn text-xs border border-slate-300 rounded-md px-2 py-1 hover:bg-slate-50 whitespace-nowrap" title="病院から相談・返信が来たときの LINE の送り先">通知先</button>
       </div>
       <div id="cs-list" class="flex-1 overflow-y-auto"><p class="text-sm text-slate-400 p-4">読み込み中...</p></div>
     </aside>
-    <section class="flex-1 flex flex-col min-w-0">
-      <div id="cs-settings" class="hidden px-5 py-4 border-b border-slate-200 bg-amber-50">
+    <section id="cs-room" class="cs-room flex-1 flex flex-col min-w-0 bg-white">
+<div id="cs-settings" class="cs-sheet hidden px-5 py-4 border-b border-slate-200 bg-amber-50">
         <div class="text-sm font-bold text-slate-800">自動返信の文面</div>
         <p class="text-xs text-slate-500 mt-1">病院が相談を送った直後に、Meets Medical からの自動返信として病院側の画面に出ます（保存するとすべての病院の画面に反映。FAX番号は自動で太字になります）</p>
         <textarea id="cs-auto-reply" rows="4" class="w-full border border-slate-300 rounded-lg p-2 text-sm mt-2"></textarea>
-        <div class="flex items-center gap-3 mt-2">
+        <div class="text-sm font-bold text-slate-800 mt-4">返信の定型文</div>
+        <p class="text-xs text-slate-500 mt-1">返信欄の上にボタンで並びます。押すと返信欄に文が入り、直してから送れます（1行に1つ・最大12個。Meets Medical の画面だけに出て、病院には見えません）</p>
+        <textarea id="cs-quick-edit" rows="6" class="w-full border border-slate-300 rounded-lg p-2 text-sm mt-2"></textarea>
+        <button type="button" onclick="resetQuickReplies()" class="text-xs text-slate-500 underline mt-1">既定の定型文に戻す</button>
+        <div class="flex items-center gap-3 mt-3">
           <button type="button" onclick="resetConsultSettings()" class="text-xs text-slate-500 underline">既定の文面に戻す</button>
           <button type="button" onclick="toggleConsultSettings()" class="ml-auto px-4 py-2 rounded-full border border-slate-300 text-sm font-bold text-slate-600 hover:bg-white">閉じる</button>
           <button type="button" id="cs-settings-save" onclick="saveConsultSettings()" class="px-5 py-2 rounded-full bg-[#5fb0de] text-white text-sm font-bold hover:bg-[#2c7ba6]">保存する</button>
         </div>
       </div>
-      <div id="cs-notify" class="hidden px-5 py-4 border-b border-slate-200 bg-sky-50">
+      <div id="cs-notify" class="cs-sheet hidden px-5 py-4 border-b border-slate-200 bg-sky-50">
         <div class="text-sm font-bold text-slate-800">通知先（病院から相談・返信が来たとき）</div>
         <p class="text-xs text-slate-500 mt-1">病院が相談・返信・条件修正・取り下げを送った瞬間に、ここで選んだ宛先へ LINE を送ります。同じ件への連投は1分間まとめます。Meets 側の返信は通知しません（病院側は画面のバッジ）。</p>
         <label class="flex items-center gap-2 mt-3 text-sm font-bold text-slate-700"><input type="checkbox" id="nt-enabled" class="w-4 h-4"> 通知を送る</label>
@@ -276,19 +279,22 @@
       </div>
       <div id="cs-thread-hd" class="px-5 py-3 border-b border-slate-200 bg-white text-sm text-slate-500">左の一覧から相談を選ぶと内容が表示されます</div>
       <div id="cs-thread" class="flex-1 overflow-y-auto p-5 bg-slate-50"></div>
-      <div id="cs-reply-box" class="p-4 border-t border-slate-200 bg-white hidden">
-        <textarea id="cs-reply" rows="3" class="w-full border border-slate-300 rounded-lg p-2 text-sm" placeholder="病院への返信（候補施設・確認したいこと・次の連絡予定など）"></textarea>
-        <div class="flex items-center gap-3 mt-2">
-          <label class="text-xs text-slate-500">ステータス</label>
-          <select id="cs-status" class="text-xs border border-slate-300 rounded-md px-2 py-1" onchange="changeConsultStatus(this.value)">
+      <div id="cs-reply-box" class="cs-composer hidden">
+        <div id="cs-quick" class="cs-quick" aria-label="定型文"></div>
+        <div class="cs-compose-row">
+          <textarea id="cs-reply" rows="1" class="cs-reply-ta" placeholder="病院への返信（候補施設・確認したいこと・次の連絡予定など）" data-sp-placeholder="返信を入力" oninput="csAutoGrow(this)" onkeydown="csReplyKey(event)"></textarea>
+          <button id="cs-send" type="button" onclick="sendConsultReply()" class="cs-send"><span class="only-pc">返信を送る</span><span class="only-sp">送信</span></button>
+        </div>
+        <div class="cs-compose-meta">
+          <label for="cs-status">ステータス</label>
+          <select id="cs-status" class="cs-status-sel" onchange="changeConsultStatus(this.value)">
             <option value="open">新規</option>
             <option value="working">対応中</option>
             <option value="answered">回答済</option>
             <option value="closed">終了</option>
             <option value="withdrawn">取り下げ</option>
           </select>
-          <span class="text-xs text-slate-400">返信すると病院側に「新着」が付きます</span>
-          <button id="cs-send" onclick="sendConsultReply()" class="ml-auto px-5 py-2 rounded-full bg-[#5fb0de] text-white text-sm font-bold hover:bg-[#2c7ba6]">返信を送る</button>
+          <span class="cs-compose-hint">返信すると病院側に「新着」が付きます（Ctrl＋Enter でも送れます）</span>
         </div>
       </div>
     </section>
@@ -541,7 +547,10 @@ const BASE = 'https://kaigo.meetsmedical.com';
 let DATA = [];
 
 auth.onAuthStateChanged(async user => {
-  if (!user) { location.href = 'kaigo-login.html'; return; }
+  if (!user) {
+    try { sessionStorage.setItem('kaigo_return', 'kaigo-master.html' + location.hash); } catch (e) {}
+    location.href = 'kaigo-login.html'; return;
+  }
   const uSnap = await db.collection('users').doc(user.uid).get();
   const role = uSnap.data()?.role;
   if (role !== 'admin') {
@@ -556,7 +565,10 @@ auth.onAuthStateChanged(async user => {
 function startApp() {
   KaigoConsult.loadSettings(db).then(() => { if (CS_CUR) renderConsultThread(); });   // 自動返信の文面
   startConsultWatch();
-  if (location.hash === '#consult') switchTab('consult');
+  loadQuickReplies();
+  const h = csParseHash();
+  if (h) { switchTab('consult'); CS_PENDING = h.id || undefined; }
+  else if (csIsMobile()) switchTab('consult');   // スマホで開くのはほぼ返信のため
   db.collection('facilities').orderBy('updatedAt','desc').onSnapshot(
     snap => {
       DATA = snap.docs.map(doc => {
@@ -965,6 +977,90 @@ document.head.appendChild(Object.assign(document.createElement('style'), { textC
   .cs-item-title { font-size:13px; font-weight:800; color:#1e293b; }
   .cs-item-sub { font-size:12px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .cs-msg-edit-act button.save { background:#5fb0de; }
+  .cs-item.unread { background:#fff7f8; box-shadow:inset 4px 0 0 #e88494; }
+  .only-sp { display:none; }
+  .cs-list-hd { flex-wrap:wrap; }
+  .cs-list-ttl { white-space:nowrap; }
+  .cs-hd-row { display:flex; align-items:center; gap:10px; }
+  .cs-hd-mark { min-width:34px; height:34px; padding:0 8px; border-radius:100px; color:#fff; font-weight:900; display:inline-flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+  .cs-hd-main { flex:1; min-width:0; }
+  .cs-hd-name { font-size:16px; font-weight:900; color:#1e293b; }
+  .cs-hd-hosp { font-size:14px; color:#475569; font-weight:700; margin-left:8px; }
+  .cs-hd-person { font-size:12px; color:#64748b; font-weight:400; margin-left:8px; }
+  .cs-hd-sub { font-size:12px; color:#94a3b8; }
+  .cs-hd-st { flex-shrink:0; }
+  .cs-back { display:none; align-items:center; gap:6px; flex-shrink:0; height:40px; padding:0 12px; border:1.5px solid #cbd5e1; border-radius:100px; background:#fff; font-family:inherit; font-size:14px; font-weight:800; color:#334155; cursor:pointer; }
+  .cs-cond-fold > summary { cursor:pointer; list-style:none; font-size:12px; font-weight:800; color:#475569; padding:2px 2px 8px; }
+  .cs-cond-fold > summary::-webkit-details-marker { display:none; }
+  .cs-cond-fold > summary::before { content:'▸ '; }
+  .cs-cond-fold[open] > summary::before { content:'▾ '; }
+  .cs-cond-fold[open] .hint { display:none; }
+  .cs-cond-fold .hint { font-weight:600; color:#94a3b8; }
+  .cs-composer { flex-shrink:0; border-top:1px solid #e2e8f0; background:#fff; padding:10px 16px 12px; }
+  .cs-composer.hidden { display:none; }
+  .cs-quick { display:flex; gap:6px; overflow-x:auto; padding:0 0 8px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .cs-quick::-webkit-scrollbar { display:none; }
+  .cs-quick button { flex:0 0 auto; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:inherit; font-size:12px; font-weight:700; color:#2c7ba6; background:#e4f2fa; border:1px solid #9ccfec; border-radius:100px; padding:6px 12px; cursor:pointer; }
+  .cs-quick button:hover { background:#d3eaf7; }
+  .cs-compose-row { display:flex; align-items:flex-end; gap:10px; }
+  .cs-reply-ta { flex:1; min-width:0; box-sizing:border-box; font-family:inherit; font-size:14px; line-height:1.6; padding:10px 14px; border:1.5px solid #cbd5e1; border-radius:16px; resize:none; height:48px; min-height:48px; max-height:200px; background:#fff; color:#1e293b; }
+  .cs-reply-ta:focus { outline:none; border-color:#5fb0de; box-shadow:0 0 0 3px rgba(95,176,222,.18); }
+  .cs-send { flex-shrink:0; height:48px; padding:0 22px; border:none; border-radius:100px; background:#5fb0de; color:#fff; font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; }
+  .cs-send:hover:not(:disabled) { background:#2c7ba6; }
+  .cs-send:disabled { opacity:.5; cursor:not-allowed; }
+  .cs-compose-meta { display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; font-size:12px; color:#64748b; }
+  .cs-status-sel { font-family:inherit; font-size:12px; border:1px solid #cbd5e1; border-radius:6px; padding:4px 6px; background:#fff; color:#334155; }
+  .cs-compose-hint { color:#94a3b8; }
+
+  /* スマホ：一覧とトークを1画面ずつ切り替える（LINE と同じ動き）。兵頭さんがスマホで返信できなかった件（2026-10-29） */
+  @media (max-width:760px) {
+    .only-pc { display:none !important; }
+    .only-sp { display:inline !important; }
+    .hdr { height:auto; min-height:52px; padding:6px 10px; gap:8px; }
+    .hdr-sub { display:none; }
+    .hdr-actions { gap:6px; }
+    .hdr-btn { padding:8px 10px; font-size:12px; }
+    .tabbar { overflow-x:auto; padding-left:4px !important; padding-right:4px !important; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+    .tabbar::-webkit-scrollbar { display:none; }
+    .tabbar .tab-btn { flex:0 0 auto; padding:12px 12px !important; font-size:13px !important; white-space:nowrap; }
+    #panel-consult .cs-list-pane { width:100% !important; border-right:none !important; }
+    .cs-list-hd { flex-wrap:wrap; row-gap:8px; padding:10px 12px !important; }
+    .cs-list-ttl { flex:1 1 100%; }
+    .cs-list-hd .cs-filter { margin-left:0 !important; flex:1 1 auto; }
+    .cs-list-hd .cs-filter, .cs-list-hd .cs-hd-btn { font-size:13px !important; padding:8px 10px !important; }
+    .cs-item { padding:14px 14px 14px 16px; }
+    .cs-item-top { margin-bottom:5px; }
+    .cs-item-date { font-size:12px; }
+    .cs-item-title { font-size:15px; line-height:1.5; }
+    .cs-item-sub { font-size:13px; margin-top:2px; }
+    #panel-consult .cs-room { display:none !important; position:fixed; left:0; right:0; top:0; height:100vh; height:100dvh; z-index:50; }
+    #panel-consult.show-room .cs-room, #panel-consult.show-sheet .cs-room { display:flex !important; }
+    #panel-consult.show-sheet #cs-thread-hd, #panel-consult.show-sheet #cs-thread, #panel-consult.show-sheet #cs-reply-box { display:none !important; }
+    #panel-consult.show-sheet .cs-sheet { flex:1; overflow-y:auto; border-bottom:none; padding:18px 16px calc(24px + env(safe-area-inset-bottom)); }
+    .cs-sheet textarea { font-size:16px !important; }
+    #cs-thread-hd { padding:8px 10px !important; }
+    .cs-back { display:inline-flex; }
+    .cs-hd-mark { display:none; }
+    .cs-hd-name { font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cs-hd-hosp { display:block; margin-left:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cs-hd-person, .cs-hd-sub { display:none; }
+    #cs-thread { padding:12px 10px 16px !important; overscroll-behavior:contain; }
+    .cs-msg { max-width:90%; }
+    .cs-msg-body { font-size:15px; padding:10px 13px; word-break:break-word; }
+    .cs-msg-act button { font-size:13px; padding:6px 4px; }
+    .cs-row { flex-direction:column; gap:4px; }
+    .cs-row-lbl { flex:none; padding-top:0; }
+    .cs-composer { padding:8px 10px calc(10px + env(safe-area-inset-bottom)); }
+    /* 16px 未満だと iPhone が入力のたびに画面を拡大してしまう */
+    .cs-reply-ta { font-size:16px; max-height:140px; }
+    .cs-send { padding:0 18px; font-size:15px; }
+    .cs-quick button { font-size:13px; padding:8px 13px; max-width:220px; }
+    .cs-compose-meta { margin-top:6px; font-size:13px; }
+    .cs-status-sel { font-size:14px; padding:6px 8px; }
+    .cs-compose-hint { display:none; }
+    .toast { left:50%; right:auto; bottom:calc(120px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(10px); max-width:calc(100% - 24px); text-align:center; z-index:9995; }
+    .toast.on { transform:translateX(-50%) translateY(0); }
+  }
 ` }));
 let CONSULTS = [];
 let CS_CUR = null;
@@ -973,6 +1069,21 @@ let CS_MSGS = [];         // 開いている相談のメッセージ（id 付き
 let CS_EDIT_MSG = null;   // 直しているメッセージ { mid, text }
 let CS_PREV_UNREAD = null;
 const CS_BASE_TITLE = document.title;
+// スマホでは一覧とトークを切り替える。LINE 通知のリンク（#consult/相談ID）からは、その相談を直接開く
+const CS_MQ = matchMedia('(max-width:760px)');
+function csIsMobile() { return CS_MQ.matches; }
+let CS_PENDING;              // リンクで指定された相談ID（一覧が届いたら開く）。undefined＝指定なし
+let CS_COND_OPEN = null;     // 相談条件の折りたたみ（null＝画面幅で決める：スマホは閉じる）
+const CS_DRAFTS = {};        // 書きかけの返信を相談ごとに持つ（別の相談に切り替えても混ざらないように）
+function csParseHash() {
+  const m = location.hash.match(/^#consult(?:\/([A-Za-z0-9_-]+))?$/);
+  return m ? { id: m[1] || null } : null;
+}
+function csPanel() { return document.getElementById('panel-consult'); }
+function csRoomVisible() {
+  const p = csPanel();
+  return !!CS_CUR && !p.classList.contains('hidden') && (!csIsMobile() || p.classList.contains('show-room'));
+}
 
 function startConsultWatch() {
   db.collection('consultations').orderBy('lastMessageAt', 'desc').limit(300).onSnapshot(s => {
@@ -986,6 +1097,14 @@ function startConsultWatch() {
     CS_PREV_UNREAD = unread;
     renderConsultList();
     if (CS_CUR) { renderConsultHead(); if (!CS_EDIT_MSG) renderConsultThread(); }
+    if (CS_PENDING !== undefined) {
+      const id = CS_PENDING; CS_PENDING = undefined;
+      if (CONSULTS.some(c => c.id === id)) openConsultThread(id);
+      else showToast('リンクの相談が見つかりませんでした（一覧から選んでください）');
+    }
+    // 開いて見ている相談に新しいメッセージが届いたら、その場で既読にする（未読バッジが残り続けないように）
+    const cur = CS_CUR && CONSULTS.find(c => c.id === CS_CUR);
+    if (cur && cur.unreadForAdmin && csRoomVisible() && document.visibilityState === 'visible') KaigoConsult.markRead(db, CS_CUR, 'admin').catch(() => {});
   }, err => { console.error(err); });
 }
 
@@ -1014,19 +1133,32 @@ function renderConsultList() {
 function renderConsultHead() {
   const c = CONSULTS.find(x => x.id === CS_CUR);
   if (!c) return;
+  const others = CONSULTS.filter(x => x.unreadForAdmin && x.id !== CS_CUR).length;
   document.getElementById('cs-thread-hd').innerHTML = `
-    <div class="flex items-center gap-3 flex-wrap">
-      <div class="flex items-center gap-3"><span style="min-width:34px;height:34px;padding:0 8px;border-radius:100px;background:${KaigoConsult.caseColor(c.id)};color:#fff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;font-size:12px">${esc(KaigoConsult.caseMark(c))}</span>
-      <div><div class="text-base font-black text-slate-800">${esc((window.CS_NAMES || {})[c.id] || KaigoConsult.caseName(c))}<span class="text-sm text-slate-600 font-bold ml-2">${esc(c.hospitalName || '病院名未設定')}</span><span class="text-xs text-slate-500 font-normal ml-2">${esc(c.createdByName || '')}</span></div>
-      <div class="text-xs text-slate-400">${KaigoConsult.fmtDate(c.createdAt)} 受信　病院ID: ${esc(c.hospitalId || '')}</div></div></div>
-      <div class="ml-auto">${KaigoConsult.statusBadge(c.status)}</div>
+    <div class="cs-hd-row">
+      <button type="button" class="cs-back" onclick="closeConsultRoom()" aria-label="相談一覧に戻る">← 一覧${others ? ` <span class="cs-unread">${others}</span>` : ''}</button>
+      <span class="cs-hd-mark" style="background:${KaigoConsult.caseColor(c.id)}">${esc(KaigoConsult.caseMark(c))}</span>
+      <div class="cs-hd-main">
+        <div class="cs-hd-name">${esc((window.CS_NAMES || {})[c.id] || KaigoConsult.caseName(c))}<span class="cs-hd-hosp">${esc(c.hospitalName || '病院名未設定')}</span><span class="cs-hd-person">${esc(c.createdByName || '')}</span></div>
+        <div class="cs-hd-sub">${KaigoConsult.fmtDate(c.createdAt)} 受信　病院ID: ${esc(c.hospitalId || '')}</div>
+      </div>
+      <div class="cs-hd-st">${KaigoConsult.statusBadge(c.status)}</div>
     </div>`;
   const sel = document.getElementById('cs-status');
   if (sel && document.activeElement !== sel) sel.value = c.status || 'open';
 }
 
 function openConsultThread(id) {
+  const ta = document.getElementById('cs-reply');
+  if (CS_CUR && CS_CUR !== id) CS_DRAFTS[CS_CUR] = ta.value;
+  if (CS_CUR !== id) { ta.value = CS_DRAFTS[id] || ''; csAutoGrow(ta); }
   CS_CUR = id;
+  csShowRoom(true);
+  if (csIsMobile()) {
+    // スマホの「戻る」（画面端のスワイプ・戻るボタン）で一覧に戻れるよう、履歴を1つ積む
+    if (history.state && history.state.csRoom) history.replaceState({ csRoom: id }, '', '#consult/' + id);
+    else { history.replaceState(null, '', '#consult'); history.pushState({ csRoom: id }, '', '#consult/' + id); }
+  } else history.replaceState(null, '', '#consult/' + id);
   renderConsultList();
   renderConsultHead();
   document.getElementById('cs-reply-box').classList.remove('hidden');
@@ -1044,7 +1176,9 @@ function renderConsultThread() {
   const body = document.getElementById('cs-thread');
   if (!body || !CS_CUR) return;
   const c = CONSULTS.find(x => x.id === CS_CUR);
-  body.innerHTML = KaigoConsult.conditionsHTML(c || {}) + KaigoConsult.messagesHTML(CS_MSGS, 'admin', {
+  if (CS_COND_OPEN === null) CS_COND_OPEN = !csIsMobile();
+  const cond = `<details class="cs-cond-fold"${CS_COND_OPEN ? ' open' : ''} ontoggle="CS_COND_OPEN=this.open"><summary>相談条件 <span class="hint">（タップで開く）</span></summary>${KaigoConsult.conditionsHTML(c || {})}</details>`;
+  body.innerHTML = cond + KaigoConsult.messagesHTML(CS_MSGS, 'admin', {
     fn: 'csMsg', purge: 'csMsgPurge', editingId: CS_EDIT_MSG && CS_EDIT_MSG.mid, editingText: CS_EDIT_MSG && CS_EDIT_MSG.text, autoReply: KaigoConsult.settings.autoReply,
   });
   if (!CS_EDIT_MSG) body.scrollTop = body.scrollHeight;
@@ -1107,6 +1241,7 @@ async function toggleNotifySettings() {
   const open = box.classList.contains('hidden');
   box.classList.toggle('hidden', !open);
   document.getElementById('cs-settings').classList.add('hidden');   // 自動返信パネルと同時に開かない
+  csSyncSheet();
   if (!open) { if (NT_UNSUB_LINE) { NT_UNSUB_LINE(); NT_UNSUB_LINE = null; } return; }
   try {
     const s = (await db.collection('meta').doc('notifySettings').get()).data() || {};
@@ -1146,7 +1281,13 @@ function toggleConsultSettings() {
   const box = document.getElementById('cs-settings');
   const open = box.classList.contains('hidden');
   box.classList.toggle('hidden', !open);
-  if (open) { document.getElementById('cs-notify').classList.add('hidden'); document.getElementById('cs-auto-reply').value = KaigoConsult.settings.autoReply; document.getElementById('cs-auto-reply').focus(); }
+  if (open) {
+    document.getElementById('cs-notify').classList.add('hidden');
+    document.getElementById('cs-auto-reply').value = KaigoConsult.settings.autoReply;
+    document.getElementById('cs-quick-edit').value = CS_QUICK.join('\n');
+    if (!csIsMobile()) document.getElementById('cs-auto-reply').focus();   // スマホでいきなりキーボードを出さない
+  }
+  csSyncSheet();
 }
 function resetConsultSettings() { document.getElementById('cs-auto-reply').value = KaigoConsult.AUTO_REPLY_DEFAULT; }
 async function saveConsultSettings() {
@@ -1155,11 +1296,17 @@ async function saveConsultSettings() {
   const text = ta.value.trim();
   if (!text) { showToast('文面を入力してください（空にはできません）'); ta.focus(); return; }
   if (text.length > 1000) { showToast('文面は1000文字以内にしてください'); return; }
+  const quick = document.getElementById('cs-quick-edit').value.split('\n').map(x => x.trim()).filter(Boolean);
+  if (quick.length > 12) { showToast('定型文は12個までにしてください'); return; }
+  if (quick.some(x => x.length > 200)) { showToast('定型文は1つ200文字以内にしてください'); return; }
   btn.disabled = true;
   try {
     await KaigoConsult.saveSettings(db, { uid: auth.currentUser.uid }, { autoReply: text });
+    await db.collection('meta').doc('quickReplies').set({ items: quick, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: auth.currentUser.uid });
+    CS_QUICK = quick.length ? quick : CS_QUICK_DEFAULT.slice();
+    renderQuickReplies();
     ta.value = KaigoConsult.settings.autoReply;
-    showToast('自動返信の文面を保存しました');
+    showToast('自動返信と定型文を保存しました');
     renderConsultThread();
   } catch (e) {
     console.error(e); showToast('保存に失敗しました: ' + (e.message || e));
@@ -1178,12 +1325,112 @@ async function sendConsultReply() {
     const cur = document.getElementById('cs-status').value;
     const status = cur === 'open' ? 'answered' : cur;
     await KaigoConsult.send(db, CS_CUR, 'admin', { uid: auth.currentUser.uid, name: 'Meets Medical' }, text, { status });
-    ta.value = '';
+    ta.value = ''; delete CS_DRAFTS[CS_CUR]; csAutoGrow(ta);
     showToast('返信を送りました');
   } catch (e) {
     console.error(e); showToast('返信に失敗しました: ' + (e.message || e));
   } finally { btn.disabled = false; }
 }
+
+// ── スマホ表示の切り替え・キーボード対応・定型文 ──
+function csShowRoom(on) {
+  csPanel().classList.toggle('show-room', on);
+  if (!on) document.getElementById('cs-reply').blur();
+  csFitViewport();
+}
+function closeConsultRoom() {
+  if (history.state && history.state.csRoom) { history.back(); return; }   // 端末の「戻る」と同じ動きにする（popstate で閉じる）
+  csShowRoom(false);
+  history.replaceState(null, '', '#consult');
+}
+window.addEventListener('hashchange', () => {
+  const h = csParseHash();
+  if (!h) return;
+  switchTab('consult');
+  if (h.id && h.id !== CS_CUR && CONSULTS.some(c => c.id === h.id)) openConsultThread(h.id);
+});
+window.addEventListener('popstate', () => {
+  const st = history.state;
+  if (st && st.csRoom) { if (CONSULTS.some(c => c.id === st.csRoom)) openConsultThread(st.csRoom); return; }
+  if (csPanel().classList.contains('show-room')) { csShowRoom(false); history.replaceState(null, '', '#consult'); }
+});
+function csSyncSheet() {
+  const open = !document.getElementById('cs-settings').classList.contains('hidden') || !document.getElementById('cs-notify').classList.contains('hidden');
+  csPanel().classList.toggle('show-sheet', open);
+  csFitViewport();
+}
+// iPhone はキーボードが出ても画面の高さが変わらず、返信欄がキーボードの裏に隠れる。見えている範囲（visualViewport）に合わせる
+function csFitViewport() {
+  const room = document.getElementById('cs-room');
+  const vv = window.visualViewport;
+  const p = csPanel();
+  if (!room) return;
+  if (!vv || !csIsMobile() || !(p.classList.contains('show-room') || p.classList.contains('show-sheet'))) { room.style.height = ''; room.style.top = ''; return; }
+  const th = document.getElementById('cs-thread');
+  const atBottom = th.scrollHeight - th.scrollTop - th.clientHeight < 60;
+  room.style.height = vv.height + 'px';
+  room.style.top = vv.offsetTop + 'px';
+  if (atBottom) th.scrollTop = th.scrollHeight;
+}
+if (window.visualViewport) { visualViewport.addEventListener('resize', csFitViewport); visualViewport.addEventListener('scroll', csFitViewport); }
+function csOnMqChange() { csFitViewport(); csSyncPlaceholder(); }
+if (CS_MQ.addEventListener) CS_MQ.addEventListener('change', csOnMqChange); else CS_MQ.addListener(csOnMqChange);   // 古い iOS は addListener だけ   // 古い iOS は addListener だけ
+document.addEventListener('visibilitychange', () => {
+  const cur = CS_CUR && CONSULTS.find(c => c.id === CS_CUR);
+  if (cur && cur.unreadForAdmin && csRoomVisible() && document.visibilityState === 'visible') KaigoConsult.markRead(db, CS_CUR, 'admin').catch(() => {});
+});
+function csSyncPlaceholder() {
+  const ta = document.getElementById('cs-reply');
+  if (!ta.dataset.pcPlaceholder) ta.dataset.pcPlaceholder = ta.placeholder;
+  ta.placeholder = csIsMobile() ? ta.dataset.spPlaceholder : ta.dataset.pcPlaceholder;
+}
+csSyncPlaceholder();
+function csAutoGrow(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(csIsMobile() ? 140 : 200, Math.max(48, ta.scrollHeight + 3)) + 'px';
+}
+function csReplyKey(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.isComposing) { e.preventDefault(); sendConsultReply(); }
+}
+// 返信の定型文（meta/quickReplies。管理者だけが読み書きする）
+const CS_QUICK_DEFAULT = [
+  'お問い合わせありがとうございます。確認して、こちらでご連絡します。',
+  '条件に合う施設を確認しています。少しお時間をください。',
+  '施設に空き状況を確認中です。分かりしだいお知らせします。',
+  '候補の施設が見つかりました。詳しい内容をお送りします。',
+  'お電話でご説明してもよろしいでしょうか。',
+  'ご連絡ありがとうございます。承知しました。',
+];
+let CS_QUICK = CS_QUICK_DEFAULT.slice();
+async function loadQuickReplies() {
+  try {
+    const d = (await db.collection('meta').doc('quickReplies').get()).data();
+    if (d && Array.isArray(d.items) && d.items.length) CS_QUICK = d.items.map(String).map(x => x.trim()).filter(Boolean).slice(0, 12);
+  } catch (e) { console.warn('quickReplies', e); }
+  renderQuickReplies();
+}
+function renderQuickReplies() {
+  const el = document.getElementById('cs-quick');
+  if (!el) return;
+  // mousedown を止めて、入力中のキーボードを閉じずに文を差し込む
+  el.innerHTML = CS_QUICK.map((t, i) => `<button type="button" onmousedown="event.preventDefault()" onclick="csInsertQuick(${i})" title="${esc(t)}">${esc(t)}</button>`).join('');
+  el.style.display = CS_QUICK.length ? '' : 'none';
+}
+function csInsertQuick(i) {
+  const ta = document.getElementById('cs-reply');
+  const t = CS_QUICK[i];
+  if (!ta || !t) return;
+  const focused = document.activeElement === ta;
+  const a = focused ? ta.selectionStart : ta.value.length, b = focused ? ta.selectionEnd : ta.value.length;
+  const before = ta.value.slice(0, a), after = ta.value.slice(b);
+  const sep = before && !before.endsWith('\n') ? '\n' : '';
+  ta.value = before + sep + t + after;
+  const pos = (before + sep + t).length;
+  ta.focus();
+  ta.setSelectionRange(pos, pos);
+  csAutoGrow(ta);
+}
+function resetQuickReplies() { document.getElementById('cs-quick-edit').value = CS_QUICK_DEFAULT.join('\n'); }
 
 async function changeConsultStatus(status) {
   if (!CS_CUR) return;
@@ -1192,6 +1439,7 @@ async function changeConsultStatus(status) {
 }
 
 function switchTab(name) {
+  if (name !== 'consult') csPanel().classList.remove('show-room', 'show-sheet');
   if (name === 'users') { loadHospitals(); loadCorporations(); loadUsers(); loadApplications(); }
   if (name === 'history') { loadSearchLogs(); }
   if (name === 'consult') { renderConsultList(); }
@@ -1200,6 +1448,7 @@ function switchTab(name) {
     document.getElementById(`panel-${t}`).classList.toggle('flex', t === name && t !== 'import');
     const btn = document.getElementById(`tab-${t}`);
     if (t === name) {
+      if (csIsMobile() && btn.scrollIntoView) btn.scrollIntoView({ block: 'nearest', inline: 'center' });
       btn.classList.add('border-[#5fb0de]','text-[#2c7ba6]');
       btn.classList.remove('border-transparent','text-slate-500');
     } else {

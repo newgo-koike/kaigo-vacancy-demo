@@ -136,10 +136,18 @@ async function doLogin() {
   }
 }
 
+// ログインが切れて飛ばされてきたとき、開こうとしていた画面（LINE 通知の相談リンクなど）へ戻す。
+// 行き先は自分のサイトのチャット画面だけに限る（外部 URL へ飛ばされないように）
+function takeReturn(re) {
+  let r = '';
+  try { r = sessionStorage.getItem('kaigo_return') || ''; sessionStorage.removeItem('kaigo_return'); } catch (e) {}
+  return re.test(r) ? r : '';
+}
+
 async function redirectByRole(user, isInitialPw) {
   const snap = await db.collection('users').doc(user.uid).get();
   const role = snap.data()?.role;
-  if (role === 'admin')    { location.href = 'kaigo-master.html'; return; }
+  if (role === 'admin')    { location.href = takeReturn(/^kaigo-master\.html(#consult(\/[A-Za-z0-9_-]+)?)?$/) || 'kaigo-master.html'; return; }
   if (role === 'hospital') {
     if (isInitialPw) {
       // 初期パスワードのまま：この回だけ目印を残し、先にパスワード変更ページへ（変更すると目印は消える）
@@ -148,7 +156,7 @@ async function redirectByRole(user, isInitialPw) {
       return;
     }
     try { sessionStorage.removeItem('kaigo_initial_pw'); } catch (e) {}
-    location.href = 'kaigo-search.html'; return;
+    location.href = takeReturn(/^kaigo-consult\.html(#[A-Za-z0-9_-]+)?$/) || 'kaigo-search.html'; return;
   }
   if (role === 'facility') {
     const fid = snap.data()?.facilityId;
