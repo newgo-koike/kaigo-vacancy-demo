@@ -51,6 +51,8 @@
         .kaigo-update b { font-size:15px; }
         .kaigo-update button { font-family:inherit; font-weight:900; font-size:14px; padding:9px 18px; border-radius:100px; border:2px solid #fff; background:#fff; color:#2b2b2b; cursor:pointer; }
         .kaigo-update button.later { background:transparent; color:#fff; font-weight:700; }
+        /* スマホは下端に返信欄があるので、お知らせは上に出す（送信ボタンを隠さない） */
+        @media (max-width:760px) { .kaigo-update { top:calc(10px + env(safe-area-inset-top)); bottom:auto; } }
         @media print { .kaigo-update { display:none; } }`;
       document.head.appendChild(st);
     }

@@ -25,7 +25,10 @@ const db = getFirestore();
 const LINE_CHANNEL_TOKEN = defineSecret('LINE_CHANNEL_TOKEN');
 const LINE_CHANNEL_SECRET = defineSecret('LINE_CHANNEL_SECRET');
 
-const ADMIN_URL = 'https://kaigo.meetsmedical.com/kaigo-master.html#consult';
+const ADMIN_URL = 'https://kaigo.meetsmedical.com/kaigo-master.html';
+// 通知のリンクはその相談を直接開く（#consult/相談ID）。LINE の中のブラウザだとログインし直しになりスマホで返信しづらかったため、
+// openExternalBrowser=1（LINE の仕様）で端末の標準ブラウザ（ログインしたまま）で開かせる（2026-10-29）
+function adminUrl(cid) { return `${ADMIN_URL}?openExternalBrowser=1#consult/${cid}`; }
 const DEFAULTS = { enabled: true, lineUserIds: [], cooldownSec: 60 };
 
 async function loadSettings() {
@@ -103,7 +106,7 @@ exports.notifyOnHospitalMessage = onDocumentCreated(
     const kind = kindLabel(m, c);
     const hosp = c.hospitalName || c.hospitalId || '病院';
     const body = settings.includeBody ? `\n\n${short(m.text, 100)}` : '';
-    const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}${body}\n\n管理画面で確認・返信：${ADMIN_URL}`;
+    const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}${body}\n\nこの相談を開いて返信：${adminUrl(cid)}`;
 
     const results = {};
     try { results.line = await sendLine(settings, line); } catch (e) { results.line = 'エラー: ' + (e.message || e); logger.error('line', e); }

@@ -256,6 +256,14 @@
     .chat-edit-ttl { font-size:15px; font-weight:900; margin:4px 0 6px; }
     .chat-edit-note { font-size:12.5px; color:var(--g600); margin-bottom:8px; line-height:1.6; }
     @media (max-width:640px) { .chat-stream { max-height:62vh; } .col-hd-link { margin-left:8px; } }
+    /* 送信直後・条件修正でこの欄に会話を出したとき、狭い画面で見出しが細かく折れないように */
+    @media (max-width:640px) {
+      .chat-thread-hd { flex-wrap:wrap; row-gap:4px; }
+      .chat-thread-hd > div { flex:1; min-width:0; }
+      .chat-thread-hd .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .chat-thread-hd .chat-case.dot { display:none !important; }
+      .chat-thread-hd a { flex-basis:100%; text-align:right; }
+    }
     /* 必須未入力の項目を赤く示す */
     .cs-grp.err .cs-grp-ttl { color:#b91c1c; }
     .cs-grp.err .cs-chips { outline:2px solid #fca5a5; outline-offset:6px; border-radius:6px; }
@@ -2322,6 +2330,11 @@ function chatShowWizard() {
   renderChat();
   const st = document.getElementById('chat-stream'); if (st) st.scrollTop = 0;
 }
+// 送信済みの相談を開く。スマホではこの欄が狭く読みにくいので、全画面のチャット管理（LINE と同じ形）で開く（2026-10-29）
+function chatGoCase(id) {
+  if (matchMedia('(max-width:760px)').matches) { location.href = 'kaigo-consult.html#' + id; return; }
+  chatOpenCase(id);
+}
 function chatOpenCase(id) {
   CHAT_VIEW = { ...CHAT_VIEW, mode: 'thread', caseId: id };
   CHAT_MSGS = []; CHAT_REPLY_DRAFT = ''; CHAT_EDIT = null; CHAT_EDIT_MSG = null;
@@ -2386,7 +2399,7 @@ function renderChat() {
   } else {
     // ── 上：新しい相談（条件を全部いっぺんにチェック） ──
     const unread = cases.filter(x => x.unreadForHospital);
-    if (unread.length) html += `<button type="button" class="chat-unread-bar" onclick="chatOpenCase('${unread[0].id}')">Meets Medical から返信が届いています（${unread.length}件）　→ 見る</button>`;
+    if (unread.length) html += `<button type="button" class="chat-unread-bar" onclick="chatGoCase('${unread[0].id}')">Meets Medical から返信が届いています（${unread.length}件）　→ 見る</button>`;
     // 見出しだけにして案内の吹き出しは出さない（兵頭さん 2026-10-02）
     html += '<div class="chat-sec-ttl">新しい相談を送る<span class="chat-sec-sub">（パンフレットのみ欲しいなど気軽にご相談ください。）</span></div>';
     html += chatFormHTML(CHAT, 'new');
@@ -2395,7 +2408,7 @@ function renderChat() {
     if (!cases.length) html += '<div class="chat-sys">まだ送信した相談はありません。上のフォームから送ると、ここに並びます</div>';
     cases.forEach(x => {
       const last = x.lastMessageBy === 'admin' ? 'Meets Medical: ' + (x.lastMessageText || '') : (x.messageCount > 1 ? '自分: ' + (x.lastMessageText || '') : '返信をお待ちください');
-      html += `<button type="button" class="chat-sent-item ${x.unreadForHospital ? 'unread' : ''}" style="--cc:${KaigoConsult.caseColor(x.id)}" onclick="chatOpenCase('${x.id}')">
+      html += `<button type="button" class="chat-sent-item ${x.unreadForHospital ? 'unread' : ''}" style="--cc:${KaigoConsult.caseColor(x.id)}" onclick="chatGoCase('${x.id}')">
         <span class="dot"></span>
         <span class="body"><span class="nm">${esc(NAMES[x.id])} ${KaigoConsult.statusBadge(x.status)}${x.unreadForHospital ? ' <span class="cs-unread">新着</span>' : ''}</span>
         <span class="sub">${esc(KaigoConsult.shortText(consultSummaryLines(x).replace(/\n/g, ' ／ '), 60))}</span>
