@@ -695,7 +695,7 @@
     <span class="hdr-user" id="hdr-user"></span>
     <a class="hdr-logout hdr-chat" href="kaigo-consult.html" id="hdr-consult-link" style="text-decoration:none;">チャット管理<span class="hdr-badge" id="hdr-consult-badge" style="display:none">0</span></a>
     <a class="hdr-logout" href="kaigo-hospital-members.html" style="text-decoration:none;">👥 担当者管理</a>
-    <button class="hdr-logout" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
+    <button class="hdr-logout" onclick="KaigoPush.signOut(firebase.auth()).then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
 </header>
 <div class="pw-banner" id="pw-banner">初期パスワード（ログインIDと同じ）のままです。相談の内容を他の人に見られないよう、新しいパスワードに変更してください。<a href="kaigo-hospital-members.html?initial=1#pw">変更する</a></div>
@@ -840,6 +840,7 @@
   <!-- 空室相談（トップページに常設。検索結果モードではモーダルに移る） -->
   <section class="consult-inline" id="consult-inline">
     <div class="col-hd-consult">B　空室相談（チャット）<span class="cs-unread b-unread" id="b-unread" style="display:none"></span><a class="col-hd-link" href="kaigo-consult.html">チャット管理を開く</a></div>
+    <div id="push-banner"></div>
     <div class="chat">
       <div class="chat-stream" id="chat-stream"></div>
       <div class="chat-composer" id="chat-composer"></div>
@@ -927,6 +928,7 @@
 <script src="kaigo-geo-data.js"></script>
 <script src="kaigo-brochure.js"></script>
 <script src="kaigo-consult.js"></script>
+<script src="kaigo-push.js"></script>
 <script src="kaigo-print.js"></script>
 <script>
 firebase.initializeApp({
@@ -971,6 +973,7 @@ auth.onAuthStateChanged(async user => {
   updateSaveBtnState();
   // 自動返信の文面（管理画面で変更できる）。病院ユーザーのチャットにだけ出す
   if (role === 'hospital') await KaigoConsult.loadSettings(db);
+  if (role === 'hospital') KaigoPush.init({ db, user, role, hospitalId: currentUser.hospitalId, hospitalName: hospName, name: person, mount: document.getElementById('push-banner'), toast: showToast });
   // チャット管理ページの「条件を修正」から来たとき（?case=ID&edit=1）：その件を開いてから修正画面へ
   const qp = new URLSearchParams(location.search);
   if (qp.get('case')) PENDING_CASE = { id: qp.get('case'), edit: qp.get('edit') === '1' };
@@ -2263,6 +2266,7 @@ function watchConsultBadge() {
       if (b) { b.style.display = unread ? 'inline-block' : 'none'; b.textContent = unread; }
       const bb = document.getElementById('b-unread');
       if (bb) { bb.style.display = unread ? 'inline-block' : 'none'; bb.textContent = `未読 ${unread}件`; }
+      KaigoPush.setBadge(unread);   // ホーム画面のアイコンの数字
       renderChat();
       if (PENDING_CASE && MY_CONSULTS.some(c => c.id === PENDING_CASE.id)) {
         const pc = PENDING_CASE; PENDING_CASE = null;

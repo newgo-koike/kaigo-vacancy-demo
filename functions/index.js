@@ -6,17 +6,23 @@
 //   notifyOnHospitalMessage … consultations/{cid}/messages/{mid} の作成を監視（by=hospital のときだけ送る）
 //   lineWebhook             … LINE 公式アカウントの Webhook。友だち追加・メッセージ・グループ招待を受けて
 //                             送り先候補（meta/lineUsers）に登録する。管理画面「通知先」で選ぶ
+//   notifyOnAdminMessage    … Meets 側の返信を、その病院でアプリの通知をオンにした端末へ送る（2026-10-30）
+//   pushSubCheck            … 端末が通知をオンにした直後と「テスト通知」のときに、その端末へ確認の通知を送る
+//
+// アプリの通知（2026-10-30 小池さん指示：ホーム画面のアプリに LINE のように届ける）は Web Push。
+// 宛先は Firestore pushSubs（端末がオンにしたとき自分で登録）。鍵は VAPID（公開鍵はページ側 kaigo-push.js と同じもの）
 //
 // 設定（Firestore meta/notifySettings、管理画面から編集）: { enabled, lineUserIds:[], cooldownSec }
-// 秘密情報（Secret Manager）: LINE_CHANNEL_TOKEN / LINE_CHANNEL_SECRET（LINE 公式アカウントの Messaging API）
+// 秘密情報（Secret Manager）: LINE_CHANNEL_TOKEN / LINE_CHANNEL_SECRET（LINE 公式アカウントの Messaging API）／VAPID_PRIVATE_KEY（アプリの通知）
 const { setGlobalOptions } = require('firebase-functions/v2');
-const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onDocumentCreated, onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
 const crypto = require('crypto');
+const webpush = require('web-push');
 
 initializeApp();
 setGlobalOptions({ region: 'asia-northeast1', maxInstances: 5 });
@@ -24,6 +30,8 @@ const db = getFirestore();
 
 const LINE_CHANNEL_TOKEN = defineSecret('LINE_CHANNEL_TOKEN');
 const LINE_CHANNEL_SECRET = defineSecret('LINE_CHANNEL_SECRET');
+const VAPID_PRIVATE_KEY = defineSecret('VAPID_PRIVATE_KEY');
+const VAPID_PUBLIC_KEY = 'BDkn9qlF4GH-s9dG06iBhU-xScv0kPAyEnvFhgiYT5RBG6nvrHSfT4SgX0_4LbKW3Rq0e2qo8qPQEjuSkCOV_Ms';
 
 const ADMIN_URL = 'https://kaigo.meetsmedical.com/kaigo-master.html';
 // 通知のリンクはその相談を直接開く（#consult/相談ID）。LINE の中のブラウザだとログインし直しになりスマホで返信しづらかったため、
@@ -78,8 +86,33 @@ async function sendLine(settings, text) {
   return `LINE ${ids.length}件`;
 }
 
+// アプリの通知（Web Push）。届かなくなった端末（404/410）は登録を消す。
+// url は通知を押したときに開く画面（Service Worker の場所からの相対。確認用 URL で入れたアプリでもそのサイトが開く）
+async function sendPush(docs, payload) {
+  if (!docs.length) return 'アプリ 0台';
+  const key = VAPID_PRIVATE_KEY.value();
+  if (!key) return 'アプリ 未設定';
+  webpush.setVapidDetails('https://kaigo.meetsmedical.com', VAPID_PUBLIC_KEY, key);
+  let ok = 0, gone = 0, ng = 0;
+  await Promise.all(docs.map(async d => {
+    const s = d.data();
+    try {
+      await webpush.sendNotification({ endpoint: s.endpoint, keys: s.keys }, JSON.stringify(payload), { TTL: 86400, urgency: 'high' });
+      ok++;
+    } catch (e) {
+      if (e.statusCode === 404 || e.statusCode === 410) { gone++; await d.ref.delete().catch(() => {}); }
+      else { ng++; logger.warn('push failed', { id: d.id, status: e.statusCode, body: String(e.body || e.message || e).slice(0, 200) }); }
+    }
+  }));
+  return `アプリ ${ok}台` + (gone ? `（無効${gone}台を削除）` : '') + (ng ? `（失敗${ng}台）` : '');
+}
+// ホーム画面のアイコンに出す未読の相談数（数えられなければ付けない）
+async function countOf(q) {
+  try { return (await q.count().get()).data().count; } catch (e) { logger.warn('count', e.message || e); return undefined; }
+}
+
 exports.notifyOnHospitalMessage = onDocumentCreated(
-  { document: 'consultations/{cid}/messages/{mid}', secrets: [LINE_CHANNEL_TOKEN] },
+  { document: 'consultations/{cid}/messages/{mid}', secrets: [LINE_CHANNEL_TOKEN, VAPID_PRIVATE_KEY] },
   async (event) => {
     const m = event.data && event.data.data();
     if (!m || m.by !== 'hospital') return;   // Meets 側の返信は通知しない（病院側はアプリ内のバッジ）
@@ -109,9 +142,58 @@ exports.notifyOnHospitalMessage = onDocumentCreated(
     const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}${body}\n\nこの相談を開いて返信：${adminUrl(cid)}`;
 
     const results = {};
+    const pushJob = (async () => {
+      const [subs, badge] = await Promise.all([db.collection('pushSubs').where('role', '==', 'admin').get(), countOf(db.collection('consultations').where('unreadForAdmin', '==', true))]);
+      return sendPush(subs.docs, {
+        title: `${kind}：${hosp}`,
+        body: settings.includeBody ? short(m.text, 100) : `${caseName(c)}　押すと開いて返信できます`,
+        url: `kaigo-master.html#consult/${cid}`, tag: `consult-${cid}`, badge,
+      });
+    })();
     try { results.line = await sendLine(settings, line); } catch (e) { results.line = 'エラー: ' + (e.message || e); logger.error('line', e); }
+    try { results.push = await pushJob; } catch (e) { results.push = 'エラー: ' + (e.message || e); logger.error('push', e); }
     logger.info('notified', { cid, kind, ...results });
-    await cref.update({ notify: { lastAt: Timestamp.now(), last: results.line } });
+    await cref.update({ notify: { lastAt: Timestamp.now(), last: `${results.line} / ${results.push}` } });
+  });
+
+// Meets 側の返信を病院へ（アプリの通知をオンにした、その病院の端末だけ）。LINE は病院側には送らない
+exports.notifyOnAdminMessage = onDocumentCreated(
+  { document: 'consultations/{cid}/messages/{mid}', secrets: [VAPID_PRIVATE_KEY] },
+  async (event) => {
+    const m = event.data && event.data.data();
+    if (!m || m.by !== 'admin' || m.kind) return;
+    const cid = event.params.cid;
+    const csnap = await db.doc(`consultations/${cid}`).get();
+    const c = csnap.exists ? csnap.data() : null;
+    if (!c || !c.hospitalId) return;
+    const subs = await db.collection('pushSubs').where('role', '==', 'hospital').where('hospitalId', '==', c.hospitalId).get();
+    if (subs.empty) return;
+    const settings = await loadSettings();
+    const badge = await countOf(db.collection('consultations').where('hospitalId', '==', c.hospitalId).where('unreadForHospital', '==', true));
+    const r = await sendPush(subs.docs, {
+      title: 'Meets Medical から返信',
+      body: settings.includeBody ? short(m.text, 100) : `${caseName(c)}　押すと開きます`,
+      url: `kaigo-consult.html#${cid}`, tag: `consult-${cid}`, badge,
+    });
+    logger.info('notified hospital', { cid, push: r });
+  });
+
+// 端末が通知をオンにした直後（新しく登録・別の人がログインし直した）と「テスト通知を送る」のときに、その端末へ1通送る。
+// 「オンにしたのに届かない」をその場で確かめられるように
+exports.pushSubCheck = onDocumentWritten(
+  { document: 'pushSubs/{sid}', secrets: [VAPID_PRIVATE_KEY] },
+  async (event) => {
+    const before = event.data.before.exists ? event.data.before.data() : null;
+    const after = event.data.after.exists ? event.data.after.data() : null;
+    if (!after) return;
+    const isNew = !before || before.uid !== after.uid || before.endpoint !== after.endpoint;
+    const isTest = !!after.testAt && !(before && before.testAt && before.testAt.isEqual && before.testAt.isEqual(after.testAt));
+    if (!isNew && !isTest) return;
+    const home = after.role === 'admin' ? 'kaigo-master.html#consult' : 'kaigo-consult.html';
+    const r = await sendPush([event.data.after], isTest
+      ? { title: 'テスト通知', body: 'この端末に通知が届いています。新しいメッセージもこのように届きます。', url: home, tag: 'kaigo-test' }
+      : { title: '通知がオンになりました', body: after.role === 'admin' ? '病院からの新しい相談・返信がこの端末に届きます。' : 'Meets Medical からの返信がこの端末に届きます。', url: home, tag: 'kaigo-test' });
+    logger.info('push check', { sid: event.params.sid, isNew, isTest, push: r });
   });
 
 // 相談番号の採番（2026-10-06 兵頭さん要望：名前欄をやめて自動番号で区別する）。

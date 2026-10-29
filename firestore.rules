@@ -86,6 +86,21 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // アプリの通知の宛先（2026-10-30）。端末で「通知をオンにする」を押した本人が自分の分を登録し、送るのは Cloud Functions（管理権限）。
+    // 文書ID は宛先 URL のハッシュ。同じ端末で別の人がログインし直したときに引き継げるよう、「自分の uid と自分の役割で上書き」なら更新できる
+    // （宛先 URL は端末しか知らないので、他人の端末の文書を狙って書き換えることはできない）。病院は自病院の分としてしか登録できない
+    match /pushSubs/{sid} {
+      allow read:   if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create, update: if signedIn()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.role == myRole()
+                    && (isAdmin() || (isHospital() && request.resource.data.hospitalId == myHospital()))
+                    && request.resource.data.endpoint is string
+                    && request.resource.data.endpoint.matches('https://.+')
+                    && request.resource.data.endpoint.size() < 1000;
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
     // 申請：作成は誰でも（申請フォーム）/ 閲覧・更新は管理者
     match /applications/{aid} {
       allow create: if true;

@@ -30,7 +30,7 @@
 
   <!-- ロゴ -->
   <div class="flex items-center gap-3 mb-7">
-    <div class="w-10 h-10 bg-white border-2 border-[#2b2b2b] rounded-lg flex items-center justify-center text-xl">🏥</div>
+    <div class="w-10 h-10 bg-white border-2 border-[#2b2b2b] rounded-lg flex items-center justify-center overflow-hidden"><img src="logo.png" alt="" class="w-full h-full object-contain"></div>
     <div>
       <div class="text-base font-bold text-slate-900 tracking-wide">介護施設空室検索システム</div>
       <div class="text-xs text-slate-400 tracking-widest">Powered by Meets Medical</div>
@@ -69,6 +69,7 @@
     <label class="flex items-center gap-2 text-xs text-slate-600 mb-4 cursor-pointer">
       <input id="keepInp" type="checkbox" class="w-4 h-4"> ログインしたままにする（自分専用の端末のときだけ）
     </label>
+    <p id="appNote" class="hidden text-xs text-slate-500 -mt-2 mb-4 leading-relaxed">ホーム画面のアプリから開いています。次からはアイコンを押すだけで、ログインせずに開けます。</p>
 
     <button id="loginBtn" onclick="doLogin()"
       class="w-full py-3.5 bg-[#e88494] hover:bg-[#e0707f] text-white font-black rounded-full text-base border-2 border-[#2b2b2b] transition-colors disabled:bg-slate-300 disabled:border-slate-300 disabled:cursor-not-allowed">
@@ -99,6 +100,12 @@ firebase.initializeApp({
 });
 const auth = firebase.auth();
 const db   = firebase.firestore();
+
+// ホーム画面に追加したアプリは本人のスマホに入れるもの。LINE のように開くたびのログインをなくすため、最初から「ログインしたまま」にする
+if (matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) {
+  document.getElementById('keepInp').checked = true;
+  document.getElementById('appNote').classList.remove('hidden');
+}
 
 // 既にログイン済みなら確認中のまま自動で遷移。未ログインのときだけフォームを表示する
 auth.onAuthStateChanged(async user => {

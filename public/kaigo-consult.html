@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>チャット管理 | 介護施設空室検索システム</title>
 <link rel="icon" href="logo.png">
 <style>
@@ -140,13 +140,14 @@
   <div class="hdr-right">
     <a class="hdr-btn primary" href="kaigo-search.html?consult=1">＋ 新しい相談</a>
     <a class="hdr-btn search" href="kaigo-search.html">検索に戻る</a>
-    <button class="hdr-btn ghost-mobile" onclick="firebase.auth().signOut().then(()=>location.href='kaigo-login.html')">ログアウト</button>
+    <button class="hdr-btn ghost-mobile" onclick="KaigoPush.signOut(firebase.auth()).then(()=>location.href='kaigo-login.html')">ログアウト</button>
   </div>
 </header>
 
 <div class="app" id="app">
   <aside class="talks">
     <div class="talks-hd">案件一覧 <span id="list-count"></span></div>
+    <div id="push-banner"></div>
     <div class="talks-list" id="list"><div class="talks-empty">読み込み中...</div></div>
   </aside>
   <section class="room">
@@ -170,6 +171,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="kaigo-consult.js"></script>
+<script src="kaigo-push.js"></script>
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyA2qWLQ8Zsn_5CQTOljPkpZxRsVfnIcoJ8",
@@ -206,7 +208,13 @@ auth.onAuthStateChanged(async user => {
   await KaigoConsult.loadSettings(db);   // 自動返信の文面（管理画面で変更できる）
   document.body.style.visibility = 'visible';
   watchList();
+  KaigoPush.init({ db, user, role: 'hospital', hospitalId: ME.hospitalId, hospitalName: hospName, name: person, mount: document.getElementById('push-banner'), toast: showToast });
 });
+// 通知を押したとき（この画面がすでに開いている）。読み直さずにその相談を開く
+window.kaigoOpenFromPush = hash => {
+  const id = String(hash || '').replace(/^#/, '');
+  if (id && ITEMS.some(x => x.id === id)) openThread(id, true);
+};
 
 function watchList() {
   db.collection('consultations').where('hospitalId', '==', ME.hospitalId).onSnapshot(s => {
@@ -214,6 +222,7 @@ function watchList() {
     const t = x => (x.lastMessageAt && x.lastMessageAt.toMillis) ? x.lastMessageAt.toMillis() : Date.now();
     ITEMS.sort((a, b) => t(b) - t(a));
     renderList();
+    KaigoPush.setBadge(ITEMS.filter(x => x.unreadForHospital).length);   // ホーム画面のアイコンの数字
     if (CUR) renderRoomHead();
     const cur = CUR && ITEMS.find(x => x.id === CUR);
     if (cur && cur.unreadForHospital && roomVisible() && document.visibilityState === 'visible') KaigoConsult.markRead(db, CUR, 'hospital').catch(() => {});
