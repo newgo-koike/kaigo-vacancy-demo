@@ -149,9 +149,9 @@ exports.notifyOnHospitalMessage = onDocumentCreated(
         body: settings.includeBody ? short(m.text, 100) : `${caseName(c)}　押すと開いて返信できます`,
         url: `kaigo-master.html#consult/${cid}`, tag: `consult-${cid}`, badge,
       });
-    })();
+    })().catch(e => { logger.error('push', e); return 'エラー: ' + (e.message || e); });   // LINE を待つ間に失敗しても、処理全体を落とさない（LINE は必ず送る）
     try { results.line = await sendLine(settings, line); } catch (e) { results.line = 'エラー: ' + (e.message || e); logger.error('line', e); }
-    try { results.push = await pushJob; } catch (e) { results.push = 'エラー: ' + (e.message || e); logger.error('push', e); }
+    results.push = await pushJob;
     logger.info('notified', { cid, kind, ...results });
     await cref.update({ notify: { lastAt: Timestamp.now(), last: `${results.line} / ${results.push}` } });
   });
