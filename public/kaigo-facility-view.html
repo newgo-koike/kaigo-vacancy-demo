@@ -546,12 +546,12 @@ function render(doc) {
   const photo = d.photoUrl || '';
   const heroContent = photo
     ? `<img src="${photo}" alt="${d.name||''}" loading="lazy">`
-    : `<div class="hero-placeholder">🏠</div>`;
+    : `<div class="hero-placeholder"><img src="brand/chatde-mark.svg" alt="" style="width:1em;height:1em;opacity:.5"></div>`;
 
   // ── 有料プランのフルページ ────────────────────────────────
   if (isPaid) {
     page.innerHTML = `
-      <div class="print-only"><div class="print-fac-hdr"><div class="print-fac-name">${d.name||''}<span>${d.type||''}</span></div><div class="print-hd">印刷日：${new Date().toLocaleDateString('ja-JP')}　介護施設検索システム</div></div></div>
+      <div class="print-only"><div class="print-fac-hdr"><div class="print-fac-name">${d.name||''}<span>${d.type||''}</span></div><div class="print-hd">印刷日：${new Date().toLocaleDateString('ja-JP')}　チャットde介護</div></div></div>
 
       <div class="hero">
         ${heroContent}
@@ -640,7 +640,7 @@ function render(doc) {
   } else {
     // ── 無料プラン（アクセス＋費用のみ） ─────────────────────
     page.innerHTML = `
-      <div class="print-only"><div class="print-fac-hdr"><div class="print-fac-name">${d.name||''}<span>${d.type||''}</span></div><div class="print-hd">印刷日：${new Date().toLocaleDateString('ja-JP')}　介護施設検索システム</div></div></div>
+      <div class="print-only"><div class="print-fac-hdr"><div class="print-fac-name">${d.name||''}<span>${d.type||''}</span></div><div class="print-hd">印刷日：${new Date().toLocaleDateString('ja-JP')}　チャットde介護</div></div></div>
 
       <div style="margin-bottom:20px">
         <h2 style="font-size:22px;font-weight:900;color:var(--g900);margin-bottom:8px">

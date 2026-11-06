@@ -209,7 +209,7 @@ async function loadFacility(id) {
   try {
     const doc = await db.collection('facilities').doc(id).get();
     if (!doc.exists) {
-      main.innerHTML = `<div class="err-page"><div class="err-ico">🏥</div><div class="err-ttl">施設が見つかりませんでした</div><div class="err-msg">URLをご確認いただくか、Meets Medicalまでお問い合わせください。</div></div>`;
+      main.innerHTML = `<div class="err-page"><div class="err-ico"><img src="brand/chatde-mark.svg" alt="" style="width:1em;height:1em;opacity:.5"></div><div class="err-ttl">施設が見つかりませんでした</div><div class="err-msg">URLをご確認いただくか、Meets Medicalまでお問い合わせください。</div></div>`;
       return;
     }
     currentDocData = doc.data();
@@ -277,7 +277,7 @@ function renderPage(doc) {
       <div class="sc-ttl">📷 施設の写真</div>
       ${currentPhotoUrl
         ? `<img class="photo-current" id="photo-current-img" src="${currentPhotoUrl}" alt="施設写真">`
-        : `<div class="photo-placeholder"><div class="photo-placeholder-ico">🏠</div><div class="photo-placeholder-txt">写真が未登録です</div></div>`
+        : `<div class="photo-placeholder"><div class="photo-placeholder-ico"><img src="brand/chatde-mark.svg" alt="" style="width:1em;height:1em;opacity:.5"></div><div class="photo-placeholder-txt">写真が未登録です</div></div>`
       }
       <button class="photo-change-btn" onclick="document.getElementById('photo-file-input').click()">
         📷 ${currentPhotoUrl ? '写真を変更する' : '写真をアップロードする'}

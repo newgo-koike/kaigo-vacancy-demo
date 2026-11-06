@@ -272,7 +272,7 @@
       <div>
         <h1>介護施設 資料 — 1件</h1>
       </div>
-      <div class="meta">出力日：${today}<br>Meets Medical 介護施設検索システム</div>
+      <div class="meta">出力日：${today}<br>Meets Medical チャットde介護</div>
       <button class="print-btn" onclick="window.print()">🖨 印刷・PDF</button>
     </div>
     ${body}
