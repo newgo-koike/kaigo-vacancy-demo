@@ -44,6 +44,8 @@ const ev = (by, extra) => ({ params: { cid: 'c1', mid: 'm1' }, data: { data: () 
   reset(); await fns.notifyOnHospitalMessage(ev('hospital'));
   check('LINE は1通・見出しはサービス名', sent.line.length === 1 && sent.line[0] === '【チャットde介護】新しい相談\n病院：テスト病院\n件名：No.14（10/29 22:14）\n\nこの相談を開いて返信：https://kaigo.meetsmedical.com/kaigo-master.html?openExternalBrowser=1#consult/c1');
   check('端末0台ならアプリ通知は0件', sent.push.length === 0);
+  // アプリ通知（Web Push）がまだ入っていない版（main）では、ここから先は確かめない
+  if (!fns.notifyOnAdminMessage) { console.log(ok ? '\nALL PASS（LINE のみ）' : '\nSOME FAILED'); process.exit(ok ? 0 : 1); }
   reset({ queryThrows: true }); await fns.notifyOnHospitalMessage(ev('hospital'));
   check('端末の読み込みが失敗しても LINE は送る', sent.line.length === 1);
   reset({ pushThrows: 500 }); sub('a1', { role: 'admin' }); await fns.notifyOnHospitalMessage(ev('hospital'));
