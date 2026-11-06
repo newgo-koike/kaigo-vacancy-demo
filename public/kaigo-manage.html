@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>空室情報更新</title>
+  <title>空室情報更新 | チャットde介護</title>
   <style>
     :root {
       --brand:#5fb0de; --brand-d:#2c7ba6;
@@ -21,7 +21,7 @@
     body { font-family:-apple-system,'Hiragino Sans',Arial,sans-serif; background:#fdfdfb; color:var(--g800); line-height:1.5; -webkit-font-smoothing:antialiased; visibility:hidden; }
 
     .hdr { background:#fdfdfb; border-bottom:1px solid #e7e7e3; padding:16px 20px; display:flex; align-items:center; gap:10px; }
-    .hdr-logo { width:30px; height:30px; background:#fff; border:2px solid #2b2b2b; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+    .hdr-logo { width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
     .hdr-title { font-size:14px; font-weight:800; color:#2b2b2b; }
     .hdr-sub { font-size:10px; color:var(--g400); }
 
@@ -123,15 +123,16 @@
 <!-- アプリとして入れられるようにする＋更新のお知らせ（2026-10-07） -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#5fb0de">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="brand/chatde-mark.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="介護施設検索">
+<meta name="apple-mobile-web-app-title" content="チャットde介護">
 <script src="kaigo-update-check.js" defer></script>
 </head>
 <body>
 
 <header class="hdr">
-  <div class="hdr-logo">🏠</div>
+  <div class="hdr-logo"><img src="brand/chatde-mark.svg" alt="" style="width:100%;height:100%"></div>
   <div>
     <div class="hdr-title">施設 空室情報更新</div>
     <div class="hdr-sub">施設担当者専用ページ</div>
@@ -208,7 +209,7 @@ async function loadFacility(id) {
   try {
     const doc = await db.collection('facilities').doc(id).get();
     if (!doc.exists) {
-      main.innerHTML = `<div class="err-page"><div class="err-ico">🏥</div><div class="err-ttl">施設が見つかりませんでした</div><div class="err-msg">URLをご確認いただくか、Meets Medicalまでお問い合わせください。</div></div>`;
+      main.innerHTML = `<div class="err-page"><div class="err-ico"><img src="brand/chatde-mark.svg" alt="" style="width:1em;height:1em;opacity:.5"></div><div class="err-ttl">施設が見つかりませんでした</div><div class="err-msg">URLをご確認いただくか、Meets Medicalまでお問い合わせください。</div></div>`;
       return;
     }
     currentDocData = doc.data();
@@ -276,7 +277,7 @@ function renderPage(doc) {
       <div class="sc-ttl">📷 施設の写真</div>
       ${currentPhotoUrl
         ? `<img class="photo-current" id="photo-current-img" src="${currentPhotoUrl}" alt="施設写真">`
-        : `<div class="photo-placeholder"><div class="photo-placeholder-ico">🏠</div><div class="photo-placeholder-txt">写真が未登録です</div></div>`
+        : `<div class="photo-placeholder"><div class="photo-placeholder-ico"><img src="brand/chatde-mark.svg" alt="" style="width:1em;height:1em;opacity:.5"></div><div class="photo-placeholder-txt">写真が未登録です</div></div>`
       }
       <button class="photo-change-btn" onclick="document.getElementById('photo-file-input').click()">
         📷 ${currentPhotoUrl ? '写真を変更する' : '写真をアップロードする'}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>管理者ダッシュボード | Meets Medical</title>
+  <title>管理者ダッシュボード | チャットde介護</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
@@ -24,6 +24,8 @@
     .hdr { flex-shrink:0; background:var(--g900); height:54px; padding:0 20px; display:flex; align-items:center; gap:10px; }
     .hdr-logo { width:28px; height:28px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
     .hdr-title { font-size:14px; font-weight:800; color:white; }
+    .hdr-mark { width:30px; height:30px; flex-shrink:0; display:block; }
+    .hdr-wm { height:17px; width:auto; display:block; }
     .hdr-sub { font-size:10px; color:var(--g400); }
     .hdr-actions { margin-left:auto; display:flex; gap:8px; }
     .hdr-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 13px; background:var(--brand); color:white; border:none; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; text-decoration:none; white-space:nowrap; transition:background .15s; }
@@ -118,17 +120,18 @@
 <!-- アプリとして入れられるようにする＋更新のお知らせ（2026-10-07） -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#5fb0de">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="brand/chatde-mark.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="介護施設検索">
+<meta name="apple-mobile-web-app-title" content="チャットde介護">
 <script src="kaigo-update-check.js" defer></script>
 </head>
 <body>
 
 <header class="hdr">
-  <div class="hdr-logo">🏥</div>
+  <img class="hdr-mark" src="brand/chatde-mark.svg" alt="">
   <div>
-    <div class="hdr-title">Meets Medical</div>
+    <img class="hdr-wm" src="brand/chatde-wordmark-white.svg" alt="チャットde介護">
     <div class="hdr-sub">管理者ダッシュボード</div>
   </div>
   <div class="hdr-actions">
@@ -907,7 +910,7 @@ function copyHospitalEmailText(code) {
   const h = HOSPITALS.find(x => x.code === code);
   if (!h) return;
   const lines = [
-    '【介護施設検索システム】ログイン情報のご案内',
+    '【チャットde介護】ログイン情報のご案内',
     '',
     `${h.name} 御中`,
     '',

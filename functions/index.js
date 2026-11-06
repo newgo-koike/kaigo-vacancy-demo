@@ -106,7 +106,7 @@ exports.notifyOnHospitalMessage = onDocumentCreated(
     const kind = kindLabel(m, c);
     const hosp = c.hospitalName || c.hospitalId || '病院';
     const body = settings.includeBody ? `\n\n${short(m.text, 100)}` : '';
-    const line = `【空室相談】${kind}\n病院：${hosp}\n件名：${caseName(c)}${body}\n\nこの相談を開いて返信：${adminUrl(cid)}`;
+    const line = `【チャットde介護】${kind}\n病院：${hosp}\n件名：${caseName(c)}${body}\n\nこの相談を開いて返信：${adminUrl(cid)}`;
 
     const results = {};
     try { results.line = await sendLine(settings, line); } catch (e) { results.line = 'エラー: ' + (e.message || e); logger.error('line', e); }
@@ -144,7 +144,7 @@ exports.lineWebhook = onRequest({ secrets: [LINE_CHANNEL_SECRET, LINE_CHANNEL_TO
         const prof = await fetch(`https://api.line.me/v2/bot/profile/${src.userId}`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null);
         await db.doc('meta/lineUsers').set({ [src.userId]: { type: 'user', displayName: (prof && prof.displayName) || '', at: FieldValue.serverTimestamp() } }, { merge: true });
         if (ev.replyToken && (ev.type === 'follow' || /登録|通知/.test(String(ev.message && ev.message.text || '')))) {
-          await fetch('https://api.line.me/v2/bot/message/reply', { method: 'POST', headers, body: JSON.stringify({ replyToken: ev.replyToken, messages: [{ type: 'text', text: `登録を受け付けました（${(prof && prof.displayName) || 'お名前未取得'}）。\n管理画面「チャット（空室相談）」→「通知先」でこの LINE を選ぶと、病院からの相談・返信がここに届きます。` }] }) });
+          await fetch('https://api.line.me/v2/bot/message/reply', { method: 'POST', headers, body: JSON.stringify({ replyToken: ev.replyToken, messages: [{ type: 'text', text: `チャットde介護の通知の登録を受け付けました（${(prof && prof.displayName) || 'お名前未取得'}）。\n管理画面「チャット（空室相談）」→「通知先」でこの LINE を選ぶと、病院からの相談・返信がここに届きます。` }] }) });
         }
       } else if ((src.type === 'group' || src.type === 'room') && (ev.type === 'join' || ev.type === 'message')) {
         const id = src.groupId || src.roomId;
