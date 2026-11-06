@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>介護施設検索</title>
+  <title>チャットde介護</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -40,6 +40,7 @@
     .hdr { flex-shrink:0; background:var(--paper); height:58px; padding:0 20px; display:flex; align-items:center; gap:12px; z-index:200; border-bottom:1px solid var(--hair); }
     .hdr-logo { width:38px; height:38px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .hdr-title { font-size:15px; font-weight:900; color:var(--ink); letter-spacing:.03em; }
+    .hdr-wm { height:22px; width:auto; display:block; }
     .hdr-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
     .hdr-user { font-size:12.5px; color:#8c8c8c; font-weight:500; }
     /* 電話で直接相談（兵頭さん 2026-10-07：全画面の上部に、できるだけ大きく） */
@@ -677,18 +678,19 @@
 <!-- アプリとして入れられるようにする＋更新のお知らせ（2026-10-07） -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#5fb0de">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="brand/chatde-mark.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="介護施設検索">
+<meta name="apple-mobile-web-app-title" content="チャットde介護">
 <script src="kaigo-update-check.js" defer></script>
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="hdr-logo"><img src="logo.png" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,.3))"></div>
+  <div class="hdr-logo"><img src="brand/chatde-mark.svg" alt="" style="width:100%;height:100%"></div>
   <div>
-    <div class="hdr-title">介護施設検索</div>
+    <div class="hdr-title"><img class="hdr-wm" src="brand/chatde-wordmark.svg" alt="チャットde介護"></div>
   </div>
   <a class="hdr-tel" href="tel:0677776252" title="Meets Medical に電話で相談"><span class="hdr-tel-lbl">電話で直接相談</span><span class="hdr-tel-num">06-7777-6252</span></a>
   <div class="hdr-right">
@@ -705,7 +707,7 @@
 
   <!-- ヒーロー（フルページ検索モードのみ表示） -->
   <div class="search-hero">
-    <div class="hero-icon"><img src="logo.png" alt="介護施設検索"></div>
+    <div class="hero-icon"><img src="brand/chatde-mark.svg" alt="チャットde介護"></div>
     <div>
       <div class="hero-title">施設を探す ／ 空室相談を送る</div>
       <div class="hero-sub">どちらか一方でOKです。<b>A</b>：条件を選んで施設を検索　<b>B</b>：「こんな方がいます」と Meets Medical に相談（受け入れ先を探してご連絡します）</div>
@@ -1866,7 +1868,7 @@ function printSelected() {
       <div>
         <h1>介護施設 資料 — ${selected.length}件</h1>
       </div>
-      <div class="meta">出力日：${today}<br>Meets Medical 介護施設検索システム</div>
+      <div class="meta">出力日：${today}<br>Meets Medical チャットde介護</div>
       <button class="print-btn" onclick="window.print()">🖨 印刷・PDF</button>
     </div>
     ${body}
