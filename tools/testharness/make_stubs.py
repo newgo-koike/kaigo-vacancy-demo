@@ -11,8 +11,9 @@ for src, dst in [("kaigo-search.html", "search-test.html"), ("kaigo-consult.html
         html = html.replace(t, '', 1)
     (DIST / dst).write_text(html, encoding="utf-8")
     (DIST / src).write_text(html, encoding="utf-8")   # ページ間のリンク（kaigo-search.html 等）がそのまま動くよう、本来の名前でも置く
-for f in ["kaigo-consult.js", "kaigo-brochure.js", "kaigo-print.js", "kaigo-facilities.json", "kaigo-geo-data.js", "kaigo-eki-data.js", "kaigo-cost-data.js", "logo.png", "kaigo-push.js", "sw.js", "kaigo-update-check.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"]:
+for f in ["kaigo-consult.js", "kaigo-brochure.js", "kaigo-print.js", "kaigo-facilities.json", "kaigo-geo-data.js", "kaigo-eki-data.js", "kaigo-cost-data.js", "logo.png", "kaigo-push.js", "sw.js", "kaigo-update-check.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "icon-maskable-512.png"]:
     if (PUB / f).exists():
         shutil.copy(PUB / f, DIST / f)
 shutil.copy(HERE / "fake-firebase.js", DIST / "fake-firebase.js")
+shutil.copytree(PUB / "brand", DIST / "brand", dirs_exist_ok=True)
 print("stubs:", ", ".join(p.name for p in sorted(DIST.iterdir())))

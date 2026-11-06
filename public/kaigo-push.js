@@ -130,7 +130,7 @@
   const ICON_BELL = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   function who() { return CTX && CTX.role === 'admin' ? '病院からの新しい相談・返信' : 'Meets Medical からの返信'; }
   function deniedHelp() {
-    if (IOS) return '「設定」アプリ →「通知」→「介護施設検索」でオンにできます。';
+    if (IOS) return '「設定」アプリ →「通知」→「チャットde介護」でオンにできます。';
     if (ANDROID) return standalone() ? 'アイコンを長押し →「アプリ情報」→「通知」でオンにできます。' : 'Chrome の右上のメニュー →「設定」→「サイトの設定」→「通知」で許可できます。';
     return 'アドレスバー左のマーク（サイト情報）から「通知」を許可にできます。';
   }
@@ -177,12 +177,12 @@
       'Safari でこの画面を開きます（LINE などのアプリの中ではなく Safari）',
       `画面下の「共有」ボタン ${ICON_SHARE} を押します（見当たらないときは「…」を押すと出てきます）`,
       `「ホーム画面に追加」${ICON_ADD} を押し、右上の「追加」を押します（見当たらないときは下にスクロール）`,
-      'ホーム画面にできた「介護施設検索」から開いて、ログインします（このアプリではログインしたままになります）',
+      'ホーム画面にできた「チャットde介護」から開いて、ログインします（このアプリではログインしたままになります）',
       '「通知をオンにする」を押して、「許可」を選びます',
     ] : ANDROID ? [
       'Chrome でこの画面を開きます',
       '右上のメニュー（縦の3つの点）→「ホーム画面に追加」または「アプリをインストール」を押します',
-      'ホーム画面にできた「介護施設検索」から開いて、ログインします',
+      'ホーム画面にできた「チャットde介護」から開いて、ログインします',
       '「通知をオンにする」を押して、「許可」を選びます',
     ] : [
       'Chrome または Edge でこの画面を開きます',

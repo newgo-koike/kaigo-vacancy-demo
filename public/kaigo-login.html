@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ログイン | 介護施設空室検索システム</title>
+  <title>ログイン | チャットde介護</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,20 +21,18 @@
 <!-- アプリとして入れられるようにする＋更新のお知らせ（2026-10-07） -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#5fb0de">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="brand/chatde-mark.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="介護施設検索">
+<meta name="apple-mobile-web-app-title" content="チャットde介護">
 <script src="kaigo-update-check.js" defer></script>
 </head>
 <body class="min-h-screen bg-[#fdfdfb] flex flex-col items-center justify-center p-5 font-sans">
 
   <!-- ロゴ -->
-  <div class="flex items-center gap-3 mb-7">
-    <div class="w-10 h-10 bg-white border-2 border-[#2b2b2b] rounded-lg flex items-center justify-center overflow-hidden"><img src="logo.png" alt="" class="w-full h-full object-contain"></div>
-    <div>
-      <div class="text-base font-bold text-slate-900 tracking-wide">介護施設空室検索システム</div>
-      <div class="text-xs text-slate-400 tracking-widest">Powered by Meets Medical</div>
-    </div>
+  <div class="flex flex-col items-center gap-1 mb-7">
+    <img src="brand/chatde-logo.svg" alt="チャットde介護　チャットで介護施設さがし" class="h-16 w-auto max-w-full">
+    <div class="text-xs text-slate-400 tracking-widest">Powered by Meets Medical</div>
   </div>
   <!-- 電話で直接相談（兵頭さん 2026-10-07：全画面の上部に） -->
   <a href="tel:0677776252" title="Meets Medical に電話で相談" class="flex items-center justify-center gap-2 mb-6 px-4 py-2 rounded-full border-2 border-[#e0707f] text-[#e0707f] no-underline"><span class="text-xs font-extrabold">電話で直接相談</span><span class="text-2xl font-black tracking-wide">06-7777-6252</span></a>

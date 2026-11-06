@@ -22,6 +22,8 @@
     .hdr { background:var(--g900); padding:0 20px; height:58px; display:flex; align-items:center; gap:10px; }
     .hdr-logo { width:30px; height:30px; background:var(--brand); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
     .hdr-title { font-size:14px; font-weight:800; color:white; }
+    .hdr-mark { width:30px; height:30px; flex-shrink:0; display:block; }
+    .hdr-wm { height:17px; width:auto; display:block; }
     .hdr-sub { font-size:10px; color:var(--g400); }
     .hdr-nav { margin-left:auto; }
     .hdr-nav a { color:var(--g400); font-size:12px; text-decoration:none; padding:6px 12px; border:1px solid var(--g700); border-radius:6px; }
@@ -119,9 +121,9 @@
 <body>
 
 <header class="hdr">
-  <div class="hdr-logo">🏥</div>
+  <img class="hdr-mark" src="brand/chatde-mark.svg" alt="">
   <div>
-    <div class="hdr-title">Meets Medical</div>
+    <img class="hdr-wm" src="brand/chatde-wordmark-white.svg" alt="チャットde介護">
     <div class="hdr-sub">施設登録（管理者専用）</div>
   </div>
   <div class="hdr-nav" style="display:flex;gap:8px;align-items:center">
