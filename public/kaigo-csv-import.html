@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CSVインポート | 施設データ管理</title>
+  <title>CSVインポート | チャットde介護 管理</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -18,7 +18,7 @@
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:'Noto Sans JP',sans-serif; background:var(--g50); color:var(--g800); min-height:100vh; display:flex; flex-direction:column; visibility:hidden; }
     .hdr { background:var(--g900); height:52px; padding:0 20px; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-    .hdr-logo { width:28px; height:28px; background:var(--brand); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+    .hdr-logo { width:28px; height:28px; background:transparent; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; }
     .hdr-title { font-size:14px; font-weight:700; color:white; }
     .hdr-back { margin-left:auto; background:transparent; border:1px solid var(--g600); color:var(--g400); font-size:12px; padding:5px 12px; border-radius:6px; cursor:pointer; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
     .hdr-back:hover { color:white; border-color:var(--g400); }
@@ -89,7 +89,7 @@
 <body>
 
 <header class="hdr">
-  <div class="hdr-logo">🏥</div>
+  <div class="hdr-logo"><img src="brand/chatde-mark.svg" alt="" style="width:100%;height:100%"></div>
   <div class="hdr-title">施設データ CSVインポート</div>
   <a href="kaigo-master.html" class="hdr-back">← 管理画面に戻る</a>
 </header>
